@@ -2,20 +2,21 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.0
+;; Version: 1.01
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
 ;; Functions to maintain a simple personal diary / journal in Emacs.
 ;; Feel free to use, modify and improve the code! - mtvoid, bastibe
 
-;; Some basic information before you get started: First, make sure
-;; this file is loaded when you start your Emacs session by copying it
-;; into your load path and adding the line (load "journal") into your
-;; .emacs. You also need to specify the directory where your journal
-;; files will be saved. You can do this by setting the variable
-;; journal-dir in your .emacs (remember to put a trailing
-;; slash). journal-dir is also a customizable variable.
+;; This file is also available from marmalade as
+;; http://marmalade-repo.org/packages/journal. After installing, add
+;; the line (require 'journal) to your .emacs or init.el to activate
+;; it. You also need to specify the directory where your journal files
+;; will be saved. You can do this by setting the variable journal-dir
+;; (remember to add a trailing slash). journal-dir is also a
+;; customizable variable. The default value for journal-dir is
+;; ~/Documents/journal/.
 ;;
 ;; Inside the journal directory, a separate file is created for each
 ;; day with a journal entry, with a filename in the format YYYYMMDD.
@@ -27,7 +28,7 @@
 ;;
 ;; You can browse through existing journal entries on disk via the
 ;; calendar. All dates for which an entry is present are highlighted.
-;; Pressing "j" will open it up for viewing. Pressing [ or ] will
+;; Pressing "j" will open it up for viewing. Pressing "[" or "]" will
 ;; select the date with the previous or next journal entry,
 ;; respectively. Pressing "J" will create a new entry for the chosen
 ;; date.
@@ -45,10 +46,10 @@
 'applications)
 (defcustom journal-dir "~/Documents/journal/" "Directory containing journal entries"
   :type 'string :group 'journal)
-(defcustom journal-date-format "* %A, %x%n"
+(defcustom journal-date-format "%A, %x%n"
   "Format string for date, by default YYYY-MM-DD."
   :type 'string :group 'journal)
-(defcustom journal-time-format "%n** %R "
+(defcustom journal-time-format "%R "
   "Format string for time, by default HH:MM. Set it to a blank string if you want to disable timestamps."
   :type 'string :group 'journal)
 
@@ -86,9 +87,9 @@
   (find-file (concat journal-dir (format-time-string "%Y%m%d")))
   (goto-char (point-max))
   (let ((unsaved (buffer-modified-p)))
-    (if (equal (point-max) 1) (insert (format-time-string journal-date-format)))
+    (if (equal (point-max) 1) (insert "* " (format-time-string journal-date-format)))
     (unless (eq (current-column) 0) (insert "\n"))
-    (insert (format-time-string journal-time-format))
+    (insert "\n** " (format-time-string journal-time-format))
     (hide-sublevels 2)
     (set-buffer-modified-p unsaved)))
 
@@ -109,11 +110,11 @@ If the date is not today, it won't be given a time."
     (find-file-other-window (concat journal-dir (format-time-string "%Y%m%d" time)))
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
-      (if (equal (point-max) 1) (insert (format-time-string journal-date-format time)))
+      (if (equal (point-max) 1) (insert "* " (format-time-string journal-date-format time)))
       (unless (eq (current-column) 0) (insert "\n"))
-      (insert (if (= (time-to-days (current-time)) (time-to-days time))
+      (insert "\n** " (if (= (time-to-days (current-time)) (time-to-days time))
                   (format-time-string journal-time-format)
-                "** "))
+                ""))
       (hide-sublevels 2)
       (set-buffer-modified-p unsaved))))
 

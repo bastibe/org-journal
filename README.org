@@ -3,23 +3,25 @@
 Adapted from http://www.emacswiki.org/PersonalDiary
 
 Functions to maintain a simple personal diary / journal in Emacs.
-Feel free to use, modify and improve the code! - mtvoid, bastibe
+Feel free to use, modify and improve the code!
+— mtvoid, bastibe
 
-Some basic information before you get started: First, make sure this
-file is loaded when you start your Emacs session by copying it into
-your load path and adding the line =(require 'journal)= into your
-.emacs. You also need to specify the directory where your journal
-files will be saved. You can do this by setting the variable
-journal-dir in your .emacs (remember to put a trailing slash).
-journal-dir is also a customizable variable.
+This file is also available from marmalade under the name [[http://marmalade-repo.org/packages/journal][journal]].
+After installing, add the line =(require 'journal)= to your /.emacs/
+or /init.el/ to activate it. You also need to specify the directory
+where your journal files will be saved. You can do this by setting the
+variable =journal-dir= (remember to add a trailing slash). journal-dir
+is also a customizable variable. The default value for =journal-dir=
+is =~/Documents/journal/=.
 
 Inside the journal directory, a separate file is created for each day
-with a journal entry, with a filename in the format YYYYMMDD. Each
+with a journal entry, with a filename in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with the date on the
-top, followed by the time. Any subsequent entries on the same day are
-written in the same file, with their own timestamp. You can customize
-the date and time formats (or remove them entirely). To start writing
-a journal entry, press =C-c j=.
+top, followed by a heading with the time. Any subsequent entries on
+the same day are written as additional headings in the same file, with
+their own time. You can customize the date and time formats (or
+remove them entirely). To start writing a journal entry, press =C-c
+j=.
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
