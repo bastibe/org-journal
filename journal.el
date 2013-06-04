@@ -19,7 +19,7 @@
 ;; ~/Documents/journal/.
 ;;
 ;; Inside the journal directory, a separate file is created for each
-;; day with a journal entry, with a filename in the format YYYYMMDD.
+;; day with a journal entry, with a file name in the format YYYYMMDD.
 ;; Each journal entry is an org-mode file that begins with the date on
 ;; the top, followed by the time. Any subsequent entries on the same
 ;; day are written in the same file, with their own timestamp. You can

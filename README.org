@@ -15,7 +15,7 @@ is also a customizable variable. The default value for =journal-dir=
 is =~/Documents/journal/=.
 
 Inside the journal directory, a separate file is created for each day
-with a journal entry, with a filename in the format /YYYYMMDD/. Each
+with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with the date on the
 top, followed by a heading with the time. Any subsequent entries on
 the same day are written as additional headings in the same file, with
