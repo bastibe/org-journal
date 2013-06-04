@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.01
+;; Version: 1.2.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -77,6 +77,8 @@
 ;; Journal mode definition
 (define-derived-mode journal-mode org-mode "Journal" "Mode for writing or viewing entries written in the journal"
   (turn-on-visual-line-mode)
+  (add-hook 'after-save-hook 'journal-redraw-calendar nil t)
+  (add-hook 'after-revert-hook 'journal-redraw-calendar nil t)
   (run-mode-hooks))
 
 ;; Creates a new entry
@@ -126,7 +128,7 @@ If the date is not today, it won't be given a time."
   "Loads the list of files in the journal directory, and converts it into a list of calendar DATE elements"
   (unless (file-exists-p journal-dir) (error "Journal directory %s not found" journal-dir))
   (setq journal-date-list
-	(mapcar '(lambda (journal-file)
+	(mapcar #'(lambda (journal-file)
 		   (let ((y (string-to-number (substring journal-file 0 4)))
 			 (m (string-to-number (substring journal-file 4 6)))
 			 (d (string-to-number (substring journal-file 6 8))))
@@ -165,6 +167,13 @@ If the date is not today, it won't be given a time."
     (while (and dates (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
     (if dates (calendar-goto-date (car dates)))))
+
+(defun journal-redraw-calendar ()
+  "Redraw the calendar with all current journal entries"
+  (save-window-excursion
+    (calendar)
+    (journal-mark-entries)
+    (calendar-exit)))
 
 (provide 'journal)
 
