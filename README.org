@@ -27,10 +27,11 @@ You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
 Pressing =j= will open it up for viewing. Pressing =[= or =]= will
 select the date with the previous or next journal entry, respectively.
-Pressing =J= will create a new entry for the chosen date.
+Pressing =i j= will create a new entry for the chosen date.
 
 Quick summary:
 To create a new journal entry: =C-c j=
+
 In calendar view:
 - =j= to view an entry
 - =i j= to add a new entry
