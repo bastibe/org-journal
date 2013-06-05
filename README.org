@@ -1,4 +1,4 @@
-* journal.el
+* org-journal.el
 
 Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -6,22 +6,22 @@ Functions to maintain a simple personal diary / journal in Emacs.
 Feel free to use, modify and improve the code!
 — mtvoid, bastibe
 
-This file is also available from marmalade under the name [[http://marmalade-repo.org/packages/journal][journal]].
-After installing, add the line =(require 'journal)= to your /.emacs/
-or /init.el/ to activate it. You also need to specify the directory
-where your journal files will be saved. You can do this by setting the
-variable =journal-dir= (remember to add a trailing slash). journal-dir
-is also a customizable variable. The default value for =journal-dir=
-is =~/Documents/journal/=.
+This file is also available from marmalade under the name
+[[http://marmalade-repo.org/packages/org-journal][org-journal]]. After
+installing, add the line =(require 'org-journal)= to your /.emacs/ or
+/init.el/ to activate it. You also need to specify the directory where
+your journal files will be saved. You can do this by setting the
+variable =org-journal-dir= (remember to add a trailing slash).
+=org-journal-dir= is also a customizable variable. The default value
+for =org-journal-dir= is =~/Documents/journal/=.
 
 Inside the journal directory, a separate file is created for each day
 with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with the date on the
 top, followed by a heading with the time. Any subsequent entries on
 the same day are written as additional headings in the same file, with
-their own time. You can customize the date and time formats (or
-remove them entirely). To start writing a journal entry, press =C-c
-j=.
+their own time. You can customize the date and time formats (or remove
+them entirely). To start writing a journal entry, press =C-c j=.
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
@@ -33,7 +33,7 @@ Quick summary:
 To create a new journal entry: =C-c j=
 In calendar view:
 - =j= to view an entry
-- =J= to add a new entry
+- =i j= to add a new entry
 - =[= to go to previous entry
 - =]= to go to next entry
 
@@ -46,7 +46,7 @@ A typical journal entry for a day would look like this:
   ** 10:28 Company meeting
   Endless discussions about projects. Not much progress
 
-  ** 11:33 Work on emacs-journal
+  ** 11:33 Work on org-journal
   For the longest time, I wanted to have a cool diary app on my
   computer. However, I simply lacked the right tool for that job. After
   many hours of searching, I finally found PersonalDiary on EmacsWiki.
@@ -57,7 +57,7 @@ A typical journal entry for a day would look like this:
   Thus, I spent the last two hours with making that diary use org-mode
   and represent every entry as an org-mode headline. Very cool!
 
-  ** 15:33 Work on emacs-journal
+  ** 15:33 Work on org-journal
   Now my journal automatically creates the right headlines (adds the
   current time stamp if on the current day, does not add a time stamp
   for any other day). Additionally, it automatically collapses the
@@ -65,6 +65,6 @@ A typical journal entry for a day would look like this:
   view mode, shows only headlines in new-entry-mode). Emacs and elisp
   are really cool!
 
-  ** 16:40 Work on emacs-journal
+  ** 16:40 Work on org-journal
   I uploaded my journal mode to marmalade and Github! Awesome!
 #+END_SRC
