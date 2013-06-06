@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.3
+;; Version: 1.3.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -148,6 +148,7 @@ If the date is not today, it won't be given a time."
   (if (file-exists-p (concat org-journal-dir org-journal-file))
       (progn
         (view-file-other-window (concat org-journal-dir org-journal-file))
+        (setq-local org-hide-emphasis-markers t)
         (org-show-subtree))
     (message "No journal entry for this date.")))
 
