@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.3.2
+;; Version: 1.3.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -73,8 +73,8 @@
 (define-key calendar-mode-map "]" 'org-journal-next-entry)
 (define-key calendar-mode-map "[" 'org-journal-previous-entry)
 (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
-(define-key org-journal-mode-map (kbd "C-c f") 'org-journal-next-entry)
-(define-key org-journal-mode-map (kbd "C-c b") 'org-journal-previous-entry)
+(define-key org-journal-mode-map (kbd "C-c f") 'org-journal-open-next-entry)
+(define-key org-journal-mode-map (kbd "C-c b") 'org-journal-open-previous-entry)
 (global-set-key "\C-cj" 'org-journal-new-entry)
 
 ;; Journal mode definition
@@ -123,7 +123,7 @@ If the date is not today, it won't be given a time."
       (hide-sublevels 2)
       (set-buffer-modified-p unsaved))))
 
-(defun org-journal-next-entry ()
+(defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one"
   (interactive)
   (let* ((date-string (file-name-nondirectory (buffer-file-name)))
@@ -145,7 +145,7 @@ If the date is not today, it won't be given a time."
           (org-show-subtree))
       (message "No next journal entry after this one"))))
 
-(defun org-journal-previous-entry ()
+(defun org-journal-open-previous-entry ()
   "Open the previous journal entry starting from a currently displayed one"
   (interactive)
   (let* ((date-string (file-name-nondirectory (buffer-file-name)))
