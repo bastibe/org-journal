@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.3.3
+;; Version: 1.3.4
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -68,6 +68,13 @@
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
+;; Journal mode definition
+(define-derived-mode org-journal-mode org-mode "Journal" "Mode for writing or viewing entries written in the journal"
+  (turn-on-visual-line-mode)
+  (add-hook 'after-save-hook 'org-journal-redraw-calendar nil t)
+  (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
+  (run-mode-hooks))
+
 ;; Key bindings
 (define-key calendar-mode-map "j" 'org-journal-read-entry)
 (define-key calendar-mode-map "]" 'org-journal-next-entry)
@@ -76,13 +83,6 @@
 (define-key org-journal-mode-map (kbd "C-c f") 'org-journal-open-next-entry)
 (define-key org-journal-mode-map (kbd "C-c b") 'org-journal-open-previous-entry)
 (global-set-key "\C-cj" 'org-journal-new-entry)
-
-;; Journal mode definition
-(define-derived-mode org-journal-mode org-mode "Journal" "Mode for writing or viewing entries written in the journal"
-  (turn-on-visual-line-mode)
-  (add-hook 'after-save-hook 'org-journal-redraw-calendar nil t)
-  (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
-  (run-mode-hooks))
 
 ;; Creates a new entry
 (defun org-journal-new-entry ()
