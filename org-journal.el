@@ -39,6 +39,8 @@
 ;;                   i j to add a new entry
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
+;; When viewing a calendar: C-c b to view previous entry
+;;                          C-c f to view next entry
 
 
 ; Customizable variables

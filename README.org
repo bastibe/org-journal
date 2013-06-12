@@ -38,6 +38,10 @@ In calendar view:
 - =[= to go to previous entry
 - =]= to go to next entry
 
+When viewing a journal entry:
+- =C-c f= to view next entry
+- =C-c b= to view previous entry
+
 A typical journal entry for a day would look like this:
 
 (it will actually look a lot nicer, depending on your org-mode settings)
