@@ -71,6 +71,8 @@
 (define-key calendar-mode-map "]" 'org-journal-next-entry)
 (define-key calendar-mode-map "[" 'org-journal-previous-entry)
 (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
+(define-key org-journal-mode-map (kbd "C-c f") 'org-journal-next-entry)
+(define-key org-journal-mode-map (kbd "C-c b") 'org-journal-previous-entry)
 (global-set-key "\C-cj" 'org-journal-new-entry)
 
 ;; Journal mode definition
@@ -118,6 +120,51 @@ If the date is not today, it won't be given a time."
                 ""))
       (hide-sublevels 2)
       (set-buffer-modified-p unsaved))))
+
+(defun org-journal-next-entry ()
+  "Open the next journal entry starting from a currently displayed one"
+  (interactive)
+  (let* ((date-string (file-name-nondirectory (buffer-file-name)))
+         (calendar-date (list (string-to-number (substring date-string 4 6))
+                              (string-to-number (substring date-string 6 8))
+                              (string-to-number (substring date-string 0 4))))
+         (dates org-journal-date-list))
+    (calendar-basic-setup nil t)
+    (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
+      (setq dates (cdr dates)))
+    (calendar-exit)
+    (if dates
+        (let* ((time (org-journal-calendar-date->time (car dates)))
+               (filename (concat org-journal-dir
+                                 (format-time-string "%Y%m%d" time))))
+          (if view-mode
+              (view-file filename)
+            (find-file filename))
+          (org-show-subtree))
+      (message "No next journal entry after this one"))))
+
+(defun org-journal-previous-entry ()
+  "Open the previous journal entry starting from a currently displayed one"
+  (interactive)
+  (let* ((date-string (file-name-nondirectory (buffer-file-name)))
+         (calendar-date (list (string-to-number (substring date-string 4 6))
+                              (string-to-number (substring date-string 6 8))
+                              (string-to-number (substring date-string 0 4))))
+         (view-mode view-mode)
+         (dates (reverse org-journal-date-list)))
+    (calendar-basic-setup nil t)
+    (while (and dates (calendar-date-compare (list calendar-date) dates))
+      (setq dates (cdr dates)))
+    (calendar-exit)
+    (if (and dates (cadr dates))
+        (let* ((time (org-journal-calendar-date->time (cadr dates)))
+               (filename (concat org-journal-dir
+                                 (format-time-string "%Y%m%d" time))))
+          (if view-mode
+              (view-file filename)
+            (find-file filename))
+          (org-show-subtree))
+      (message "No previous journal entry after this one"))))
 
 ;;
 ;; Functions to browse existing journal entries using the calendar
