@@ -15,13 +15,20 @@ variable =org-journal-dir= (remember to add a trailing slash).
 =org-journal-dir= is also a customizable variable. The default value
 for =org-journal-dir= is =~/Documents/journal/=.
 
+You can add all those calendar files to your org-agenda by adding
+=org-journal-dir= to =org-agenda-files= and setting
+=org-agenda-file-regexp= to include files with an all-numeric name
+(=\\`[^.].*\\.org'\\|[0-9]+=). That way, you can use org-agenda to
+search for /TODO/ items or tagged items in your org-journal.
+
 Inside the journal directory, a separate file is created for each day
 with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with the date on the
 top, followed by a heading with the time. Any subsequent entries on
 the same day are written as additional headings in the same file, with
-their own time. You can customize the date and time formats (or remove
-them entirely). To start writing a journal entry, press =C-c j=.
+their own time. You can customize the date and time formats using the
+variables =org-journal-date-format= and =org-journal-time-format=. To
+start writing a journal entry, press =C-c j=.
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
@@ -51,7 +58,7 @@ A typical journal entry for a day would look like this:
   ** 10:28 Company meeting
   Endless discussions about projects. Not much progress
 
-  ** 11:33 Work on org-journal
+  ** 11:33 Work on org-journal                                   :org-journal:
   For the longest time, I wanted to have a cool diary app on my
   computer. However, I simply lacked the right tool for that job. After
   many hours of searching, I finally found PersonalDiary on EmacsWiki.
@@ -62,7 +69,7 @@ A typical journal entry for a day would look like this:
   Thus, I spent the last two hours with making that diary use org-mode
   and represent every entry as an org-mode headline. Very cool!
 
-  ** 15:33 Work on org-journal
+  ** 15:33 Work on org-journal                                   :org-journal:
   Now my journal automatically creates the right headlines (adds the
   current time stamp if on the current day, does not add a time stamp
   for any other day). Additionally, it automatically collapses the
@@ -70,6 +77,8 @@ A typical journal entry for a day would look like this:
   view mode, shows only headlines in new-entry-mode). Emacs and elisp
   are really cool!
 
-  ** 16:40 Work on org-journal
+  ** 16:40 Work on org-journal                                   :org-journal:
   I uploaded my journal mode to marmalade and Github! Awesome!
+
+  ** TODO teach org-journal how to brew coffee                   :org-journal:
 #+END_SRC
