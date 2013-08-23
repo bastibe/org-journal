@@ -23,12 +23,21 @@ search for /TODO/ items or tagged items in your org-journal.
 
 Inside the journal directory, a separate file is created for each day
 with a journal entry, with a file name in the format /YYYYMMDD/. Each
-journal entry is an org-mode file that begins with the date on the
-top, followed by a heading with the time. Any subsequent entries on
-the same day are written as additional headings in the same file, with
-their own time. You can customize the date and time formats using the
-variables =org-journal-date-format= and =org-journal-time-format=. To
-start writing a journal entry, press =C-c j=.
+journal entry is an org-mode file that begins with a date entry on the
+top, followed by a entries for different times. Any subsequent entries
+on the same day are written as additional headings in the same file,
+with their own time. To start writing a journal entry, press =C-c j=.
+
+You can customize the date and time formats using the variables
+=org-journal-date-format= and =org-journal-time-format=. If you do not
+want to use org headings and sub-headings for date and time entries,
+customize =org-journal-date-prefix= and =org-journal-time-prefix=. For
+example, you could set =org-journal-date-prefix= to =#+TITLE:= in
+order to begin every file with a title instead of a heading. If you
+want to store your journal entries with different file names,
+customize =org-journal-file-format= and make sure that
+=org-journal-file-pattern= matches this format (the pattern is used to
+mark the calendar entries).
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
