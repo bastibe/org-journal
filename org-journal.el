@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4
+;; Version: 1.4.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -83,7 +83,8 @@ string if you want to disable timestamps."
 
 ;; Automatically switch to journal mode when opening a journal entry file
 (add-to-list 'auto-mode-alist
-             (cons (concat org-journal-dir "/" org-journal-file-pattern)
+             (cons (concat (file-truename org-journal-dir)
+                           org-journal-file-pattern)
                    'org-journal-mode))
 
 (require 'calendar)
