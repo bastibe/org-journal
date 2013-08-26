@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.1
+;; Version: 1.4.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -145,7 +145,7 @@ If the date is not today, it won't be given a time."
     (unless (file-exists-p org-journal-dir)
       (error "Journal directory %s not found" org-journal-dir))
     (find-file-other-window (concat org-journal-dir
-                                    (format-time-string "%Y%m%d" time)))
+                                    (format-time-string org-journal-file-format time)))
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
       (if (equal (point-max) 1)
