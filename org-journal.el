@@ -101,15 +101,20 @@ string if you want to disable timestamps."
   (run-mode-hooks))
 
 ;; Key bindings
-(define-key calendar-mode-map "j" 'org-journal-read-entry)
-(define-key calendar-mode-map "]" 'org-journal-next-entry)
-(define-key calendar-mode-map "[" 'org-journal-previous-entry)
-(define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
 (define-key org-journal-mode-map (kbd "C-c f") 'org-journal-open-next-entry)
 (define-key org-journal-mode-map (kbd "C-c b") 'org-journal-open-previous-entry)
+;;;###autoload
+(eval-after-load "calendar"
+  '(progn
+     (define-key calendar-mode-map "j" 'org-journal-read-entry)
+     (define-key calendar-mode-map "]" 'org-journal-next-entry)
+     (define-key calendar-mode-map "[" 'org-journal-previous-entry)
+     (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
+;;;###autoload
 (global-set-key "\C-cj" 'org-journal-new-entry)
 
 ;; Creates a new entry
+;;;###autoload
 (defun org-journal-new-entry ()
   "Open today's journal file and start a new entry"
   (interactive)
@@ -135,6 +140,7 @@ string if you want to disable timestamps."
                (car calendar-date)      ; month
                (caddr calendar-date)))  ; year
 
+;;;###autoload
 (defun org-journal-new-date-entry (arg &optional event)
   "Open the journal for the date indicated by point and start a new entry.
 If the date is not today, it won't be given a time."
@@ -230,6 +236,7 @@ If the date is not today, it won't be given a time."
     (if (calendar-date-is-visible-p journal-entry)
       (calendar-mark-visible-date journal-entry))))
 
+;;;###autoload
 (defun org-journal-read-entry ()
   "Open journal entry for selected date for viewing"
   (interactive)
@@ -244,6 +251,7 @@ If the date is not today, it won't be given a time."
         (org-show-subtree))
     (message "No journal entry for this date.")))
 
+;;;###autoload
 (defun org-journal-next-entry ()
   "Go to the next date with a journal entry"
   (interactive)
@@ -253,6 +261,7 @@ If the date is not today, it won't be given a time."
       (setq dates (cdr dates)))
     (if dates (calendar-goto-date (car dates)))))
 
+;;;###autoload
 (defun org-journal-previous-entry ()
   "Go to the previous date with a journal entry"
   (interactive)
