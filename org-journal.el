@@ -111,7 +111,7 @@ string if you want to disable timestamps."
      (define-key calendar-mode-map "[" 'org-journal-previous-entry)
      (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
 ;;;###autoload
-(global-set-key "\C-cj" 'org-journal-new-entry)
+(global-set-key (kbd "C-c j") 'org-journal-new-entry)
 
 ;; Creates a new entry
 ;;;###autoload
