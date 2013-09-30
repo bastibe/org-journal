@@ -113,13 +113,20 @@ string if you want to disable timestamps."
 ;;;###autoload
 (global-set-key (kbd "C-c j") 'org-journal-new-entry)
 
+(defun org-journal-dir-check-or-create ()
+  "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
+  (unless (file-exists-p org-journal-dir)
+    (if (yes-or-no-p (format "Journal directory %s not found. Create one? " org-journal-dir))
+        (make-directory org-journal-dir t)
+      (error "Journal directory is necessary to use org-journal.")))
+  t)
+
 ;; Creates a new entry
 ;;;###autoload
 (defun org-journal-new-entry ()
   "Open today's journal file and start a new entry"
   (interactive)
-  (unless (file-exists-p org-journal-dir)
-    (error "Journal directory %s not found" org-journal-dir))
+  (org-journal-dir-check-or-create)
   (find-file (concat org-journal-dir
                      (format-time-string org-journal-file-format)))
   (goto-char (point-max))
@@ -148,8 +155,7 @@ If the date is not today, it won't be given a time."
    (list current-prefix-arg last-nonmenu-event))
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
-    (unless (file-exists-p org-journal-dir)
-      (error "Journal directory %s not found" org-journal-dir))
+    (org-journal-dir-check-or-create)
     (find-file-other-window (concat org-journal-dir
                                     (format-time-string org-journal-file-format time)))
     (goto-char (point-max))
@@ -219,8 +225,7 @@ If the date is not today, it won't be given a time."
 (defun org-journal-get-list ()
   "Loads the list of files in the journal directory, and converts
   it into a list of calendar DATE elements"
-  (unless (file-exists-p org-journal-dir)
-    (error "Journal directory %s not found" org-journal-dir))
+  (org-journal-dir-check-or-create)
   (setq org-journal-date-list
 	(mapcar #'(lambda (journal-file)
 		   (let ((y (string-to-number (substring journal-file 0 4)))
