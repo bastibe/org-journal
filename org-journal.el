@@ -129,9 +129,26 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-hide-entries-p t
   "If true, org-journal-mode will hide all but the current entry
    when creating a new one.")
+
+(defcustom org-journal-enable-encryption nil
+  "If non-nil, New journal entries will have a
+`org-crypt-tag-matcher' tag for encrypting. Whenever a user
+saves/opens these journal entries, emacs asks a user passphrase
+to encrypt/decrypt it."
+  :type 'boolean :group 'org-journal)
+
+(defvar org-journal-date-list nil)
+(defvar org-journal-file)
+
+;; Automatically switch to journal mode when opening a journal entry file
+(add-to-list 'auto-mode-alist
+             (cons (concat (file-truename org-journal-dir)
+                           org-journal-file-pattern)
+                   'org-journal-mode))
 
 (require 'calendar)
 ;;;###autoload
@@ -192,13 +209,17 @@ without adding an entry."
          (entry-path-exists-p (file-exists-p entry-path))
          (should-add-entry-p (not prefix)))
     (find-file entry-path)
+    (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
 
       ;; empty file? Add a date timestamp
       (when (equal (point-max) 1)
         (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format)))
+                (format-time-string org-journal-date-format))
+        (when org-journal-enable-encryption
+          (org-set-tags-to org-crypt-tag-matcher)
+          (move-end-of-line nil)))
 
       ;; skip adding entry if a prefix is given
       (when should-add-entry-p
@@ -282,7 +303,6 @@ If the date is not today, it won't be given a time."
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
-        (view-mode-p view-mode)
         (dates org-journal-date-list))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
@@ -293,8 +313,9 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (find-file filename)
-          (view-mode (if view-mode-p 1 -1))
+
+          (apply (if view-mode 'view-file 'find-file) filename)
+          (org-journal-decrypt)
           (org-show-subtree))
       (message "No next journal entry after this one"))))
 
@@ -303,7 +324,6 @@ If the date is not today, it won't be given a time."
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
-        (view-mode-p view-mode)
         (dates (reverse org-journal-date-list)))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
@@ -314,8 +334,9 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (find-file filename)
-          (view-mode (if view-mode-p 1 -1))
+
+          (apply (if view-mode 'view-file 'find-file) filename)
+          (org-journal-decrypt)
           (org-show-subtree))
       (message "No previous journal entry before this one"))))
 
@@ -379,6 +400,7 @@ If the date is not today, it won't be given a time."
                 (view-mode)
                 (setq view-exit-action 'kill-buffer))
               (set (make-local-variable 'org-hide-emphasis-markers) t)
+              (org-journal-decrypt)
               (org-show-subtree))
             (if (not noselect)
                 (find-file-other-window org-journal-file)
@@ -598,6 +620,10 @@ org-journal-time-prefix."
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
+(defun org-journal-decrypt ()
+  (when (fboundp 'org-decrypt-entries)
+    (let ((buffer-read-only nil))
+      (org-decrypt-entries))))
 
 (provide 'org-journal)
 
