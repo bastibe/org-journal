@@ -77,6 +77,11 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
+
+(require 'org-crypt nil 'noerror)
+(when (fboundp 'org-crypt-use-before-save-magic)
+  (org-crypt-use-before-save-magic))
+
 (defcustom org-journal-enable-encryption nil
   "If non-nil, New journal entries will have a
 `org-crypt-tag-matcher' tag for encrypting. Whenever a user
