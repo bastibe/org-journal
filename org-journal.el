@@ -134,6 +134,10 @@ string if you want to disable timestamps."
   "If true, org-journal-mode will hide all but the current entry
    when creating a new one.")
 
+(require 'org-crypt nil 'noerror)
+(when (fboundp 'org-crypt-use-before-save-magic)
+  (org-crypt-use-before-save-magic))
+
 (defcustom org-journal-enable-encryption nil
   "If non-nil, New journal entries will have a
 `org-crypt-tag-matcher' tag for encrypting. Whenever a user
