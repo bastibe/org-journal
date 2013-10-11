@@ -78,6 +78,17 @@ string if you want to disable timestamps."
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
 
+(require 'org-crypt nil 'noerror)
+(when (fboundp 'org-crypt-use-before-save-magic)
+  (org-crypt-use-before-save-magic))
+
+(defcustom org-journal-enable-encryption nil
+  "If non-nil, New journal entries will have a
+`org-crypt-tag-matcher' tag for encrypting. Whenever a user
+saves/opens these journal entries, emacs asks a user passphrase
+to encrypt/decrypt it."
+  :type 'boolean :group 'org-journal)
+
 (defvar org-journal-date-list nil)
 (defvar org-journal-file)
 
@@ -129,11 +140,16 @@ string if you want to disable timestamps."
   (org-journal-dir-check-or-create)
   (find-file (concat org-journal-dir
                      (format-time-string org-journal-file-format)))
+  (org-journal-decrypt)
   (goto-char (point-max))
   (let ((unsaved (buffer-modified-p)))
-    (if (equal (point-max) 1)
+    (when (equal (point-max) 1)
         (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format)))
+                (format-time-string org-journal-date-format))
+        (when org-journal-enable-encryption
+          (insert (concat " :" org-crypt-tag-matcher ":")))
+        (org-set-tags nil t)
+        (move-end-of-line nil))
     (unless (eq (current-column) 0) (insert "\n"))
     (insert "\n" org-journal-time-prefix
             (format-time-string org-journal-time-format))
@@ -191,6 +207,7 @@ If the date is not today, it won't be given a time."
           (if view-mode
               (view-file filename)
             (find-file filename))
+          (org-journal-decrypt)
           (org-show-subtree))
       (message "No next journal entry after this one"))))
 
@@ -215,6 +232,7 @@ If the date is not today, it won't be given a time."
           (if view-mode
               (view-file filename)
             (find-file filename))
+          (org-journal-decrypt)
           (org-show-subtree))
       (message "No previous journal entry after this one"))))
 
@@ -253,6 +271,7 @@ If the date is not today, it won't be given a time."
       (progn
         (view-file-other-window (concat org-journal-dir org-journal-file))
         (setq-local org-hide-emphasis-markers t)
+        (org-journal-decrypt)
         (org-show-subtree))
     (message "No journal entry for this date.")))
 
@@ -282,6 +301,11 @@ If the date is not today, it won't be given a time."
     (calendar-basic-setup nil t)
     (org-journal-mark-entries)
     (calendar-exit)))
+
+(defun org-journal-decrypt ()
+  (when (fboundp 'org-decrypt-entries)
+    (let ((buffer-read-only nil))
+      (org-decrypt-entries))))
 
 (provide 'org-journal)
 
