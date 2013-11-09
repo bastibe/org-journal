@@ -242,19 +242,22 @@ If the date is not today, it won't be given a time."
       (calendar-mark-visible-date journal-entry))))
 
 ;;;###autoload
-(defun org-journal-read-entry ()
+(defun org-journal-read-entry (arg &optional event)
   "Open journal entry for selected date for viewing"
-  (interactive)
-  (setq org-journal-file
-        (int-to-string (+ (* 10000 (nth 2 (calendar-cursor-to-date)))
-                          (* 100 (nth 0 (calendar-cursor-to-date)))
-                          (nth 1 (calendar-cursor-to-date)))))
-  (if (file-exists-p (concat org-journal-dir org-journal-file))
-      (progn
-        (view-file-other-window (concat org-journal-dir org-journal-file))
-        (setq-local org-hide-emphasis-markers t)
-        (org-show-subtree))
-    (message "No journal entry for this date.")))
+  (interactive
+   (list current-prefix-arg last-nonmenu-event))
+
+  (let* ((time (org-journal-calendar-date->time
+                (calendar-cursor-to-date t event)))
+         (org-journal-file (concat org-journal-dir
+                                   (format-time-string org-journal-file-format time))))
+
+    (if (file-exists-p org-journal-file)
+        (progn
+          (view-file-other-window org-journal-file)
+          (setq-local org-hide-emphasis-markers t)
+          (org-show-subtree))
+      (message "No journal entry for this date."))))
 
 ;;;###autoload
 (defun org-journal-next-entry ()
