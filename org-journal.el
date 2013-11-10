@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.4
+;; Version: 1.4.5
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
