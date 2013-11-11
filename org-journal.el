@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.5
+;; Version: 1.4.6
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -189,9 +189,8 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (if view-mode-p
-              (view-file filename)
-            (find-file filename))
+          (find-file filename)
+          (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No next journal entry after this one"))))
 
@@ -213,9 +212,8 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (if view-mode-p
-              (view-file filename)
-            (find-file filename))
+          (find-file filename)
+          (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No previous journal entry after this one"))))
 
