@@ -178,6 +178,7 @@ If the date is not today, it won't be given a time."
          (calendar-date (list (string-to-number (substring date-string 4 6))
                               (string-to-number (substring date-string 6 8))
                               (string-to-number (substring date-string 0 4))))
+         (view-mode-p view-mode)
          (dates org-journal-date-list))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
@@ -188,7 +189,7 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (if view-mode
+          (if view-mode-p
               (view-file filename)
             (find-file filename))
           (org-show-subtree))
@@ -201,7 +202,7 @@ If the date is not today, it won't be given a time."
          (calendar-date (list (string-to-number (substring date-string 4 6))
                               (string-to-number (substring date-string 6 8))
                               (string-to-number (substring date-string 0 4))))
-         (view-mode view-mode)
+         (view-mode-p view-mode)
          (dates (reverse org-journal-date-list)))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
@@ -212,7 +213,7 @@ If the date is not today, it won't be given a time."
                (filename (concat org-journal-dir
                                  (format-time-string
                                   org-journal-file-format time))))
-          (if view-mode
+          (if view-mode-p
               (view-file filename)
             (find-file filename))
           (org-show-subtree))
