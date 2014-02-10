@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.7
+;; Version: 1.4.8
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -102,6 +102,7 @@ string if you want to disable timestamps."
 (defvar org-journal-date-list nil)
 (defvar org-journal-file)
 
+;;;###autoload (autoload 'calendar "org-journal")
 (require 'calendar)
 (add-hook 'calendar-initial-window-hook 'org-journal-get-list)
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
