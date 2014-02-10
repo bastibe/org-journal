@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.6
+;; Version: 1.4.7
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -43,22 +43,43 @@
 ;; When viewing a journal entry: C-c b to view previous entry
 ;;                               C-c f to view next entry
 
+;; use this function to update auto-mode-alist whenever
+;; org-journal-dir or org-journal-file-pattern change.
+(defun org-journal-update-auto-mode-alist ()
+  "Update auto-mode-alist to open journal files in
+  org-journal-mode"
+  (let ((name (concat (file-truename org-journal-dir)
+                      org-journal-file-pattern)))
+    (add-to-list 'auto-mode-alist
+                 (cons name 'org-journal-mode))))
 
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
   :group 'applications)
+;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
-  "Directory containing journal entries"
-  :type 'string :group 'org-journal)
+  "Directory containing journal entries.
+  Setting this will update auto-mode-alist using
+  `(org-journal-update-auto-mode-alist)`"
+  :type 'string :group 'org-journal
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (org-journal-update-auto-mode-alist)))
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names."
   :type 'string :group 'org-journal)
+;;;###autoload
 (defcustom org-journal-file-pattern "[0-9]\\{8\\}$"
   "Regex string for journal file names.
   This pattern is used to enable org-journal-mode for files in
-  org-journal-dir and mark journal entries in the calendar."
-  :type 'string :group 'org-journal)
+  org-journal-dir and mark journal entries in the calendar.
+  Setting this will update auto-mode-alist using
+  `(org-journal-update-auto-mode-alist)`"
+  :type 'string :group 'org-journal
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (org-journal-update-auto-mode-alist)))
 (defcustom org-journal-date-format "%A, %x"
   "Format string for date, by default \"WEEKDAY, DATE\", where
   DATE is what Emacs thinks is an appropriate way to format days
@@ -81,12 +102,6 @@ string if you want to disable timestamps."
 (defvar org-journal-date-list nil)
 (defvar org-journal-file)
 
-;; Automatically switch to journal mode when opening a journal entry file
-(add-to-list 'auto-mode-alist
-             (cons (concat (file-truename org-journal-dir)
-                           org-journal-file-pattern)
-                   'org-journal-mode))
-
 (require 'calendar)
 (add-hook 'calendar-initial-window-hook 'org-journal-get-list)
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
@@ -103,6 +118,7 @@ string if you want to disable timestamps."
 ;; Key bindings
 (define-key org-journal-mode-map (kbd "C-c f") 'org-journal-open-next-entry)
 (define-key org-journal-mode-map (kbd "C-c b") 'org-journal-open-previous-entry)
+
 ;;;###autoload
 (eval-after-load "calendar"
   '(progn
@@ -110,6 +126,7 @@ string if you want to disable timestamps."
      (define-key calendar-mode-map "]" 'org-journal-next-entry)
      (define-key calendar-mode-map "[" 'org-journal-previous-entry)
      (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
+
 ;;;###autoload
 (global-set-key (kbd "C-c j") 'org-journal-new-entry)
 
