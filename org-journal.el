@@ -156,7 +156,8 @@ string if you want to disable timestamps."
     (insert "\n" org-journal-time-prefix
             (format-time-string org-journal-time-format))
     (hide-sublevels 2)
-    (set-buffer-modified-p unsaved)))
+    (set-buffer-modified-p unsaved))
+  (org-journal-mode))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
