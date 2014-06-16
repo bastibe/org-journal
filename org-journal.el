@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.8
+;; Version: 1.4.9
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -45,6 +45,7 @@
 
 ;; use this function to update auto-mode-alist whenever
 ;; org-journal-dir or org-journal-file-pattern change.
+;;;###autoload
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
@@ -52,6 +53,9 @@
                       org-journal-file-pattern)))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
+;;;###autoload
+(add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
+
 
 ; Customizable variables
 (defgroup org-journal nil
@@ -102,10 +106,12 @@ string if you want to disable timestamps."
 (defvar org-journal-date-list nil)
 (defvar org-journal-file)
 
-;;;###autoload (autoload 'calendar "org-journal")
 (require 'calendar)
+;;;###autoload
 (add-hook 'calendar-initial-window-hook 'org-journal-get-list)
+;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
+;;;###autoload
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
 ;; Journal mode definition
@@ -240,6 +246,7 @@ If the date is not today, it won't be given a time."
 ;; Functions to browse existing journal entries using the calendar
 ;;
 
+;;;###autoload
 (defun org-journal-get-list ()
   "Loads the list of files in the journal directory, and converts
   it into a list of calendar DATE elements"
@@ -253,6 +260,7 @@ If the date is not today, it won't be given a time."
 		   (directory-files org-journal-dir nil org-journal-file-pattern nil)))
   (calendar-redraw))
 
+;;;###autoload
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a diary entry is present"
   (dolist (journal-entry org-journal-date-list)
