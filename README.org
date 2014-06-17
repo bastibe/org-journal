@@ -6,11 +6,9 @@ Functions to maintain a simple personal diary / journal in Emacs.
 Feel free to use, modify and improve the code!
 — mtvoid, bastibe
 
-This file is also available from marmalade under the name
-[[http://marmalade-repo.org/packages/org-journal][org-journal]]. After
-installing, add the line =(require 'org-journal)= to your /.emacs/ or
-/init.el/ to activate it. You also need to specify the directory where
-your journal files will be saved. You can do this by setting the
+This file is also available from [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]
+under the name org-journal. You may also want to specify the directory
+where your journal files will be saved. You can do this by setting the
 variable =org-journal-dir= (remember to add a trailing slash).
 =org-journal-dir= is also a customizable variable. The default value
 for =org-journal-dir= is =~/Documents/journal/=.
@@ -35,9 +33,7 @@ customize =org-journal-date-prefix= and =org-journal-time-prefix=. For
 example, you could set =org-journal-date-prefix= to =#+TITLE:= in
 order to begin every file with a title instead of a heading. If you
 want to store your journal entries with different file names,
-customize =org-journal-file-format= and make sure that
-=org-journal-file-pattern= matches this format (the pattern is used to
-mark the calendar entries).
+customize =org-journal-file-format=.
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
@@ -91,3 +87,32 @@ A typical journal entry for a day would look like this:
 
   ** TODO teach org-journal how to brew coffee                   :org-journal:
 #+END_SRC
+
+** Changelog
+
+- 2013-06-04 V1.0 Bastian Bechtold
+  Initial working prototype. More or less simply an extension of personal-diary with org-mode files.
+
+- 2013-06-12 V1.3.4 Bastian Bechtold
+  Several bug fixes and documentation improvements.
+
+- 2013-08-23 V1.4 Bastian Bechtold
+  Now supports more customization
+
+- 2013-09-17 V1.4.3 Bastian Bechtold
+  Several bugfixes and autoloading (which kind of mostly works)
+
+- 2013-10-02 V1.4.4 Bastian Bechtold
+  Create org-journal directory if not present (thank you, Donghyun Cho!)
+
+- 2013-11-10 V1.4.8 Bastian Bechtold
+  Fixed opening of journal files for reading (thank you, Matthew M. Keeler!)
+  View mode now stays active when switching between files (thank you, Matthew M. Keeler!)
+  Some autoload fixes
+
+- 2014-03-10 V1.4.8 Bastian Bechtold
+  Some bug fixes on opening files (thank you, Ram Raghunathan!)
+
+- 2014-06-17 V1.5 Bastian Bechtold
+  Some more bug fixes for autoloading
+  Simplified setup by auto generating the file pattern from the file format.

@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.4.9
+;; Version: 1.5.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -53,9 +53,27 @@
                       org-journal-file-pattern)))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
+
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 
+(defvar org-journal-date-list nil)
+(defvar org-journal-file-pattern
+  "\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$")
+
+;;;###autoload
+(defun org-journal-format-string->regex (format-string)
+  "Update org-journal-file-pattern with the current
+  org-journal-file-format"
+  (concat
+   "^"
+   (replace-regexp-in-string
+    "%d" "\\\\(?3:[0-9][0-9]\\\\)"
+    (replace-regexp-in-string
+     "%m" "\\\\(?2:[0-9][0-9]\\\\)"
+     (replace-regexp-in-string
+      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
+   "$"))
 
 ; Customizable variables
 (defgroup org-journal nil
@@ -70,24 +88,20 @@
   :set (lambda (symbol value)
          (set-default symbol value)
          (org-journal-update-auto-mode-alist)))
-(defcustom org-journal-file-format "%Y%m%d"
-  "Format string for journal file names.
-  This pattern must include `%Y`, `%m` and `%d` and match
-  `org-journal-file-pattern`"
-  :type 'string :group 'org-journal)
 ;;;###autoload
-(defcustom org-journal-file-pattern
-  "\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$"
-  "Regex string for journal file names.
-  This pattern is used to enable org-journal-mode for files in
-  org-journal-dir and mark journal entries in the calendar. This
-  pattern must include three capture groups for the four-digit
-  year, the two-digit month and the two-digit day. Setting this
-  will update auto-mode-alist using
-  `(org-journal-update-auto-mode-alist)`"
+(defcustom org-journal-file-format "%Y%m%d"
+  "Format string for journal file names, by default \"YYYYMMDD\".
+  This pattern must include `%Y`, `%m` and `%d`. Setting this
+  will update the internal `org-journal-file-pattern` to a regex
+  that matches the format string using
+  `(org-journal-format-string->regex format-string)`, and update
+  `auto-mode-alist` using
+  `(org-journal-update-auto-mode-alist)`."
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
+         (setq org-journal-file-pattern
+               (org-journal-format-string->regex value))
          (org-journal-update-auto-mode-alist)))
 (defcustom org-journal-date-format "%A, %x"
   "Format string for date, by default \"WEEKDAY, DATE\", where
@@ -107,9 +121,6 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
-
-(defvar org-journal-date-list nil)
-(defvar org-journal-file)
 
 (require 'calendar)
 ;;;###autoload
