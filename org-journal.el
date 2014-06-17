@@ -71,14 +71,19 @@
          (set-default symbol value)
          (org-journal-update-auto-mode-alist)))
 (defcustom org-journal-file-format "%Y%m%d"
-  "Format string for journal file names."
+  "Format string for journal file names.
+  This pattern must include `%Y`, `%m` and `%d` and match
+  `org-journal-file-pattern`"
   :type 'string :group 'org-journal)
 ;;;###autoload
-(defcustom org-journal-file-pattern "[0-9]\\{8\\}$"
+(defcustom org-journal-file-pattern
+  "\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$"
   "Regex string for journal file names.
   This pattern is used to enable org-journal-mode for files in
-  org-journal-dir and mark journal entries in the calendar.
-  Setting this will update auto-mode-alist using
+  org-journal-dir and mark journal entries in the calendar. This
+  pattern must include three capture groups for the four-digit
+  year, the two-digit month and the two-digit day. Setting this
+  will update auto-mode-alist using
   `(org-journal-update-auto-mode-alist)`"
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
@@ -167,10 +172,30 @@ string if you want to disable timestamps."
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
-  (encode-time 0 0 0                    ; second, minute, hour
-               (cadr calendar-date)     ; day
-               (car calendar-date)      ; month
-               (caddr calendar-date)))  ; year
+  (encode-time 0 0 0                   ; second, minute, hour
+               (nth 1 calendar-date)   ; day
+               (nth 0 calendar-date)   ; month
+               (nth 2 calendar-date))) ; year
+
+(defun org-journal-file-name->calendar-date (file-name)
+  "Convert an org-journal file name to a calendar date.
+   If org-journal-file-pattern does not contain capture groups,
+   fall back to the old behavior of taking substrings."
+  (if (and (integerp (string-match "\(\?1:" org-journal-file-pattern))
+           (integerp (string-match "\(\?2:" org-journal-file-pattern))
+           (integerp (string-match "\(\?3:" org-journal-file-pattern)))
+      (list (string-to-number (replace-regexp-in-string
+                               org-journal-file-pattern "\\2"
+                               file-name))
+            (string-to-number (replace-regexp-in-string
+                               org-journal-file-pattern "\\3"
+                               file-name))
+            (string-to-number (replace-regexp-in-string
+                               org-journal-file-pattern "\\1"
+                               file-name)))
+    (list (string-to-number (substring file-name 4 6))
+          (string-to-number (substring file-name 6 8))
+          (string-to-number (substring file-name 0 4)))))
 
 ;;;###autoload
 (defun org-journal-new-date-entry (arg &optional event)
@@ -199,12 +224,10 @@ If the date is not today, it won't be given a time."
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one"
   (interactive)
-  (let* ((date-string (file-name-nondirectory (buffer-file-name)))
-         (calendar-date (list (string-to-number (substring date-string 4 6))
-                              (string-to-number (substring date-string 6 8))
-                              (string-to-number (substring date-string 0 4))))
-         (view-mode-p view-mode)
-         (dates org-journal-date-list))
+  (let ((calendar-date (org-journal-file-name->calendar-date
+                        (file-name-nondirectory (buffer-file-name))))
+        (view-mode-p view-mode)
+        (dates org-journal-date-list))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
@@ -222,12 +245,10 @@ If the date is not today, it won't be given a time."
 (defun org-journal-open-previous-entry ()
   "Open the previous journal entry starting from a currently displayed one"
   (interactive)
-  (let* ((date-string (file-name-nondirectory (buffer-file-name)))
-         (calendar-date (list (string-to-number (substring date-string 4 6))
-                              (string-to-number (substring date-string 6 8))
-                              (string-to-number (substring date-string 0 4))))
-         (view-mode-p view-mode)
-         (dates (reverse org-journal-date-list)))
+  (let ((calendar-date (org-journal-file-name->calendar-date
+                        (file-name-nondirectory (buffer-file-name))))
+        (view-mode-p view-mode)
+        (dates (reverse org-journal-date-list)))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))
@@ -240,7 +261,7 @@ If the date is not today, it won't be given a time."
           (find-file filename)
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
-      (message "No previous journal entry after this one"))))
+      (message "No previous journal entry before this one"))))
 
 ;;
 ;; Functions to browse existing journal entries using the calendar
@@ -252,12 +273,9 @@ If the date is not today, it won't be given a time."
   it into a list of calendar DATE elements"
   (org-journal-dir-check-or-create)
   (setq org-journal-date-list
-	(mapcar #'(lambda (journal-file)
-		   (let ((y (string-to-number (substring journal-file 0 4)))
-			 (m (string-to-number (substring journal-file 4 6)))
-			 (d (string-to-number (substring journal-file 6 8))))
-		     (list m d y)))
-		   (directory-files org-journal-dir nil org-journal-file-pattern nil)))
+	(mapcar #'org-journal-file-name->calendar-date
+            (directory-files org-journal-dir nil org-journal-file-pattern nil)))
+  (prin1 org-journal-date-list)
   (calendar-redraw))
 
 ;;;###autoload
