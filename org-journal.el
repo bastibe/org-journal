@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.5.0
+;; Version: 1.5.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -66,7 +66,6 @@
   "Update org-journal-file-pattern with the current
   org-journal-file-format"
   (concat
-   "^"
    (replace-regexp-in-string
     "%d" "\\\\(?3:[0-9][0-9]\\\\)"
     (replace-regexp-in-string
