@@ -49,10 +49,11 @@
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (file-truename org-journal-dir)
-                      org-journal-file-pattern)))
-    (add-to-list 'auto-mode-alist
-                 (cons name 'org-journal-mode))))
+  (if (and (boundp 'org-journal-dir) (boundp 'org-journal-file-pattern))
+      (let ((name (concat (file-truename org-journal-dir)
+			  org-journal-file-pattern)))
+	(add-to-list 'auto-mode-alist
+		     (cons name 'org-journal-mode)))))
 
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
