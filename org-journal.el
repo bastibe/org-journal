@@ -285,7 +285,6 @@ If the date is not today, it won't be given a time."
   (setq org-journal-date-list
 	(mapcar #'org-journal-file-name->calendar-date
             (directory-files org-journal-dir nil org-journal-file-pattern nil)))
-  (prin1 org-journal-date-list)
   (calendar-redraw))
 
 ;;;###autoload
