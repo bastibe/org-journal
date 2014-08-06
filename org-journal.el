@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.5.1
+;; Version: 1.5.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -59,13 +59,14 @@
 
 (defvar org-journal-date-list nil)
 (defvar org-journal-file-pattern
-  "\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$")
+  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$")
 
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
   "Update org-journal-file-pattern with the current
   org-journal-file-format"
   (concat
+   "^"
    (replace-regexp-in-string
     "%d" "\\\\(?3:[0-9][0-9]\\\\)"
     (replace-regexp-in-string
