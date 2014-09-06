@@ -177,9 +177,9 @@ string if you want to disable timestamps."
     (unless (eq (current-column) 0) (insert "\n"))
     (insert "\n" org-journal-time-prefix
             (format-time-string org-journal-time-format))
+    (org-journal-mode)
     (hide-sublevels 2)
-    (set-buffer-modified-p unsaved))
-  (org-journal-mode))
+    (set-buffer-modified-p unsaved)))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
