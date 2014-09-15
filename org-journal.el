@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.5.2
+;; Version: 1.5.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -50,7 +50,7 @@
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
   (let ((name (concat (file-truename org-journal-dir)
-                      org-journal-file-pattern)))
+                      (substring org-journal-file-pattern 1))))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
 
