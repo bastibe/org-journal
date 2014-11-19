@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.5.3
+;; Version: 1.6
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -25,7 +25,7 @@
 ;; different times. Any subsequent entries on the same day are written
 ;; in the same file, with their own timestamp. You can customize the
 ;; date and time formats (or remove them entirely). To start writing a
-;; journal entry, press "C-c j".
+;; journal entry, press "C-c C-j".
 ;;
 ;; You can browse through existing journal entries on disk via the
 ;; calendar. All dates for which an entry is present are highlighted.
@@ -35,13 +35,13 @@
 ;; date.
 ;;
 ;; Quick summary:
-;; To create a new journal entry for the current time and day: C-c j
+;; To create a new journal entry for the current time and day: C-c C-j
 ;; In calendar view: j to view an entry
 ;;                   i j to add a new entry
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
-;; When viewing a journal entry: C-c b to view previous entry
-;;                               C-c f to view next entry
+;; When viewing a journal entry: C-c C-b to view previous entry
+;;                               C-c C-f to view next entry
 
 ;; use this function to update auto-mode-alist whenever
 ;; org-journal-dir or org-journal-file-pattern change.
@@ -139,8 +139,8 @@ string if you want to disable timestamps."
   (run-mode-hooks))
 
 ;; Key bindings
-(define-key org-journal-mode-map (kbd "C-c f") 'org-journal-open-next-entry)
-(define-key org-journal-mode-map (kbd "C-c b") 'org-journal-open-previous-entry)
+(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-open-next-entry)
+(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-open-previous-entry)
 
 ;;;###autoload
 (eval-after-load "calendar"
@@ -151,7 +151,7 @@ string if you want to disable timestamps."
      (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
 
 ;;;###autoload
-(global-set-key (kbd "C-c j") 'org-journal-new-entry)
+(global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."

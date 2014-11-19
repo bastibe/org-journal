@@ -6,6 +6,12 @@ Functions to maintain a simple personal diary / journal in Emacs.
 Feel free to use, modify and improve the code!
 — mtvoid, bastibe
 
+*_BREAKING CHANGE_*
+
+Org-journal used to use the key bindings =C-c j=, =C-c b=, and
+=C-c f=. These however are [[http://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html][reserved]] for user-defined actions. Instead,
+org-journal now uses =C-c C-j=, =C-c C-b= and =C-c C-f=.
+
 This file is also available from [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]
 under the name org-journal. You may also want to specify the directory
 where your journal files will be saved. You can do this by setting the
@@ -24,7 +30,7 @@ with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with a date entry on the
 top, followed by a entries for different times. Any subsequent entries
 on the same day are written as additional headings in the same file,
-with their own time. To start writing a journal entry, press =C-c j=.
+with their own time. To start writing a journal entry, press =C-c C-j=.
 
 You can customize the date and time formats using the variables
 =org-journal-date-format= and =org-journal-time-format=. If you do not
@@ -42,7 +48,7 @@ select the date with the previous or next journal entry, respectively.
 Pressing =i j= will create a new entry for the chosen date.
 
 Quick summary:
-To create a new journal entry: =C-c j=
+To create a new journal entry: =C-c C-j=
 
 In calendar view:
 - =j= to view an entry
@@ -51,8 +57,8 @@ In calendar view:
 - =]= to go to next entry
 
 When viewing a journal entry:
-- =C-c f= to view next entry
-- =C-c b= to view previous entry
+- =C-c C-f= to view next entry
+- =C-c C-b= to view previous entry
 
 A typical journal entry for a day would look like this:
 
