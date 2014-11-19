@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.6
+;; Version: 1.6.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -305,10 +305,16 @@ If the date is not today, it won't be given a time."
                 (calendar-cursor-to-date t event)))
          (org-journal-file (concat org-journal-dir
                                    (format-time-string org-journal-file-format time))))
-
     (if (file-exists-p org-journal-file)
         (progn
-          (view-file-other-window org-journal-file)
+          ;; open file in view-mode if not opened already
+          (let ((had-a-buf (get-file-buffer org-journal-file)))
+            ;; use find-file... instead of view-file... since
+            ;; view-file does not respect auto-mode-alist
+            (find-file-other-window org-journal-file)
+            (when (not had-a-buf)
+              (view-mode)
+              (setq view-exit-action 'kill-buffer)))
           (setq-local org-hide-emphasis-markers t)
           (org-show-subtree))
       (message "No journal entry for this date."))))
