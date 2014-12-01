@@ -1,4 +1,4 @@
-* org-journal.el
+* org-journal.el [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]]
 
 Adapted from http://www.emacswiki.org/PersonalDiary
 
