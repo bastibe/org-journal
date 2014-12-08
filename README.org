@@ -122,3 +122,9 @@ A typical journal entry for a day would look like this:
 - 2014-06-17 V1.5 Bastian Bechtold
   Some more bug fixes for autoloading
   Simplified setup by auto generating the file pattern from the file format.
+
+- 2014-11-19 V1.6 Bastian Bechtold
+  Changed default key bindings to comply with Emacs' standards.
+
+- 2014-08-12 V1.6.2 Bastian Bechtold
+  Added prefix argument to open-current-entry (thank you, Vladimir Kazanov!)
