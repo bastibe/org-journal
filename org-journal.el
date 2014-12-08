@@ -163,22 +163,30 @@ string if you want to disable timestamps."
 
 ;; Creates a new entry
 ;;;###autoload
-(defun org-journal-new-entry ()
-  "Open today's journal file and start a new entry"
-  (interactive)
+(defun org-journal-new-entry (prefix)
+  "Open today's journal file and start a new entry.
+
+Giving the command a prefix arg will just open a today's file,
+without adding an entry"
+  (interactive "P")
   (org-journal-dir-check-or-create)
   (find-file (concat org-journal-dir
                      (format-time-string org-journal-file-format)))
   (goto-char (point-max))
   (let ((unsaved (buffer-modified-p)))
-    (if (equal (point-max) 1)
-        (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format)))
-    (unless (eq (current-column) 0) (insert "\n"))
-    (insert "\n" org-journal-time-prefix
-            (format-time-string org-journal-time-format))
+    ;; skip entry adding if a universal prefix is given
+    (unless prefix
+      (if (equal (point-max) 1)
+          (insert org-journal-date-prefix
+                  (format-time-string org-journal-date-format)))
+      (unless (eq (current-column) 0) (insert "\n"))
+      (insert "\n" org-journal-time-prefix
+              (format-time-string org-journal-time-format)))
     (org-journal-mode)
     (hide-sublevels 2)
+    ;; open the last entry
+    (when prefix
+      (show-entry))
     (set-buffer-modified-p unsaved)))
 
 (defun org-journal-calendar-date->time (calendar-date)
