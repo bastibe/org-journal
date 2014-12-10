@@ -30,7 +30,9 @@ with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with a date entry on the
 top, followed by a entries for different times. Any subsequent entries
 on the same day are written as additional headings in the same file,
-with their own time. To start writing a journal entry, press =C-c C-j=.
+with their own time. To start writing a journal entry, press =C-c
+C-j=. You can also open the current day's entry without adding a new
+entry with =C-u C-c C-j=.
 
 You can customize the date and time formats using the variables
 =org-journal-date-format= and =org-journal-time-format=. If you do not
@@ -43,15 +45,18 @@ customize =org-journal-file-format=.
 
 You can browse through existing journal entries on disk via the
 calendar. All dates for which an entry is present are highlighted.
-Pressing =j= will open it up for viewing. Pressing =[= or =]= will
-select the date with the previous or next journal entry, respectively.
-Pressing =i j= will create a new entry for the chosen date.
+Pressing =j= will open it up for viewing. Pressing =C-j= will open it
+for viewing, but not switch to it. Pressing =[= or =]= will select the
+date with the previous or next journal entry, respectively. Pressing
+=i j= will create a new entry for the chosen date.
 
 Quick summary:
-To create a new journal entry: =C-c C-j=
+- To create a new journal entry: =C-c C-j=
+- To open today's journal without creating a new entry: =C-u C-c C-j=
 
 In calendar view:
-- =j= to view an entry
+- =j= to view an entry in a new buffer
+- =C-j= to view an entry but not switch to it
 - =i j= to add a new entry
 - =[= to go to previous entry
 - =]= to go to next entry
@@ -128,3 +133,6 @@ A typical journal entry for a day would look like this:
 
 - 2014-08-12 V1.6.2 Bastian Bechtold
   Added prefix argument to open-current-entry (thank you, Vladimir Kazanov!)
+
+- 2014-08-12 V1.6.3 Bastian Bechtold
+  Added key binding for viewing but not switching to entry (thank you, Vladimit Kazanov!)

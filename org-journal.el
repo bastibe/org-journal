@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/emacs-journal
-;; Version: 1.6.2
+;; Version: 1.6.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -25,18 +25,22 @@
 ;; different times. Any subsequent entries on the same day are written
 ;; in the same file, with their own timestamp. You can customize the
 ;; date and time formats (or remove them entirely). To start writing a
-;; journal entry, press "C-c C-j".
+;; journal entry, press "C-c C-j". You can also open the current day's
+;; entry without adding a new entry with "C-u C-c C-j".
 ;;
 ;; You can browse through existing journal entries on disk via the
 ;; calendar. All dates for which an entry is present are highlighted.
-;; Pressing "j" will open it up for viewing. Pressing "[" or "]" will
+;; Pressing "j" will open it up for viewing. Pressing "C-j" will open
+;; it for viewing, but not switch to it. Pressing "[" or "]" will
 ;; select the date with the previous or next journal entry,
 ;; respectively. Pressing "i j" will create a new entry for the chosen
 ;; date.
 ;;
 ;; Quick summary:
 ;; To create a new journal entry for the current time and day: C-c C-j
-;; In calendar view: j to view an entry
+;; To open today's journal without creating a new entry: C-u C-c C-j
+;; In calendar view: j to view an entry in a new buffer
+;;                   C-j to view an entry but not switch to it
 ;;                   i j to add a new entry
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
