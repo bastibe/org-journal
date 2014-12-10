@@ -1,7 +1,7 @@
 ;;; org-journal.el --- a simple org-mode based journaling mode
 
 ;; Author: Bastian Bechtold
-;; URL: http://github.com/bastibe/emacs-journal
+;; URL: http://github.com/bastibe/org-journal
 ;; Version: 1.6.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
