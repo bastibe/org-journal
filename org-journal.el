@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.6.3
+;; Version: 1.6.4
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -135,6 +135,7 @@ string if you want to disable timestamps."
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
 ;; Journal mode definition
+;;;###autoload
 (define-derived-mode org-journal-mode org-mode "Journal"
   "Mode for writing or viewing entries written in the journal"
   (turn-on-visual-line-mode)

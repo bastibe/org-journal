@@ -136,3 +136,6 @@ A typical journal entry for a day would look like this:
 
 - 2014-08-12 V1.6.3 Bastian Bechtold ::
   Added key binding for viewing but not switching to entry (thank you, Vladimit Kazanov!)
+
+- 2014-17-12 V1.6.4 Bastian Bechtold ::
+  Journal files should open correctly when restored by desktop-save-mode now.
