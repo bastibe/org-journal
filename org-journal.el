@@ -11,7 +11,7 @@
 
 ;; This file is also available from marmalade as
 ;; http://marmalade-repo.org/packages/journal. After installing, add
-;; the line (require 'journal) to your .emacs or init.el to activate
+;; the line (require 'org-journal) to your .emacs or init.el to activate
 ;; it. You also need to specify the directory where your journal files
 ;; will be saved. You can do this by setting the variable journal-dir
 ;; (remember to add a trailing slash). journal-dir is also a
