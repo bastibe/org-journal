@@ -381,6 +381,101 @@ If the date is not today, it won't be given a time."
     (org-journal-mark-entries)
     (calendar-exit)))
 
+;;; Journal search facilities
+;;
+
+(defun org-journal-search (str)
+  "Search for a string in the journal within a given interval.
+See `org-read-date` for information on ways to specify dates."
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (let ((org-read-date-prefer-future nil)
+        (start (org-read-date nil t nil "Enter a period start"))
+        (end (org-read-date nil t nil "Enter a period end")))
+    (when (time-less-p end start)
+      (error "Period end cannot be before the start"))
+    (when (time-less-p (current-time) start)
+      (error "Period start cannot be in the future"))
+    (org-journal-search-by-string str start end)))
+(defvar org-journal-search-history nil)
+
+(defun org-journal-search-by-string (str &optional period-start period-end)
+  "Search for a string within a given interval"
+  (let* ((files (org-journal-search-build-file-list period-start period-end))
+         (results (org-journal-search-do-search str files)))
+    (with-current-buffer-window
+     "*Org-journal search*" nil nil
+     (princ (concat "Search results for \"" str "\": \n\n"))
+     (org-journal-search-print-results results))))
+
+(defun org-journal-search-build-file-list (&optional period-start period-end)
+  "Build a list of journal files within a given time interval"
+  (let ((files (directory-files org-journal-dir t
+                                org-journal-file-pattern))
+        result)
+    (dolist (file files)
+      (let ((filetime (org-journal-calendar-date->time
+                       (org-journal-file-name->calendar-date
+                        (file-name-base file)))))
+        (cond ((not (and period-start period-end))
+               (push file result))
+
+              ((and period-start period-end
+                    (time-less-p period-start filetime)
+                    (time-less-p filetime period-end))
+               (push file result))
+
+              ((and period-start
+                    (not period-end)
+                    (time-less-p period-start filetime))
+               (push file result))
+
+              ((and period-end
+                    (not period-start)
+                    (time-less-p filetime period-end))
+               (push file result)))))
+    result))
+
+(defun org-journal-search-do-search (str files)
+  "Search for a string within a list of files, return match pairs (PATH . LINENUM)"
+  (let (results)
+    (dolist (fname files)
+      (with-temp-buffer
+        (insert-file-contents fname)
+        (while (search-forward str nil t)
+          (let* ((fullstr (buffer-substring-no-properties
+                           (line-beginning-position)
+                           (line-end-position)))
+                 (res (list fname (line-number-at-pos) fullstr)))
+            (push res results)))))
+    results))
+
+(defun org-journal-search-print-results (results)
+  "Print search results using text buttons"
+  (dolist (res results)
+    (let* ((fname (nth 0 res))
+           (lnum (nth 1 res))
+           (fullstr (nth 2 res))
+           (time (org-journal-calendar-date->time
+                  (org-journal-file-name->calendar-date
+                   (file-name-base fname))))
+           (label (format-time-string org-journal-date-format time)))
+      (insert-text-button label
+                          'action 'search-journal-follow-link-action
+                          'org-journal-link (cons fname lnum))
+      (princ "\t")
+      (princ fullstr)
+      (princ "\n"))))
+
+(defun org-journal-search-follow-link-action (button)
+  "Follow the link using info saved in button properties"
+  (let* ((target (button-get button 'org-journal-link))
+         (fname (car target))
+         (lnum (cdr target)))
+    (find-file-other-window  fname)
+    (goto-char (point-min))
+    (forward-line (1- lnum))))
+
+
 (provide 'org-journal)
 
 ;;; org-journal.el ends here
