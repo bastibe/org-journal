@@ -466,8 +466,7 @@ then use current week/month/year from the calendar accordingly."
          (results (org-journal-search-do-search str files)))
     (with-current-buffer-window
      "*Org-journal search*" nil nil
-     (princ (concat "Search results for \"" str "\": \n\n"))
-     (org-journal-search-print-results results))))
+     (org-journal-search-print-results str results period-start period-end))))
 
 (defun org-journal-search-build-file-list (&optional period-start period-end)
   "Build a list of journal files within a given time interval"
@@ -511,8 +510,13 @@ then use current week/month/year from the calendar accordingly."
             (push res results)))))
     results))
 
-(defun org-journal-search-print-results (results)
+(defun org-journal-search-print-results (str results period-start period-end)
   "Print search results using text buttons"
+  (let ((label-start (format-time-string org-journal-date-format period-start))
+        (label-end (format-time-string org-journal-date-format period-end)))
+    (princ (concat "Search results for \"" str "\" between "
+                   label-start " and " label-end
+                   ": \n\n")))
   (dolist (res results)
     (let* ((fname (nth 0 res))
            (lnum (nth 1 res))
@@ -520,7 +524,10 @@ then use current week/month/year from the calendar accordingly."
            (time (org-journal-calendar-date->time
                   (org-journal-file-name->calendar-date
                    (file-name-base fname))))
-           (label (format-time-string org-journal-date-format time)))
+           (label (format-time-string org-journal-date-format time))
+
+           (label-end (format-time-string org-journal-date-format period-start)))
+
       (insert-text-button label
                           'action 'org-journal-search-follow-link-action
                           'org-journal-link (cons fname lnum))
