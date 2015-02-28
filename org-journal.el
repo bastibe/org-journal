@@ -460,7 +460,7 @@ See `org-read-date` for information on ways to specify dates."
                    (file-name-base fname))))
            (label (format-time-string org-journal-date-format time)))
       (insert-text-button label
-                          'action 'search-journal-follow-link-action
+                          'action 'org-journal-search-follow-link-action
                           'org-journal-link (cons fname lnum))
       (princ "\t")
       (princ fullstr)
@@ -471,7 +471,9 @@ See `org-read-date` for information on ways to specify dates."
   (let* ((target (button-get button 'org-journal-link))
          (fname (car target))
          (lnum (cdr target)))
-    (find-file-other-window  fname)
+    (org-journal-read-or-display-entry
+     (org-journal-calendar-date->time
+      (org-journal-file-name->calendar-date (file-name-base fname))))
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
