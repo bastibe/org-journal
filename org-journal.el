@@ -389,8 +389,8 @@ If the date is not today, it won't be given a time."
 See `org-read-date` for information on ways to specify dates."
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (let* ((period-pair (org-journal-read-period period-name))
-         (start (car period-pair))
-         (end (cdr period-pair)))
+         (start (org-journal-calendar-date->time (car period-pair)))
+         (end (org-journal-calendar-date->time (cdr period-pair))))
     (org-journal-search-by-string str start end)))
 (defvar org-journal-search-history nil)
 
@@ -402,11 +402,8 @@ then use current week/month/year from the calendar accordingly."
    ;; no period-name? ask the user for input
    ((not period-name)
     (let ((org-read-date-prefer-future nil)
-          start end)
-      (unless start
-        (setq start (org-read-date nil t nil "Enter a period start")))
-      (unless end
-        (setq end (org-read-date nil t nil "Enter a period end")))
+          (start (org-read-date nil t nil "Enter a period start"))
+          (end (org-read-date nil t nil "Enter a period end")))
       (cons start end)))
 
    ;; extract a year start/end using the calendar curson
@@ -416,8 +413,8 @@ then use current week/month/year from the calendar accordingly."
            (year (calendar-extract-year date))
            (jan-first (list 1 1 year))
            (dec-31 (list 12 31 year)))
-      (cons (org-journal-calendar-date->time jan-first)
-            (org-journal-calendar-date->time dec-31))))
+      (cons jan-first
+            dec-31)))
 
    ;; month start/end
    ((and (eq period-name 'month) (eq major-mode 'calendar-mode))
@@ -426,18 +423,22 @@ then use current week/month/year from the calendar accordingly."
            (year (calendar-extract-year date))
            (month (calendar-extract-month date))
            (last-day (calendar-last-day-of-month month year)))
-      (cons (org-journal-calendar-date->time (list month 1 year))
-            (org-journal-calendar-date->time (list month last-day year)))))
+      (cons (list month 1 year)
+            (list month last-day year))))
 
    ;; week start/end
-   ;; ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
-   ;;  (calendar-cursor-to-nearest-date)
-   ;;  (let* ((date (calendar-cursor-to-date))
-   ;;         (day (calendar-day-of-week date) )
-   ;;         (month (calendar-extract-month date))
-   ;;         (last-day (calendar-last-day-of-month month year)))
-   ;;    (cons (org-journal-calendar-date->time (list month 1 year))
-   ;;          (org-journal-calendar-date->time (list month last-day year)))))
+   ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (absoluteday (calendar-absolute-from-gregorian date))
+           (weekday (calendar-day-of-week date))
+           (zerobased-weekday (- weekday calendar-week-start-day))
+           (absolute-start (- absoluteday zerobased-weekday))
+           (absolute-end (+ absoluteday (- 7 zerobased-weekday)))
+           (start (calendar-gregorian-from-absolute absolute-start))
+           (end (calendar-gregorian-from-absolute absolute-end)))
+      (cons start end)))
+
    (t (error "Wrong period-name given or not in the calendar mode"))))
 
 (defun org-journal-search-by-string (str &optional period-start period-end)
