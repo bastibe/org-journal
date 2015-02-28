@@ -384,22 +384,68 @@ If the date is not today, it won't be given a time."
 ;;; Journal search facilities
 ;;
 
-(defun org-journal-search (str)
+(defun org-journal-search (str &optional period-name)
   "Search for a string in the journal within a given interval.
 See `org-read-date` for information on ways to specify dates."
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
-  (let ((org-read-date-prefer-future nil)
-        (start (org-read-date nil t nil "Enter a period start"))
-        (end (org-read-date nil t nil "Enter a period end")))
-    (when (time-less-p end start)
-      (error "Period end cannot be before the start"))
-    (when (time-less-p (current-time) start)
-      (error "Period start cannot be in the future"))
+  (let* ((period-pair (org-journal-read-period period-name))
+         (start (car period-pair))
+         (end (cdr period-pair)))
     (org-journal-search-by-string str start end)))
 (defvar org-journal-search-history nil)
 
+(defun org-journal-read-period (period-name)
+  "If the PERIOD-NAME is nil, then ask the user for period
+start/end; if PERIOD-NAME is a symbol equal to 'week/'month/'year
+then use current week/month/year from the calendar accordingly."
+  (cond
+   ;; no period-name? ask the user for input
+   ((not period-name)
+    (let ((org-read-date-prefer-future nil)
+          start end)
+      (unless start
+        (setq start (org-read-date nil t nil "Enter a period start")))
+      (unless end
+        (setq end (org-read-date nil t nil "Enter a period end")))
+      (cons start end)))
+
+   ;; extract a year start/end using the calendar curson
+   ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (year (calendar-extract-year date))
+           (jan-first (list 1 1 year))
+           (dec-31 (list 12 31 year)))
+      (cons (org-journal-calendar-date->time jan-first)
+            (org-journal-calendar-date->time dec-31))))
+
+   ;; month start/end
+   ((and (eq period-name 'month) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (year (calendar-extract-year date))
+           (month (calendar-extract-month date))
+           (last-day (calendar-last-day-of-month month year)))
+      (cons (org-journal-calendar-date->time (list month 1 year))
+            (org-journal-calendar-date->time (list month last-day year)))))
+
+   ;; week start/end
+   ;; ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
+   ;;  (calendar-cursor-to-nearest-date)
+   ;;  (let* ((date (calendar-cursor-to-date))
+   ;;         (day (calendar-day-of-week date) )
+   ;;         (month (calendar-extract-month date))
+   ;;         (last-day (calendar-last-day-of-month month year)))
+   ;;    (cons (org-journal-calendar-date->time (list month 1 year))
+   ;;          (org-journal-calendar-date->time (list month last-day year)))))
+   (t (error "Wrong period-name given or not in the calendar mode"))))
+
 (defun org-journal-search-by-string (str &optional period-start period-end)
-  "Search for a string within a given interval"
+  "Search for a string within a given time interval"
+  (when (time-less-p period-end period-start)
+    (error "Period end cannot be before the start"))
+  (when (time-less-p (current-time) period-start)
+    (error "Period start cannot be in the future"))
   (let* ((files (org-journal-search-build-file-list period-start period-end))
          (results (org-journal-search-do-search str files)))
     (with-current-buffer-window
