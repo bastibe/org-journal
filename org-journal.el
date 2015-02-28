@@ -333,7 +333,7 @@ If the date is not today, it won't be given a time."
 (defun org-journal-read-or-display-entry (time &optional noselect)
   "Read an entry for the TIME and either select the new
   window (NOSELECT is nil) or avoid switching (NOSELECT is
-  non-nil"
+  non-nil."
   (let ((org-journal-file (concat org-journal-dir
                                   (format-time-string org-journal-file-format time))))
     (if (file-exists-p org-journal-file)
@@ -394,6 +394,19 @@ See `org-read-date` for information on ways to specify dates."
     (org-journal-search-by-string str start end)))
 (defvar org-journal-search-history nil)
 
+(defun org-journal-search-calendar-week (str)
+  "Search for a string within a current calendar-mode week entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'week))
+(defun org-journal-search-calendar-month (str)
+  "Search for a string within a current calendar-mode week entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'month))
+(defun org-journal-search-calendar-year (str)
+  "Search for a string within a current calendar-mode week entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'year))
+
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
 start/end; if PERIOD-NAME is a symbol equal to 'week/'month/'year
@@ -401,9 +414,11 @@ then use current week/month/year from the calendar accordingly."
   (cond
    ;; no period-name? ask the user for input
    ((not period-name)
-    (let ((org-read-date-prefer-future nil)
-          (start (org-read-date nil t nil "Enter a period start"))
-          (end (org-read-date nil t nil "Enter a period end")))
+    (let* ((org-read-date-prefer-future nil)
+           (absolute-start (time-to-days (org-read-date nil t nil "Enter a period start")))
+           (absolute-end (time-to-days (org-read-date nil t nil "Enter a period end")))
+           (start (calendar-gregorian-from-absolute absolute-start))
+           (end (calendar-gregorian-from-absolute absolute-end)))
       (cons start end)))
 
    ;; extract a year start/end using the calendar curson
@@ -521,6 +536,7 @@ then use current week/month/year from the calendar accordingly."
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
       (org-journal-file-name->calendar-date (file-name-base fname))))
+    (show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
