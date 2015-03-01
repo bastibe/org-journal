@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.6.4
+;; Version: 1.7.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -42,6 +42,10 @@
 ;; In calendar view: j to view an entry in a new buffer
 ;;                   C-j to view an entry but not switch to it
 ;;                   i j to add a new entry
+;;                   f w to search all entries of the current week
+;;                   f m to search all entries of the current month
+;;                   f y to search all entries of the current year
+;;                   f f to search all entries of all time
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
 ;; When viewing a journal entry: C-c C-b to view previous entry

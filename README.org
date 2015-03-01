@@ -25,6 +25,13 @@ You can add all those calendar files to your org-agenda by adding
 (=\\`[^.].*\\.org'\\|[0-9]+=). That way, you can use org-agenda to
 search for /TODO/ items or tagged items in your org-journal.
 
+A better way to search journal items is to use org-journal's built-in
+search functionality by Vladimir Kazanov. All searches are kicked off
+from the calendar, and search different date ranges for a keyword: =f
+w= to search the current week, =f m= for the current month, =f y= for
+the current year, and =f f= for all journal files. Use
+=org-journal-search= to search entries in a custom date range.
+
 Inside the journal directory, a separate file is created for each day
 with a journal entry, with a file name in the format /YYYYMMDD/. Each
 journal entry is an org-mode file that begins with a date entry on the
@@ -58,6 +65,10 @@ In calendar view:
 - =j= to view an entry in a new buffer
 - =C-j= to view an entry but not switch to it
 - =i j= to add a new entry
+- =f w= to search in all entries of the current week
+- =f m= to search in all entries of the current month
+- =f y= to search in all entries of the current year
+- =f f= to search in all entries of all time
 - =[= to go to previous entry
 - =]= to go to next entry
 
@@ -135,7 +146,10 @@ A typical journal entry for a day would look like this:
   Added prefix argument to open-current-entry (thank you, Vladimir Kazanov!)
 
 - 2014-08-12 V1.6.3 Bastian Bechtold ::
-  Added key binding for viewing but not switching to entry (thank you, Vladimit Kazanov!)
+  Added key binding for viewing but not switching to entry (thank you, Vladimir Kazanov!)
 
 - 2014-17-12 V1.6.4 Bastian Bechtold ::
   Journal files should open correctly when restored by desktop-save-mode now.
+
+- 2015-03-01 V1.7.0 Bastian Bechtold ::
+  Added functions for searching journal entries in date ranges. (thank you, Vladimir Kazanov!)
