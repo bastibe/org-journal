@@ -404,11 +404,11 @@ If a prefix argument is given, search all dates."
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'week))
 (defun org-journal-search-calendar-month (str)
-  "Search for a string within a current calendar-mode week entries"
+  "Search for a string within a current calendar-mode month entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'month))
 (defun org-journal-search-calendar-year (str)
-  "Search for a string within a current calendar-mode week entries"
+  "Search for a string within a current calendar-mode year entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'year))
 (defun org-journal-search-forever (str)
@@ -434,8 +434,8 @@ calendar accordingly."
 
    ;; eternity start/end
    ((eq period-name 'forever)
-      (cons (list 1 1 1970)
-            (list 12 31 3000)))
+    (cons (list 1 1 1971)
+          (list 12 31 2030)))
 
    ;; extract a year start/end using the calendar curson
    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
@@ -552,7 +552,9 @@ calendar accordingly."
       (princ "\n")))
   (local-set-key (kbd "q") 'kill-this-buffer)
   (local-set-key (kbd "<tab>") 'forward-button)
-  (local-set-key (kbd "<backtab>") 'backward-button))
+  (local-set-key (kbd "<backtab>") 'backward-button)
+  (local-set-key (kbd "n") 'forward-button)
+  (local-set-key (kbd "p") 'backward-button))
 
 (defun org-journal-search-follow-link-action (button)
   "Follow the link using info saved in button properties"
