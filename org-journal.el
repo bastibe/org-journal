@@ -154,7 +154,11 @@ string if you want to disable timestamps."
      (define-key calendar-mode-map (kbd "C-j") 'org-journal-display-entry)
      (define-key calendar-mode-map "]" 'org-journal-next-entry)
      (define-key calendar-mode-map "[" 'org-journal-previous-entry)
-     (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
+     (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
+     (define-key calendar-mode-map (kbd "f f") 'org-journal-search-forever)
+     (define-key calendar-mode-map (kbd "f w") 'org-journal-search-calendar-week)
+     (define-key calendar-mode-map (kbd "f m") 'org-journal-search-calendar-month)
+     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)))
 
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
@@ -386,9 +390,10 @@ If the date is not today, it won't be given a time."
 
 (defun org-journal-search (str &optional period-name)
   "Search for a string in the journal within a given interval.
-See `org-read-date` for information on ways to specify dates."
+See `org-read-date` for information on ways to specify dates.
+If a prefix argument is given, search all dates."
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
-  (let* ((period-pair (org-journal-read-period period-name))
+  (let* ((period-pair (org-journal-read-period (if current-prefix-arg 'forever period-name)))
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair))))
     (org-journal-search-by-string str start end)))
@@ -406,11 +411,17 @@ See `org-read-date` for information on ways to specify dates."
   "Search for a string within a current calendar-mode week entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'year))
+(defun org-journal-search-forever (str)
+  "Search for a string within all entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'forever))
 
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
-start/end; if PERIOD-NAME is a symbol equal to 'week/'month/'year
-then use current week/month/year from the calendar accordingly."
+start/end; if PERIOD-NAME is 'forever, set the period from the
+beginning of time to eternity; if PERIOD-NAME is a symbol equal
+to 'week/'month/'year then use current week/month/year from the
+calendar accordingly."
   (cond
    ;; no period-name? ask the user for input
    ((not period-name)
@@ -420,6 +431,11 @@ then use current week/month/year from the calendar accordingly."
            (start (calendar-gregorian-from-absolute absolute-start))
            (end (calendar-gregorian-from-absolute absolute-end)))
       (cons start end)))
+
+   ;; eternity start/end
+   ((eq period-name 'forever)
+      (cons (list 1 1 1970)
+            (list 12 31 3000)))
 
    ;; extract a year start/end using the calendar curson
    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
@@ -533,7 +549,10 @@ then use current week/month/year from the calendar accordingly."
                           'org-journal-link (cons fname lnum))
       (princ "\t")
       (princ fullstr)
-      (princ "\n"))))
+      (princ "\n")))
+  (local-set-key (kbd "q") 'kill-this-buffer)
+  (local-set-key (kbd "<tab>") 'forward-button)
+  (local-set-key (kbd "<backtab>") 'backward-button))
 
 (defun org-journal-search-follow-link-action (button)
   "Follow the link using info saved in button properties"
