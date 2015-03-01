@@ -154,7 +154,11 @@ string if you want to disable timestamps."
      (define-key calendar-mode-map (kbd "C-j") 'org-journal-display-entry)
      (define-key calendar-mode-map "]" 'org-journal-next-entry)
      (define-key calendar-mode-map "[" 'org-journal-previous-entry)
-     (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)))
+     (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
+     (define-key calendar-mode-map (kbd "f f") 'org-journal-search-forever)
+     (define-key calendar-mode-map (kbd "f w") 'org-journal-search-calendar-week)
+     (define-key calendar-mode-map (kbd "f m") 'org-journal-search-calendar-month)
+     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)))
 
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
@@ -333,7 +337,7 @@ If the date is not today, it won't be given a time."
 (defun org-journal-read-or-display-entry (time &optional noselect)
   "Read an entry for the TIME and either select the new
   window (NOSELECT is nil) or avoid switching (NOSELECT is
-  non-nil"
+  non-nil."
   (let ((org-journal-file (concat org-journal-dir
                                   (format-time-string org-journal-file-format time))))
     (if (file-exists-p org-journal-file)
@@ -380,6 +384,190 @@ If the date is not today, it won't be given a time."
     (calendar-basic-setup nil t)
     (org-journal-mark-entries)
     (calendar-exit)))
+
+;;; Journal search facilities
+;;
+
+(defun org-journal-search (str &optional period-name)
+  "Search for a string in the journal within a given interval.
+See `org-read-date` for information on ways to specify dates.
+If a prefix argument is given, search all dates."
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (let* ((period-pair (org-journal-read-period (if current-prefix-arg 'forever period-name)))
+         (start (org-journal-calendar-date->time (car period-pair)))
+         (end (org-journal-calendar-date->time (cdr period-pair))))
+    (org-journal-search-by-string str start end)))
+(defvar org-journal-search-history nil)
+
+(defun org-journal-search-calendar-week (str)
+  "Search for a string within a current calendar-mode week entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'week))
+(defun org-journal-search-calendar-month (str)
+  "Search for a string within a current calendar-mode month entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'month))
+(defun org-journal-search-calendar-year (str)
+  "Search for a string within a current calendar-mode year entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'year))
+(defun org-journal-search-forever (str)
+  "Search for a string within all entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'forever))
+
+(defun org-journal-read-period (period-name)
+  "If the PERIOD-NAME is nil, then ask the user for period
+start/end; if PERIOD-NAME is 'forever, set the period from the
+beginning of time to eternity; if PERIOD-NAME is a symbol equal
+to 'week/'month/'year then use current week/month/year from the
+calendar accordingly."
+  (cond
+   ;; no period-name? ask the user for input
+   ((not period-name)
+    (let* ((org-read-date-prefer-future nil)
+           (absolute-start (time-to-days (org-read-date nil t nil "Enter a period start")))
+           (absolute-end (time-to-days (org-read-date nil t nil "Enter a period end")))
+           (start (calendar-gregorian-from-absolute absolute-start))
+           (end (calendar-gregorian-from-absolute absolute-end)))
+      (cons start end)))
+
+   ;; eternity start/end
+   ((eq period-name 'forever)
+    (cons (list 1 1 1971)
+          (list 12 31 2030)))
+
+   ;; extract a year start/end using the calendar curson
+   ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (year (calendar-extract-year date))
+           (jan-first (list 1 1 year))
+           (dec-31 (list 12 31 year)))
+      (cons jan-first
+            dec-31)))
+
+   ;; month start/end
+   ((and (eq period-name 'month) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (year (calendar-extract-year date))
+           (month (calendar-extract-month date))
+           (last-day (calendar-last-day-of-month month year)))
+      (cons (list month 1 year)
+            (list month last-day year))))
+
+   ;; week start/end
+   ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
+    (calendar-cursor-to-nearest-date)
+    (let* ((date (calendar-cursor-to-date))
+           (absoluteday (calendar-absolute-from-gregorian date))
+           (weekday (calendar-day-of-week date))
+           (zerobased-weekday (- weekday calendar-week-start-day))
+           (absolute-start (- absoluteday zerobased-weekday))
+           (absolute-end (+ absoluteday (- 7 zerobased-weekday)))
+           (start (calendar-gregorian-from-absolute absolute-start))
+           (end (calendar-gregorian-from-absolute absolute-end)))
+      (cons start end)))
+
+   (t (error "Wrong period-name given or not in the calendar mode"))))
+
+(defun org-journal-search-by-string (str &optional period-start period-end)
+  "Search for a string within a given time interval"
+  (when (time-less-p period-end period-start)
+    (error "Period end cannot be before the start"))
+  (when (time-less-p (current-time) period-start)
+    (error "Period start cannot be in the future"))
+  (let* ((files (org-journal-search-build-file-list period-start period-end))
+         (results (org-journal-search-do-search str files)))
+    (with-current-buffer-window
+     "*Org-journal search*" nil nil
+     (org-journal-search-print-results str results period-start period-end))))
+
+(defun org-journal-search-build-file-list (&optional period-start period-end)
+  "Build a list of journal files within a given time interval"
+  (let ((files (directory-files org-journal-dir t
+                                org-journal-file-pattern))
+        result)
+    (dolist (file files)
+      (let ((filetime (org-journal-calendar-date->time
+                       (org-journal-file-name->calendar-date
+                        (file-name-base file)))))
+        (cond ((not (and period-start period-end))
+               (push file result))
+
+              ((and period-start period-end
+                    (time-less-p period-start filetime)
+                    (time-less-p filetime period-end))
+               (push file result))
+
+              ((and period-start
+                    (not period-end)
+                    (time-less-p period-start filetime))
+               (push file result))
+
+              ((and period-end
+                    (not period-start)
+                    (time-less-p filetime period-end))
+               (push file result)))))
+    result))
+
+(defun org-journal-search-do-search (str files)
+  "Search for a string within a list of files, return match pairs (PATH . LINENUM)"
+  (let (results)
+    (dolist (fname files)
+      (with-temp-buffer
+        (insert-file-contents fname)
+        (while (search-forward str nil t)
+          (let* ((fullstr (buffer-substring-no-properties
+                           (line-beginning-position)
+                           (line-end-position)))
+                 (res (list fname (line-number-at-pos) fullstr)))
+            (push res results)))))
+    results))
+
+(defun org-journal-search-print-results (str results period-start period-end)
+  "Print search results using text buttons"
+  (let ((label-start (format-time-string org-journal-date-format period-start))
+        (label-end (format-time-string org-journal-date-format period-end)))
+    (princ (concat "Search results for \"" str "\" between "
+                   label-start " and " label-end
+                   ": \n\n")))
+  (dolist (res results)
+    (let* ((fname (nth 0 res))
+           (lnum (nth 1 res))
+           (fullstr (nth 2 res))
+           (time (org-journal-calendar-date->time
+                  (org-journal-file-name->calendar-date
+                   (file-name-base fname))))
+           (label (format-time-string org-journal-date-format time))
+
+           (label-end (format-time-string org-journal-date-format period-start)))
+
+      (insert-text-button label
+                          'action 'org-journal-search-follow-link-action
+                          'org-journal-link (cons fname lnum))
+      (princ "\t")
+      (princ fullstr)
+      (princ "\n")))
+  (local-set-key (kbd "q") 'kill-this-buffer)
+  (local-set-key (kbd "<tab>") 'forward-button)
+  (local-set-key (kbd "<backtab>") 'backward-button)
+  (local-set-key (kbd "n") 'forward-button)
+  (local-set-key (kbd "p") 'backward-button))
+
+(defun org-journal-search-follow-link-action (button)
+  "Follow the link using info saved in button properties"
+  (let* ((target (button-get button 'org-journal-link))
+         (fname (car target))
+         (lnum (cdr target)))
+    (org-journal-read-or-display-entry
+     (org-journal-calendar-date->time
+      (org-journal-file-name->calendar-date (file-name-base fname))))
+    (show-all) ; TODO: could not find out a proper way to go to a hidden line
+    (goto-char (point-min))
+    (forward-line (1- lnum))))
+
 
 (provide 'org-journal)
 
