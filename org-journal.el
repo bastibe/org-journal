@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.7.1
+;; Version: 1.7.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -356,7 +356,7 @@ If the date is not today, it won't be given a time."
               (when (not had-a-buf)
                 (view-mode)
                 (setq view-exit-action 'kill-buffer))
-              (setq-local org-hide-emphasis-markers t)
+              (set (make-local-variable 'org-hide-emphasis-markers) t)
               (org-show-subtree))
             (if (not noselect)
                 (find-file-other-window org-journal-file)
