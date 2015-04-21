@@ -57,7 +57,7 @@
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (file-truename org-journal-dir)
+  (let ((name (concat (expand-file-name org-journal-dir)
                       (substring org-journal-file-pattern 1))))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
