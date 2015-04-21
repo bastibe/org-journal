@@ -185,8 +185,15 @@ Giving the command a prefix arg will just open a today's file,
 without adding an entry"
   (interactive "P")
   (org-journal-dir-check-or-create)
-  (find-file (concat org-journal-dir
-                     (format-time-string org-journal-file-format)))
+  (let* ((entry-path (concat org-journal-dir
+                             (format-time-string org-journal-file-format)))
+         (entry-path-exists-p (file-exists-p entry-path)))
+    ;; a prefix arg is given and there's no current journal entry? error, as
+    ;; there's no current entry to open
+    (when (and prefix
+               (not entry-path-exists-p))
+      (error "There's no current entry to open."))
+    (find-file entry-path))
   (goto-char (point-max))
   (let ((unsaved (buffer-modified-p)))
     ;; skip entry adding if a universal prefix is given
@@ -199,7 +206,7 @@ without adding an entry"
               (format-time-string org-journal-time-format)))
     (org-journal-mode)
     (hide-sublevels 2)
-    ;; open the last entry
+    ;; open the most recent entry
     (when prefix
       (show-entry))
     (set-buffer-modified-p unsaved)))
