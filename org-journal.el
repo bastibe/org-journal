@@ -129,6 +129,11 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
+(defcustom org-journal-do-hide-entries-on-new t
+  "If set to non nil value, then org-mode will try to hide
+   time entries when creating new one. It will hide them only
+   if 'org-journal-time-prefix is valid org heading prefix
+   with trailing space.")
 
 (require 'calendar)
 ;;;###autoload
@@ -198,11 +203,20 @@ without adding an entry"
       (insert "\n" org-journal-time-prefix
               (format-time-string org-journal-time-format)))
     (org-journal-mode)
-    (hide-sublevels 2)
-    ;; open the last entry
-    (when prefix
-      (show-entry))
+    (when org-journal-do-hide-entries-on-new
+      (let ((level (org-journal-figure-time-entry-level)))
+        (when level
+          (hide-sublevels level)
+          ;; open the last entry
+          (when prefix
+            (show-entry)))))
     (set-buffer-modified-p unsaved)))
+
+(defun org-journal-figure-time-entry-level ()
+  "Return the level of time entry based on value of 'org-journal-time-prefix.
+   Return nil, when it's impossible to figure out it's level."
+  (when (eq (string-match-p "\*+ " org-journal-time-prefix 0) 0)
+      (- (length org-journal-time-prefix) 1)))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
