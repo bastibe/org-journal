@@ -193,24 +193,28 @@ without adding an entry"
   (find-file (concat org-journal-dir
                      (format-time-string org-journal-file-format)))
   (goto-char (point-max))
-  (let ((unsaved (buffer-modified-p)))
-    ;; skip entry adding if a universal prefix is given
-    (unless prefix
-      (if (equal (point-max) 1)
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format)))
+  (unless prefix
+    (let ((unsaved (buffer-modified-p))
+          (date-string (concat org-journal-date-prefix
+                               (format-time-string org-journal-date-format)))
+          (level (org-journal-figure-time-entry-level)))
+      (unless (buffer-contains-substring? date-string)
+        (insert date-string))
       (unless (eq (current-column) 0) (insert "\n"))
       (insert "\n" org-journal-time-prefix
-              (format-time-string org-journal-time-format)))
-    (org-journal-mode)
-    (when org-journal-do-hide-entries-on-new
-      (let ((level (org-journal-figure-time-entry-level)))
-        (when level
-          (hide-sublevels level)
-          ;; open the last entry
-          (when prefix
-            (show-entry)))))
-    (set-buffer-modified-p unsaved)))
+              (format-time-string org-journal-time-format))
+      (org-journal-mode)
+      (when (and org-journal-do-hide-entries-on-new
+                 level)
+        (hide-sublevels level)
+        (show-entry))
+      (set-buffer-modified-p unsaved))))
+
+(defun buffer-contains-substring? (string)
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (search-forward string nil t))))
 
 (defun org-journal-figure-time-entry-level ()
   "Return the level of time entry based on value of 'org-journal-time-prefix.
