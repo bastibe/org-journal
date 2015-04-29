@@ -187,29 +187,32 @@ without adding an entry"
   (org-journal-dir-check-or-create)
   (let* ((entry-path (concat org-journal-dir
                              (format-time-string org-journal-file-format)))
-         (entry-path-exists-p (file-exists-p entry-path)))
-    ;; a prefix arg is given and there's no current journal entry? error, as
-    ;; there's no current entry to open
-    (when (and prefix
-               (not entry-path-exists-p))
-      (error "There's no current entry to open."))
-    (find-file entry-path))
-  (goto-char (point-max))
-  (let ((unsaved (buffer-modified-p)))
-    ;; skip entry adding if a universal prefix is given
-    (unless prefix
-      (if (equal (point-max) 1)
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format)))
-      (unless (eq (current-column) 0) (insert "\n"))
-      (insert "\n" org-journal-time-prefix
-              (format-time-string org-journal-time-format)))
-    (org-journal-mode)
-    (hide-sublevels 2)
-    ;; open the most recent entry
-    (when prefix
-      (show-entry))
-    (set-buffer-modified-p unsaved)))
+         (entry-path-exists-p (file-exists-p entry-path))
+         (should-add-entry-p (not prefix)))
+    (find-file entry-path)
+    (goto-char (point-max))
+    (let ((unsaved (buffer-modified-p)))
+
+      ;; empty file? Add a date timestamp
+      (when (equal (point-max) 1)
+        (insert org-journal-date-prefix
+                (format-time-string org-journal-date-format)))
+
+      ;; skip entry adding if a prefix is given
+      (when should-add-entry-p
+        (unless (eq (current-column) 0) (insert "\n"))
+        (insert "\n" org-journal-time-prefix
+                (format-time-string org-journal-time-format)))
+
+      ;; switch to the outline, hide subtrees
+      (org-journal-mode)
+      (hide-sublevels 2)
+
+      ;; open the recent entry when the prefix is given
+      (unless should-add-entry-p
+        (show-entry))
+
+      (set-buffer-modified-p unsaved))))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
