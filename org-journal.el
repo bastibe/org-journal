@@ -129,6 +129,9 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
+(defcustom org-journal-hide-entries-p t
+  "If true, org-journal-mode will hide all but the current entry
+   when creating a new one.")
 
 (require 'calendar)
 ;;;###autoload
@@ -205,13 +208,23 @@ without adding an entry."
 
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
-      (hide-sublevels 2)
+      (if org-journal-hide-entries-p
+          (hide-sublevels (org-journal-time-entry-level))
+        (show-all))
 
       ;; open the recent entry when the prefix is given
       (unless should-add-entry-p
         (show-entry))
 
       (set-buffer-modified-p unsaved))))
+
+(defun org-journal-time-entry-level ()
+  "Return the headline level of time entries based on the number
+of leading asterisks in 'org-journal-time-prefix.
+
+Return nil when it's impossible to figure out the level."
+  (if (string-match "\\(^\*+\\)" org-journal-time-prefix)
+      (length (match-string 1 org-journal-time-prefix))))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time"
