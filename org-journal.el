@@ -176,13 +176,12 @@ string if you want to disable timestamps."
       (error "Journal directory is necessary to use org-journal.")))
   t)
 
-;; Creates a new entry
 ;;;###autoload
 (defun org-journal-new-entry (prefix)
   "Open today's journal file and start a new entry.
 
 Giving the command a prefix arg will just open a today's file,
-without adding an entry"
+without adding an entry."
   (interactive "P")
   (org-journal-dir-check-or-create)
   (let* ((entry-path (concat org-journal-dir
@@ -198,7 +197,7 @@ without adding an entry"
         (insert org-journal-date-prefix
                 (format-time-string org-journal-date-format)))
 
-      ;; skip entry adding if a prefix is given
+      ;; skip adding entry if a prefix is given
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
         (insert "\n" org-journal-time-prefix
