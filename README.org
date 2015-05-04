@@ -152,4 +152,8 @@ A typical journal entry for a day would look like this:
   Journal files should open correctly when restored by desktop-save-mode now.
 
 - 2015-03-01 V1.7.0 Bastian Bechtold ::
-  Added functions for searching journal entries in date ranges. (thank you, Vladimir Kazanov!)
+  Added functions for searching journal entries in date ranges (thank you, Vladimir Kazanov!).
+
+- 2015-05-04 V1.8.0 Bastian Bechtold ::
+  No more empty files when creating new entries with prefix (thank you, Vladimir Kazanov!). \\
+  You can now customize whether org-journal-mode will hide entries (thank you, Boris Buliga!).
