@@ -542,7 +542,7 @@ calendar accordingly."
 (defun org-journal-search-do-search (str files)
   "Search for a string within a list of files, return match pairs (PATH . LINENUM)"
   (let (results)
-    (dolist (fname files)
+    (dolist (fname (reverse files))
       (with-temp-buffer
         (insert-file-contents fname)
         (while (search-forward str nil t)
@@ -551,7 +551,7 @@ calendar accordingly."
                            (line-end-position)))
                  (res (list fname (line-number-at-pos) fullstr)))
             (push res results)))))
-    results))
+    (reverse results)))
 
 (defun org-journal-search-print-results (str results period-start period-end)
   "Print search results using text buttons"
