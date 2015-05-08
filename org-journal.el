@@ -500,13 +500,16 @@ calendar accordingly."
    (t (error "Wrong period-name given or not in the calendar mode"))))
 
 (defun org-journal-search-by-string (str &optional period-start period-end)
-  "Search for a string within a given time interval"
+  "Search for a string within a given time interval.
+if no string is given, search for all entries using
+org-journal-time-prefix."
   (when (time-less-p period-end period-start)
     (error "Period end cannot be before the start"))
   (when (time-less-p (current-time) period-start)
     (error "Period start cannot be in the future"))
-  (let* ((files (org-journal-search-build-file-list period-start period-end))
-         (results (org-journal-search-do-search str files)))
+  (let* ((search-str (if (string= "" str) org-journal-time-prefix str))
+         (files (org-journal-search-build-file-list period-start period-end))
+         (results (org-journal-search-do-search search-str files)))
     (with-current-buffer-window
      "*Org-journal search*" nil nil
      (org-journal-search-print-results str results period-start period-end))))
