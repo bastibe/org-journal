@@ -135,8 +135,6 @@ string if you want to disable timestamps."
    when creating a new one.")
 
 (require 'org-crypt nil 'noerror)
-(when (fboundp 'org-crypt-use-before-save-magic)
-  (org-crypt-use-before-save-magic))
 
 (defcustom org-journal-enable-encryption nil
   "If non-nil, New journal entries will have a
@@ -144,6 +142,10 @@ string if you want to disable timestamps."
 saves/opens these journal entries, emacs asks a user passphrase
 to encrypt/decrypt it."
   :type 'boolean :group 'org-journal)
+
+(defcustom org-journal-encrypt-on 'before-save-hook
+  "Hook on which to encrypt entries. It can be set to other hooks
+  like kill-buffer-hook. ")
 
 (defvar org-journal-date-list nil)
 (defvar org-journal-file)
@@ -632,6 +634,18 @@ org-journal-time-prefix."
   (when (fboundp 'org-decrypt-entries)
     (let ((buffer-read-only nil))
       (org-decrypt-entries))))
+
+(defun org-journal-setup-encryption ()
+  "Automatically encrypt entries on `org-journal-encrypt-on'."
+  (add-hook
+   'org-journal-mode-hook
+   (lambda () (org-add-hook org-journal-encrypt-on
+                            (lambda ()
+                              (org-encrypt-entries)
+                              (unless (equal org-journal-encrypt-on
+                                             'before-save-hook)
+                                (save-buffer)))
+                            nil t))))
 
 (provide 'org-journal)
 
