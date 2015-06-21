@@ -220,10 +220,14 @@ without adding an entry."
       ;; empty file? Add a date timestamp
       (when (equal (point-max) 1)
         (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format))
-        (when org-journal-enable-encryption
-          (org-set-tags-to org-crypt-tag-matcher)
-          (move-end-of-line nil)))
+                (format-time-string org-journal-date-format)))
+
+      ;; add crypt tag if encryption is enabled and tag is not present
+      (when org-journal-enable-encryption
+        (goto-char (point-min))
+        (unless (member org-crypt-tag-matcher (org-get-tags))
+          (org-set-tags-to org-crypt-tag-matcher))
+        (goto-char (point-max)))
 
       ;; skip adding entry if a prefix is given
       (when should-add-entry-p
