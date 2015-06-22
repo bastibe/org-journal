@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.8.1
+;; Version: 1.9.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
