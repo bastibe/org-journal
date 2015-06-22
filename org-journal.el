@@ -57,8 +57,9 @@
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (expand-file-name org-journal-dir)
-                      (substring org-journal-file-pattern 1))))
+  (let ((name (expand-file-name
+               (substring org-journal-file-pattern 1)
+               org-journal-dir)))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
 
@@ -171,6 +172,13 @@ string if you want to disable timestamps."
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
+(defun org-journal-get-entry-path (&optional time)
+  "Return the path to an entry given a TIME.
+If no TIME is given, uses the current time."
+  (expand-file-name
+   (format-time-string org-journal-file-format time)
+   org-journal-dir))
+
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
   (unless (file-exists-p org-journal-dir)
@@ -187,8 +195,7 @@ Giving the command a prefix arg will just open a today's file,
 without adding an entry."
   (interactive "P")
   (org-journal-dir-check-or-create)
-  (let* ((entry-path (concat org-journal-dir
-                             (format-time-string org-journal-file-format)))
+  (let* ((entry-path (org-journal-get-entry-path))
          (entry-path-exists-p (file-exists-p entry-path))
          (should-add-entry-p (not prefix)))
     (find-file entry-path)
@@ -262,8 +269,7 @@ If the date is not today, it won't be given a time."
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-dir-check-or-create)
-    (find-file-other-window (concat org-journal-dir
-                                    (format-time-string org-journal-file-format time)))
+    (find-file-other-window (org-journal-get-entry-path time))
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
       (if (equal (point-max) 1)
@@ -290,9 +296,7 @@ If the date is not today, it won't be given a time."
     (calendar-exit)
     (if dates
         (let* ((time (org-journal-calendar-date->time (car dates)))
-               (filename (concat org-journal-dir
-                                 (format-time-string
-                                  org-journal-file-format time))))
+               (filename (org-journal-get-entry-path time)))
           (find-file filename)
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
@@ -311,9 +315,7 @@ If the date is not today, it won't be given a time."
     (calendar-exit)
     (if (and dates (cadr dates))
         (let* ((time (org-journal-calendar-date->time (cadr dates)))
-               (filename (concat org-journal-dir
-                                 (format-time-string
-                                  org-journal-file-format time))))
+               (filename (org-journal-get-entry-path time)))
           (find-file filename)
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
@@ -365,8 +367,7 @@ If the date is not today, it won't be given a time."
   "Read an entry for the TIME and either select the new
   window (NOSELECT is nil) or avoid switching (NOSELECT is
   non-nil."
-  (let ((org-journal-file (concat org-journal-dir
-                                  (format-time-string org-journal-file-format time))))
+  (let ((org-journal-file (org-journal-get-entry-path time)))
     (if (file-exists-p org-journal-file)
         (progn
           ;; open file in view-mode if not opened already
