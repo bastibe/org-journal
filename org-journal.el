@@ -635,17 +635,21 @@ org-journal-time-prefix."
     (let ((buffer-read-only nil))
       (org-decrypt-entries))))
 
-(defun org-journal-setup-encryption ()
-  "Automatically encrypt entries on `org-journal-encrypt-on'."
-  (add-hook
-   'org-journal-mode-hook
-   (lambda () (org-add-hook org-journal-encrypt-on
-                            (lambda ()
-                              (org-encrypt-entries)
-                              (unless (equal org-journal-encrypt-on
-                                             'before-save-hook)
-                                (save-buffer)))
-                            nil t))))
+(defun org-journal-encryption-hook ()
+  "The function added to the hook specified by
+  `org-journal-encrypt-on'."
+  (when org-journal-enable-encryption
+    (org-encrypt-entries)
+    (unless (equal org-journal-encrypt-on
+                   'before-save-hook)
+      (save-buffer))))
+
+;; Setup encryption by default
+;;;###autoload
+(add-hook 'org-journal-mode-hook
+          (lambda () (org-add-hook org-journal-encrypt-on
+                                   'org-journal-encryption-hook
+                                   nil t)))
 
 (provide 'org-journal)
 
