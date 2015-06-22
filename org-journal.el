@@ -316,6 +316,7 @@ If the date is not today, it won't be given a time."
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
+        (view-mode-p view-mode)
         (dates org-journal-date-list))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
@@ -324,8 +325,9 @@ If the date is not today, it won't be given a time."
     (if dates
         (let* ((time (org-journal-calendar-date->time (car dates)))
                (filename (org-journal-get-entry-path time)))
-          (apply (if view-mode 'view-file 'find-file) filename)
+          (find-file filename)
           (org-journal-decrypt)
+          (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No next journal entry after this one"))))
 
@@ -334,6 +336,7 @@ If the date is not today, it won't be given a time."
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
+        (view-mode-p view-mode)
         (dates (reverse org-journal-date-list)))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
@@ -342,8 +345,9 @@ If the date is not today, it won't be given a time."
     (if (and dates (cadr dates))
         (let* ((time (org-journal-calendar-date->time (cadr dates)))
                (filename (org-journal-get-entry-path time)))
-          (apply (if view-mode 'view-file 'find-file) filename)
+          (find-file filename)
           (org-journal-decrypt)
+          (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No previous journal entry before this one"))))
 
