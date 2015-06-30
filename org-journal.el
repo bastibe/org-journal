@@ -214,44 +214,7 @@ If no TIME is given, uses the current time."
 Giving the command a prefix arg will just open a today's file,
 without adding an entry."
   (interactive "P")
-  (org-journal-dir-check-or-create)
-  (let* ((entry-path (org-journal-get-entry-path))
-         (entry-path-exists-p (file-exists-p entry-path))
-         (should-add-entry-p (not prefix)))
-    (find-file entry-path)
-    (org-journal-decrypt)
-    (goto-char (point-max))
-    (let ((unsaved (buffer-modified-p)))
-
-      ;; empty file? Add a date timestamp
-      (when (equal (point-max) 1)
-        (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format)))
-
-      ;; add crypt tag if encryption is enabled and tag is not present
-      (when org-journal-enable-encryption
-        (goto-char (point-min))
-        (unless (member org-crypt-tag-matcher (org-get-tags))
-          (org-set-tags-to org-crypt-tag-matcher))
-        (goto-char (point-max)))
-
-      ;; skip adding entry if a prefix is given
-      (when should-add-entry-p
-        (unless (eq (current-column) 0) (insert "\n"))
-        (insert "\n" org-journal-time-prefix
-                (format-time-string org-journal-time-format)))
-
-      ;; switch to the outline, hide subtrees
-      (org-journal-mode)
-      (if org-journal-hide-entries-p
-          (hide-sublevels (org-journal-time-entry-level))
-        (show-all))
-
-      ;; open the recent entry when the prefix is given
-      (unless should-add-entry-p
-        (show-entry))
-
-      (set-buffer-modified-p unsaved))))
+  (org-journal--setup-entry prefix t))
 
 (defun org-journal-time-entry-level ()
   "Return the headline level of time entries based on the number
@@ -296,20 +259,7 @@ If the date is not today, it won't be given a time."
    (list current-prefix-arg last-nonmenu-event))
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
-    (org-journal-dir-check-or-create)
-    (find-file-other-window (org-journal-get-entry-path time))
-    (goto-char (point-max))
-    (let ((unsaved (buffer-modified-p)))
-      (if (equal (point-max) 1)
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format time)))
-      (unless (eq (current-column) 0) (insert "\n"))
-      (insert "\n" org-journal-time-prefix
-              (if (= (time-to-days (current-time)) (time-to-days time))
-                  (format-time-string org-journal-time-format)
-                ""))
-      (hide-sublevels 2)
-      (set-buffer-modified-p unsaved))))
+    (org-journal--setup-entry arg nil time)))
 
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one"
@@ -350,6 +300,51 @@ If the date is not today, it won't be given a time."
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No previous journal entry before this one"))))
+
+(defun org-journal--setup-entry (prefix same-window &optional time)
+  (org-journal-dir-check-or-create)
+  (let* ((entry-path (org-journal-get-entry-path time))
+         (should-add-entry-p (not prefix)))
+
+    ;; Open journal file in the same or a different window
+    (if same-window (find-file entry-path)
+      (find-file-other-window entry-path))
+
+    (org-journal-decrypt)
+    (goto-char (point-max))
+    (let ((unsaved (buffer-modified-p)))
+
+      ;; empty file? Add a date timestamp
+      (when (equal (point-max) 1)
+        (insert org-journal-date-prefix
+                (format-time-string org-journal-date-format time)))
+
+      ;; add crypt tag if encryption is enabled and tag is not present
+      (when org-journal-enable-encryption
+        (goto-char (point-min))
+        (unless (member org-crypt-tag-matcher (org-get-tags))
+          (org-set-tags-to org-crypt-tag-matcher))
+        (goto-char (point-max)))
+
+      ;; skip adding entry if a prefix is given
+      (when should-add-entry-p
+        (unless (eq (current-column) 0) (insert "\n"))
+        (insert "\n" org-journal-time-prefix
+                (if (= (time-to-days (current-time)) (time-to-days time))
+                    (format-time-string org-journal-time-format)
+                  "")))
+
+      ;; switch to the outline, hide subtrees
+      (org-journal-mode)
+      (if org-journal-hide-entries-p
+          (hide-sublevels (org-journal-time-entry-level))
+        (show-all))
+
+      ;; open the recent entry when the prefix is given
+      (unless should-add-entry-p
+        (show-entry))
+
+      (set-buffer-modified-p unsaved))))
 
 ;;
 ;; Functions to browse existing journal entries using the calendar
