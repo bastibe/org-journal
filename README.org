@@ -157,3 +157,9 @@ A typical journal entry for a day would look like this:
 - 2015-05-04 V1.8.0 Bastian Bechtold ::
   No more empty files when creating new entries with prefix (thank you, Vladimir Kazanov!). \\
   You can now customize whether org-journal-mode will hide entries (thank you, Boris Buliga!).
+
+- 2015-06-22 V1.9.0 Bastian Bechtold ::
+  Journal files can now be encrypted if you set ~org-journal-enable-encryption~ (thank you, Donghyun Cho and Puneeth Chaganti!).
+
+- 2015-07-01 V1.9.1 Bastian Bechtold ::
+  Encryption and prefix now work for calendar-created entries (thank you, Puneeth Chaganti!).

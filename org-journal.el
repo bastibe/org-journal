@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.0
+;; Version: 1.9.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -87,7 +87,9 @@
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
+  :version "0.9.1"
   :group 'applications)
+
 ;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
@@ -97,6 +99,7 @@
   :set (lambda (symbol value)
          (set-default symbol value)
          (org-journal-update-auto-mode-alist)))
+
 ;;;###autoload
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names, by default \"YYYYMMDD\".
@@ -112,20 +115,24 @@
          (setq org-journal-file-pattern
                (org-journal-format-string->regex value))
          (org-journal-update-auto-mode-alist)))
+
 (defcustom org-journal-date-format "%A, %x"
   "Format string for date, by default \"WEEKDAY, DATE\", where
   DATE is what Emacs thinks is an appropriate way to format days
   in your language."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-date-prefix "* "
   "String that is put before every date at the top of a journal
   file. By default, this is a org-mode heading. Another good idea
   would be \"#+TITLE: \" for org titles."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-format "%R "
   "Format string for time, by default HH:MM. Set it to a blank
 string if you want to disable timestamps."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-prefix "** "
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
