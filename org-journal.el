@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.2
+;; Version: 1.9.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -89,7 +89,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "0.9.2"
+  :version "0.9.3"
   :group 'applications)
 
 ;;;###autoload
@@ -429,7 +429,7 @@ prefix is given, don't add a new heading."
 (defun org-journal-previous-entry ()
   "Go to the previous date with a journal entry"
   (interactive)
-  (let ((dates (reverse (org-journal-list-date))))
+  (let ((dates (reverse (org-journal-list-dates))))
     (while (and dates
                 (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
