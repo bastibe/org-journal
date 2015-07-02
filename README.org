@@ -8,9 +8,11 @@ Feel free to use, modify and improve the code!
 
 *_BREAKING CHANGE_*
 
-Org-journal used to use the key bindings =C-c j=, =C-c b=, and
-=C-c f=. These however are [[http://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html][reserved]] for user-defined actions. Instead,
-org-journal now uses =C-c C-j=, =C-c C-b= and =C-c C-f=.
+Org-journal used to use the key bindings =C-c j=, =C-c b=, and =C-c
+f=. These however are [[http://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html][reserved]] for user-defined actions. Instead,
+org-journal now uses =C-c C-j=, =C-c C-b= and =C-c C-f=. This can lead
+to conflicts with other modes. Please =(global-set-key (kbd "C-c j")
+'org-journal-new-entry)= if this bothers you.
 
 This file is also available from [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]
 under the name org-journal. You may also want to specify the directory
