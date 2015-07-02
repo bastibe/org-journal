@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.1
+;; Version: 1.9.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -51,6 +51,12 @@
 ;; When viewing a journal entry: C-c C-b to view previous entry
 ;;                               C-c C-f to view next entry
 
+(defvar org-journal-file-pattern
+  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$"
+  "This matches journal files in your journal directory.
+This variable is created and updated automatically by
+org-journal. Use org-journal-file-format instead.")
+
 ;; use this function to update auto-mode-alist whenever
 ;; org-journal-dir or org-journal-file-pattern change.
 ;;;###autoload
@@ -65,10 +71,6 @@
 
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
-
-(defvar org-journal-date-list nil)
-(defvar org-journal-file-pattern
-  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$")
 
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
@@ -87,7 +89,7 @@
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "0.9.1"
+  :version "0.9.2"
   :group 'applications)
 
 ;;;###autoload
@@ -315,7 +317,7 @@ prefix is given, don't add a new heading."
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
-        (dates org-journal-date-list))
+        (dates (org-journal-list-dates)))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
@@ -335,7 +337,7 @@ prefix is given, don't add a new heading."
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
-        (dates (reverse org-journal-date-list)))
+        (dates (reverse (org-journal-list-dates))))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))
@@ -354,19 +356,17 @@ prefix is given, don't add a new heading."
 ;;
 
 ;;;###autoload
-(defun org-journal-get-list ()
+(defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
   it into a list of calendar DATE elements"
   (org-journal-dir-check-or-create)
-  (setq org-journal-date-list
-	(mapcar #'org-journal-file-name->calendar-date
-            (directory-files org-journal-dir nil org-journal-file-pattern nil)))
-  (calendar-redraw))
+  (mapcar #'org-journal-file-name->calendar-date
+          (directory-files org-journal-dir nil org-journal-file-pattern nil)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a diary entry is present"
-  (dolist (journal-entry org-journal-date-list)
+  (dolist (journal-entry (org-journal-list-dates))
     (if (calendar-date-is-visible-p journal-entry)
         (calendar-mark-visible-date journal-entry))))
 
@@ -419,7 +419,7 @@ prefix is given, don't add a new heading."
 (defun org-journal-next-entry ()
   "Go to the next date with a journal entry"
   (interactive)
-  (let ((dates org-journal-date-list))
+  (let ((dates (org-journal-list-dates)))
     (while (and dates (not (calendar-date-compare
                             (list (calendar-cursor-to-date)) dates)))
       (setq dates (cdr dates)))
@@ -429,7 +429,7 @@ prefix is given, don't add a new heading."
 (defun org-journal-previous-entry ()
   "Go to the previous date with a journal entry"
   (interactive)
-  (let ((dates (reverse org-journal-date-list)))
+  (let ((dates (reverse (org-journal-list-date))))
     (while (and dates
                 (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
