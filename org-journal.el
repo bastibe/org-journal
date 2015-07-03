@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.3
+;; Version: 1.9.4
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -89,7 +89,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "0.9.3"
+  :version "1.9.4"
   :group 'applications)
 
 ;;;###autoload
@@ -164,8 +164,6 @@ to encrypt/decrypt it."
                    'org-journal-mode))
 
 (require 'calendar)
-;;;###autoload
-(add-hook 'calendar-initial-window-hook 'org-journal-get-list)
 ;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
 ;;;###autoload
