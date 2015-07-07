@@ -52,7 +52,7 @@
 ;;                               C-c C-f to view next entry
 
 (defvar org-journal-file-pattern
-  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$"
+  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'"
   "This matches journal files in your journal directory.
 This variable is created and updated automatically by
 org-journal. Use org-journal-file-format instead.")
@@ -84,7 +84,7 @@ org-journal. Use org-journal-file-format instead.")
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
-   "$"))
+   "\\'"))
 
 ; Customizable variables
 (defgroup org-journal nil
