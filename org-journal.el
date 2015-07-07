@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.4
+;; Version: 1.9.5
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -72,6 +72,9 @@ org-journal. Use org-journal-file-format instead.")
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 
+;; Automatically switch to journal mode when opening a journal entry file
+(org-journal-update-auto-mode-alist)
+
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
   "Update org-journal-file-pattern with the current
@@ -89,7 +92,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.9.4"
+  :version "1.9.5"
   :group 'applications)
 
 ;;;###autoload
@@ -156,12 +159,6 @@ to encrypt/decrypt it."
 (defcustom org-journal-encrypt-on 'before-save-hook
   "Hook on which to encrypt entries. It can be set to other hooks
   like kill-buffer-hook. ")
-
-;; Automatically switch to journal mode when opening a journal entry file
-(add-to-list 'auto-mode-alist
-             (cons (concat (file-truename org-journal-dir)
-                           org-journal-file-pattern)
-                   'org-journal-mode))
 
 (require 'calendar)
 ;;;###autoload
