@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.5
+;; Version: 1.9.6
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -92,7 +92,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.9.5"
+  :version "1.9.6"
   :group 'applications)
 
 ;;;###autoload
@@ -384,6 +384,9 @@ prefix is given, don't add a new heading."
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-read-or-display-entry time t)))
+
+;; silence compiler warning.
+(defvar view-exit-action)
 
 ;;;###autoload
 (defun org-journal-read-or-display-entry (time &optional noselect)
