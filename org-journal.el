@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.6
+;; Version: 1.10.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -92,7 +92,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.9.6"
+  :version "1.10.0"
   :group 'applications)
 
 ;;;###autoload
@@ -160,6 +160,11 @@ to encrypt/decrypt it."
   "Hook on which to encrypt entries. It can be set to other hooks
   like kill-buffer-hook. ")
 
+(defcustom org-journal-find-file 'find-file-other-window
+  "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
+  :type 'function
+  :group 'org-journal)
+
 (require 'calendar)
 ;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
@@ -223,7 +228,7 @@ the time's day."
          (should-add-entry-p (not prefix)))
 
     ;; open journal file
-    (find-file-other-window entry-path)
+    (funcall org-journal-find-file entry-path)
     (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
@@ -409,7 +414,7 @@ prefix is given, don't add a new heading."
               (org-journal-decrypt)
               (org-show-subtree))
             (if (not noselect)
-                (find-file-other-window org-journal-file)
+                (funcall org-journal-find-file org-journal-file)
               (display-buffer buf t))))
       (message "No journal entry for this date."))))
 
