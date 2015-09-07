@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.10.0
+;; Version: 1.10.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -73,6 +73,8 @@ org-journal. Use org-journal-file-format instead.")
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 
 ;; Automatically switch to journal mode when opening a journal entry file
+(setq org-journal-file-pattern
+      (org-journal-format-string->regex org-journal-file-format))
 (org-journal-update-auto-mode-alist)
 
 ;;;###autoload
@@ -92,7 +94,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.10.0"
+  :version "1.10.1"
   :group 'applications)
 
 ;;;###autoload
