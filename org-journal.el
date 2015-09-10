@@ -142,7 +142,8 @@ string if you want to disable timestamps."
 
 (defcustom org-journal-hide-entries-p t
   "If true, org-journal-mode will hide all but the current entry
-   when creating a new one.")
+   when creating a new one."
+  :type 'boolean :group 'org-journal)
 
 (require 'org-crypt nil 'noerror)
 
@@ -155,12 +156,12 @@ to encrypt/decrypt it."
 
 (defcustom org-journal-encrypt-on 'before-save-hook
   "Hook on which to encrypt entries. It can be set to other hooks
-  like kill-buffer-hook. ")
+  like kill-buffer-hook. "
+  :type 'function :group 'org-journal)
 
 (defcustom org-journal-find-file 'find-file-other-window
   "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
-  :type 'function
-  :group 'org-journal)
+  :type 'function :group 'org-journal)
 
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
