@@ -86,11 +86,6 @@ org-journal. Use org-journal-file-format instead.")
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
    "\\'"))
 
-;; Automatically switch to journal mode when opening a journal entry file
-(setq org-journal-file-pattern
-      (org-journal-format-string->regex org-journal-file-format))
-(org-journal-update-auto-mode-alist)
-
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
@@ -166,6 +161,11 @@ to encrypt/decrypt it."
   "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
   :type 'function
   :group 'org-journal)
+
+;; Automatically switch to journal mode when opening a journal entry file
+(setq org-journal-file-pattern
+      (org-journal-format-string->regex org-journal-file-format))
+(org-journal-update-auto-mode-alist)
 
 (require 'calendar)
 ;;;###autoload
