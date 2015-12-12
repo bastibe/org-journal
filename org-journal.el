@@ -616,6 +616,8 @@ org-journal-time-prefix."
       (princ "\t")
       (princ fullstr)
       (princ "\n")))
+  (when (fboundp 'hlt-highlight-symbol)
+    (hlt-highlight-symbol str))
   (local-set-key (kbd "q") 'kill-this-buffer)
   (local-set-key (kbd "<tab>") 'forward-button)
   (local-set-key (kbd "<backtab>") 'backward-button)
