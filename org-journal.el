@@ -101,8 +101,7 @@ org-journal. Use org-journal-file-format instead.")
   "Highlight STR in current-buffer"
   (goto-char (point-min))
   (while (search-forward str nil t)
-    (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
-      (overlay-put overlay 'face 'org-journal-highlight))))
+    (put-text-property (match-beginning 0) (match-end 0) 'font-lock-face 'org-journal-highlight)))
 
 ;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
