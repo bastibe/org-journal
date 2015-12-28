@@ -63,9 +63,8 @@ org-journal. Use org-journal-file-format instead.")
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (expand-file-name
-               (substring org-journal-file-pattern 1)
-               org-journal-dir)))
+  (let ((name (concat (expand-file-name org-journal-dir)
+                      (substring org-journal-file-pattern 1))))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
 
