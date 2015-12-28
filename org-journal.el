@@ -92,6 +92,17 @@ org-journal. Use org-journal-file-format instead.")
   :version "1.10.2"
   :group 'applications)
 
+(defface org-journal-highlight
+  '((t (:foreground "#ff1493")))
+  "Face for highlighting org-journal buffers."
+  :group 'org-journal)
+
+(defun org-journal-highlight (str)
+  "Highlight STR in current-buffer"
+  (goto-char (point-min))
+  (while (search-forward str nil t)
+    (put-text-property (match-beginning 0) (match-end 0) 'font-lock-face 'org-journal-highlight)))
+
 ;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
@@ -616,6 +627,7 @@ org-journal-time-prefix."
       (princ "\t")
       (princ fullstr)
       (princ "\n")))
+  (org-journal-highlight str)
   (local-set-key (kbd "q") 'kill-this-buffer)
   (local-set-key (kbd "<tab>") 'forward-button)
   (local-set-key (kbd "<backtab>") 'backward-button)
