@@ -6,13 +6,13 @@ Functions to maintain a simple personal diary / journal in Emacs.
 Feel free to use, modify and improve the code!
 — mtvoid, bastibe
 
-*_NEWS_*
+*NEWS*
 
 When creating a new journal entry, unfinished TODO items from the
 previous entry will be moved to the new entry. This can be controlled
 using =org-journal-carryover-items=. Set this to =nil= to disable this
 feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of matching
-tags, properties, and todo states. By default, this is ~TODO="TODO"~,
+tags, properties, and todo states. By default, this is ~TODO=”TODO”~,
 which will match TODO items.
 
 This file is also available from [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]
