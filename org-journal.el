@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.10.2
+;; Version: 1.11.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -35,6 +35,9 @@
 ;; select the date with the previous or next journal entry,
 ;; respectively. Pressing "i j" will create a new entry for the chosen
 ;; date.
+;;
+;; TODO items from the previous day will carry over to the current
+;; day. This is customizable through org-journal-carryover-items.
 ;;
 ;; Quick summary:
 ;; To create a new journal entry for the current time and day: C-c C-j
@@ -88,7 +91,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.10.2"
+  :version "1.11.0"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -173,6 +176,11 @@ to encrypt/decrypt it."
   "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
   :type 'function :group 'org-journal)
 
+(defcustom org-journal-carryover-items "TODO=\"TODO\""
+  "Carry over items that match these criteria from the previous entry to new entries.
+See agenda tags view match description for the format of this."
+  :type 'string :group 'org-journal)
+
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
       (org-journal-format-string->regex org-journal-file-format))
@@ -244,10 +252,11 @@ the time's day."
     (funcall org-journal-find-file entry-path)
     (org-journal-decrypt)
     (goto-char (point-max))
-    (let ((unsaved (buffer-modified-p)))
+    (let ((unsaved (buffer-modified-p))
+          (new-file-p (equal (point-max) 1)))
 
       ;; empty file? Add a date timestamp
-      (when (equal (point-max) 1)
+      (when new-file-p
         (insert org-journal-date-prefix
                 (format-time-string org-journal-date-format time)))
 
@@ -257,6 +266,10 @@ the time's day."
         (unless (member org-crypt-tag-matcher (org-get-tags))
           (org-set-tags-to org-crypt-tag-matcher))
         (goto-char (point-max)))
+
+      ;; move TODOs from previous day here
+      (when (and new-file-p org-journal-carryover-items)
+        (save-excursion (org-journal-carryover)))
 
       ;; skip adding entry if a prefix is given
       (when should-add-entry-p
@@ -273,10 +286,49 @@ the time's day."
         (show-all))
 
       ;; open the recent entry when the prefix is given
-      (unless should-add-entry-p
+      (if should-add-entry-p
         (show-entry))
 
       (set-buffer-modified-p unsaved))))
+
+(defun org-journal-carryover ()
+  "Moves all items matching org-journal-carryover-items from the
+previous day's file to the current file."
+  (interactive)
+  (let ((current-buffer-name (buffer-name))
+        (all-todos))
+    (save-excursion
+      (let ((org-journal-find-file 'find-file)
+            (delete-mapper
+             (lambda ()
+               (let ((subtree (org-journal-extract-current-subtree)))
+                 ;; since the next subtree now starts at point,
+                 ;; continue mapping from before that, to include it
+                 ;; in the search
+                 (backward-char)
+                 (setq org-map-continue-from (point))
+                 subtree))))
+        (org-journal-open-previous-entry)
+        (setq all-todos (org-map-entries delete-mapper
+                                         org-journal-carryover-items))))
+    (switch-to-buffer current-buffer-name)
+    (when all-todos
+      (unless (eq (current-column) 0) (insert "\n"))
+      (insert "\n")
+      (insert (mapconcat 'identity all-todos "")))))
+
+(defun org-journal-extract-current-subtree ()
+  "Get the string content of the entire current subtree, and
+delete it."
+  (let* ((start (progn (beginning-of-line)
+                       (point)))
+         (end (progn (org-end-of-subtree)
+                     (outline-next-heading)
+                     (point)))
+         (subtree (buffer-substring-no-properties start end)))
+    (delete-region start end)
+    (save-buffer)
+    subtree))
 
 (defun org-journal-time-entry-level ()
   "Return the headline level of time entries based on the number
@@ -331,6 +383,10 @@ prefix is given, don't add a new heading."
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
+    ;; insert current buffer in list if not present
+    (unless (file-exists-p (buffer-file-name))
+      (setq dates (cons calendar-date dates))
+      (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
@@ -351,6 +407,11 @@ prefix is given, don't add a new heading."
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
         (dates (reverse (org-journal-list-dates))))
+    ;; insert current buffer in list if not present
+    (unless (file-exists-p (buffer-file-name))
+      (setq dates (cons calendar-date dates))
+      ;; reverse-sort!
+      (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))

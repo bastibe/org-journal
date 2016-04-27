@@ -6,13 +6,14 @@ Functions to maintain a simple personal diary / journal in Emacs.
 Feel free to use, modify and improve the code!
 — mtvoid, bastibe
 
-*_BREAKING CHANGE_*
+*_NEWS_*
 
-Org-journal used to use the key bindings =C-c j=, =C-c b=, and =C-c
-f=. These however are [[http://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html][reserved]] for user-defined actions. Instead,
-org-journal now uses =C-c C-j=, =C-c C-b= and =C-c C-f=. This can lead
-to conflicts with other modes. Please =(global-set-key (kbd "C-c j")
-'org-journal-new-entry)= if this bothers you.
+When creating a new journal entry, unfinished TODO items from the
+previous entry will be moved to the new entry. This can be controlled
+using =org-journal-carryover-items=. Set this to =nil= to disable this
+feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of matching
+tags, properties, and todo states. By default, this is ~TODO="TODO"~,
+which will match TODO items.
 
 This file is also available from [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]
 under the name org-journal. You may also want to specify the directory
@@ -165,3 +166,10 @@ A typical journal entry for a day would look like this:
 
 - 2015-07-01 V1.9.1 Bastian Bechtold ::
   Encryption and prefix now work for calendar-created entries (thank you, Puneeth Chaganti!).
+
+- 2015-09-07 V1.10.0 Bastian Bechtold ::
+  Add option to find-file in same window.
+
+- 2016-04-27 V1.11.0 Bastian Bechtold ::
+  Add highlight to search results (thank you, aJchemist!).
+  Add option to carry over TODO items from previous entry when creating a new entry.
