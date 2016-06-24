@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.11.0
+;; Version: 1.11.1
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -281,7 +281,7 @@ the time's day."
 
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
-      (if org-journal-hide-entries-p
+      (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
           (hide-sublevels (org-journal-time-entry-level))
         (show-all))
 
