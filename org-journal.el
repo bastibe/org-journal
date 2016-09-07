@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.11.1
+;; Version: 1.11.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -249,7 +249,8 @@ the time's day."
          (should-add-entry-p (not prefix)))
 
     ;; open journal file
-    (funcall org-journal-find-file entry-path)
+    (if (not (string= entry-path (buffer-file-name)))
+        (funcall org-journal-find-file entry-path))
     (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p))
