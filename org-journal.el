@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.11.2
+;; Version: 1.11.3
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -91,7 +91,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.11.0"
+  :version "1.11.3"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -283,12 +283,12 @@ the time's day."
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
       (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
-          (hide-sublevels (org-journal-time-entry-level))
-        (show-all))
+          (outline-hide-sublevels (org-journal-time-entry-level))
+        (outline-show-all))
 
       ;; open the recent entry when the prefix is given
       (if should-add-entry-p
-        (show-entry))
+        (outline-show-entry))
 
       (set-buffer-modified-p unsaved))))
 
@@ -703,7 +703,7 @@ org-journal-time-prefix."
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
       (org-journal-file-name->calendar-date (file-name-base fname))))
-    (show-all) ; TODO: could not find out a proper way to go to a hidden line
+    (outline-show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
