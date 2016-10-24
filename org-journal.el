@@ -181,6 +181,12 @@ to encrypt/decrypt it."
 See agenda tags view match description for the format of this."
   :type 'string :group 'org-journal)
 
+(defcustom org-journal-search-results-order-by :asc
+  "When :desc, make search results ordered by date descending
+
+Otherwise, date ascending."
+  :type 'symbol :group 'org-journal)
+
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
       (org-journal-format-string->regex org-journal-file-format))
@@ -662,7 +668,9 @@ org-journal-time-prefix."
                            (line-end-position)))
                  (res (list fname (line-number-at-pos) fullstr)))
             (push res results)))))
-    (reverse results)))
+    (cond
+     ((eql org-journal-search-results-order-by :desc) results)
+     (t (reverse results)))))
 
 (defun org-journal-search-print-results (str results period-start period-end)
   "Print search results using text buttons"
