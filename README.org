@@ -24,8 +24,9 @@ for =org-journal-dir= is =~/Documents/journal/=.
 
 You can add all those calendar files to your org-agenda by adding
 =org-journal-dir= to =org-agenda-files= and setting
-=org-agenda-file-regexp= to include files with an all-numeric name
-(=\\`[^.].*\\.org\\'\\|[0-9]+\\'=). That way, you can use org-agenda to
+=org-agenda-file-regexp= to include files with an all-numeric name:
+: \\`[^.].*\\.org\\'\\|[0-9]+\\'
+That way, you can use org-agenda to
 search for /TODO/ items or tagged items in your org-journal.
 
 A better way to search journal items is to use org-journal's built-in
