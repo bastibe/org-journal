@@ -1,0 +1,25 @@
+[[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]]
+
+* org-journal
+
+  Adapted from http://www.emacswiki.org/PersonalDiary
+
+  Functions to maintain a simple personal diary / journal using in Emacs.
+  Feel free to use, modify and improve the code!
+  — mtvoid, bastibe
+
+** TODO Synopsis
+** TODO Quickstart
+*** TODO Installation
+*** TODO Usage
+
+    describe the basic workflow (create an entry, jump to daily entries without creating anything,
+    carry over, checkout the calendar)
+
+** TODO Manual
+
+   customization, agenda vs search, integration, etc
+
+** TODO FAQ
+** TODO Contributors
+** TODO Changelog
