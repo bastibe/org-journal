@@ -58,9 +58,14 @@
     C-x package-install org-journal
 #+END_EXAMPLE
 
-   Doing =C-x org-journal-new-entry= will immediately create a journal directory in the default path
-   (customized using the =org-journal-dir= variable), open a file in a specialized mode and insert a
-   journal entry template.
+   Then add =(require 'org-journal)= to your =.emacs=.
+
+   Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal directory in the
+   default path (customized using the =org-journal-dir= variable), open a file in =org-journal-mode= and
+   insert a journal entry template.
+
+   Same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping
+   entry creation, which is useful for taking a look at the current journal file.
 
    Bindings available in =org-journal-mode=:
 
@@ -72,15 +77,7 @@
 
    - =C-c C-s= - search the journal for a string
 
-   It's also probably reasonable to call =org-journal-new-entry= using a globally available binding:
-
- #+BEGIN_EXAMPLE
-  (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
-#+END_EXAMPLE
-
-   =C-c C-j= will then insert a new entry, =C-u C-c C-j= will just open the current journal file.
-
-   To see available journal entries do =C-x calendar=. =calendar-mode= bindings:
+   To see available journal entries do =C-x calendar=. Bindings available in the =calendar-mode=:
 
    - =j= - view an entry in a new buffer
 
