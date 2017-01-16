@@ -70,6 +70,8 @@
 
    - =C-c C-j= - insert a new entry
 
+   - =C-c C-s= - search the journal for a string
+
    It's also probably reasonable to call =org-journal-new-entry= using a globally available binding:
 
  #+BEGIN_EXAMPLE
