@@ -10,11 +10,11 @@
 
 ** Synopsis
 
-   =org-journal= is a set of functions and a simple major mode based on =org-mode=. It maintains a set
-   of files where each file represents a day. Convenient bindings allow to create journal records in
-   the current daily file and search within all records or specified time intervals. All records can
-   be browsed and searched from the Emacs Calendar for convenience. All entries in a specified TODO
-   state will be carried over to the next day. Optionally, the journal can also be encrypted.
+   =org-journal= maintains a set of files where each file represents a day. Convenient bindings allow
+   to create journal records in the current daily file and search within all records or specified
+   time intervals. All records can be browsed and searched from the Emacs Calendar for convenience.
+   All entries in a specified TODO state will be carried over to the next day. Optionally, the
+   journal can also be encrypted.
 
    An example of a daily file (it will actually look a lot nicer, depending on your org-mode
    settings):
@@ -50,6 +50,7 @@
 #+END_SRC
 
 ** Quickstart
+
    =org-journal= is available through [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]. So installation should be
    trivial:
 
@@ -61,39 +62,57 @@
    (customized using the =org-journal-dir= variable), open a file in a specialized mode and insert a
    journal entry template.
 
-   Bindings available in the =org-journal-mode=:
+   Bindings available in =org-journal-mode=:
 
-   - =C-c C-f= - to view next entry
+   - =C-c C-f= - find next entry
 
-   - =C-c C-b= - to view previous entry
+   - =C-c C-b= - find previous entry
 
    - =C-c C-j= - insert a new entry
 
-   To see available journal entries do =C-x calendar=. Calendar bindings:
+   It's also probably reasonable to call =org-journal-new-entry= using a globally available binding:
 
-   - =j= to view an entry in a new buffer
+ #+BEGIN_EXAMPLE
+  (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
+#+END_EXAMPLE
 
-   - =C-j= to view an entry but not switch to it
+   =C-c C-j= will then insert a new entry, =C-u C-c C-j= will just open the current journal file.
 
-   - =i j= to add a new entry
+   To see available journal entries do =C-x calendar=. =calendar-mode= bindings:
 
-   - =f w= to search in all entries of the current week
+   - =j= - view an entry in a new buffer
 
-   - =f m= to search in all entries of the current month
+   - =C-j= - view an entry but not switch to it
 
-   - =f y= to search in all entries of the current year
+   - =i j= - add a new entry
 
-   - =f f= to search in all entries of all time
+   - =f w= - search in all entries of the current week
 
-   - =[= to go to previous entry
+   - =f m= - search in all entries of the current month
 
-   - =]= to go to next entry
+   - =f y= - search in all entries of the current year
+
+   - =f f= - search in all entries of all time
+
+   - =[= - go to previous entry
+
+   - =]= - go to next entry
 
 ** TODO Manual
 
    customization, agenda vs search, integration, etc
 
-** TODO FAQ
+** FAQ
+
+*** Can I use monthly/weekly journal entries instead of daily ones?
+
+    No, currently =org-journal= is built around the idea of daily entries.
+
+*** Can I have multiple journals?
+
+    No, this is not immediately possible. But it should be possible to switch the value of
+    =org-journal-directory= using a custom function or directory local variables.
+
 ** Contributors
 
    See [[file:CONTRIBUTORS][CONTRIBUTORS]].
