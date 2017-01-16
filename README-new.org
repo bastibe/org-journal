@@ -13,8 +13,8 @@
    =org-journal= is a set of functions and a simple major mode based on =org-mode=. It maintains a set
    of files where each file represents a day. Convenient bindings allow to create journal records in
    the current daily file and search within all records or specified time intervals. All records can
-   be browsed and searched from the Emacs Calendar for convenience. Optionally, all entries in a
-   specified TODO state will be carried over to the next day.
+   be browsed and searched from the Emacs Calendar for convenience. All entries in a specified TODO
+   state will be carried over to the next day. Optionally, the journal can also be encrypted.
 
    An example of a daily file (it will actually look a lot nicer, depending on your org-mode
    settings):
@@ -49,12 +49,45 @@
   ** TODO teach org-journal how to brew coffee                   :org-journal:
 #+END_SRC
 
-** TODO Quickstart
-*** TODO Installation
-*** TODO Usage
+** Quickstart
+   =org-journal= is available through [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]. So installation should be
+   trivial:
 
-    describe the basic workflow (create an entry, jump to daily entries without creating anything,
-    carry over, checkout the calendar)
+#+BEGIN_EXAMPLE
+    C-x package-install org-journal
+#+END_EXAMPLE
+
+   Doing =C-x org-journal-new-entry= will immediately create a journal directory in the default path
+   (customized using the =org-journal-dir= variable), open a file in a specialized mode and insert a
+   journal entry template.
+
+   Bindings available in the =org-journal-mode=:
+
+   - =C-c C-f= - to view next entry
+
+   - =C-c C-b= - to view previous entry
+
+   - =C-c C-j= - insert a new entry
+
+   To see available journal entries do =C-x calendar=. Calendar bindings:
+
+   - =j= to view an entry in a new buffer
+
+   - =C-j= to view an entry but not switch to it
+
+   - =i j= to add a new entry
+
+   - =f w= to search in all entries of the current week
+
+   - =f m= to search in all entries of the current month
+
+   - =f y= to search in all entries of the current year
+
+   - =f f= to search in all entries of all time
+
+   - =[= to go to previous entry
+
+   - =]= to go to next entry
 
 ** TODO Manual
 
