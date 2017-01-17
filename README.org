@@ -81,8 +81,8 @@
 
    - =C-c C-s= - search the journal for a string
 
-   All journal entries are registered within in the Emacs Calendar. To see available journal entries
-   do =C-x calendar=. Bindings available in the =calendar-mode=:
+   All journal entries are registered in the Emacs Calendar. To see available journal entries do =C-x
+   calendar=. Bindings available in the =calendar-mode=:
 
    - =j= - view an entry in a new buffer
 
@@ -129,9 +129,9 @@
 
 *** Searching the Journal
 
-    When using =org-journal= has two searching options: the usual =org-mode= agenda search and the
-    builtin plain text search. The former can become slow with bigger journals so the builtin search
-    is a recommended option.
+    =org-journal= has two searching options: the usual =org-mode= agenda search and the builtin plain
+    text search. The former can become slow with bigger journals so the builtin search is a
+    recommended option.
 
     To use the agenda search You can add all the calendar files to your org-agenda by adding
     =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include files with an
@@ -140,18 +140,18 @@
 
     That way, you can use org-agenda to search for /TODO/ items or tagged items in your org-journal.
 
-    The builtin search is available through the following function: =org-journal-search=. By default it will ask
-    for the time interval to search within (accepting the =org-read-date= format such as "-1y" or
-    "-1m") and the string to search for. Given a prefix argument (=C-u org-journal-search=) it will go
-    through the whole journal.
+    The builtin search is available through the following function: =org-journal-search= (=C-c C-s= in
+    =org-journal-mode=). By default it will ask for the time interval to search within (accepting the
+    =org-read-date= format such as "-1y" or "-1m") and the string to search for. Given a prefix
+    argument (=C-u org-journal-search=) it will go through the whole journal.
 
     Search is also available through the Emacs Calendar as described in "Basic Usage".
 
 *** Carry Over
 
     By default =org-journal= will try to /carry over/ previous day TODO-marked items whenever a new
-    journal file is created. The older journal entry will be /moved/ (i.e., deleted and inserted in the new
-    file) to the current day file.
+    journal file is created. The older journal entry will be /moved/ (i.e., deleted and reinserted) to
+    the current day file.
 
     This feature is controlled through the =org-journal-carryover-items= variable. Set this to =nil= to
     disable this feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of matching tags,
