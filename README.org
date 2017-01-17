@@ -5,16 +5,17 @@
   Adapted from http://www.emacswiki.org/PersonalDiary
 
   Functions to maintain a simple personal diary / journal using in Emacs.
+
   Feel free to use, modify and improve the code!
   — mtvoid, bastibe
 
 ** Synopsis
 
    =org-journal= maintains a set of files where each file represents a day. Convenient bindings allow
-   to create journal records in the current daily file and search within all records or specified
-   time intervals. All records can be browsed and searched from the Emacs Calendar for convenience.
-   All entries in a specified TODO state will be carried over to the next day. Optionally, the
-   journal can also be encrypted.
+   the creation of journal records in the current daily file and search within all records or
+   specified time intervals. All records can be browsed and searched from the Emacs Calendar for
+   convenience. All entries in a specified TODO state will be carried over to the next day.
+   Optionally, the journal can also be encrypted.
 
    An example of a daily file (it will actually look a lot nicer, depending on your org-mode
    settings):
@@ -63,44 +64,44 @@
 ** Quickstart
 
    Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal directory in the
-   default path (customized using the =org-journal-dir= variable), open a file in =org-journal-mode= and
-   insert a journal entry template.
+   default path (customized using the =org-journal-dir= variable), open or create a file in
+   =org-journal-mode= and insert a template for a new journal entry.
 
-   Same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping
+   The same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping
    entry creation, which is useful for taking a look at the current journal file.
 
 ** Basic Usage
 
    Bindings available in =org-journal-mode=:
 
-   - =C-c C-f= - find next entry
+   - =C-c C-f= - go to the next journal file.
 
-   - =C-c C-b= - find previous entry
+   - =C-c C-b= - go to the previous journal file.
 
-   - =C-c C-j= - insert a new entry
+   - =C-c C-j= - insert a new entry into the current journal file (creates the file if not present).
 
-   - =C-c C-s= - search the journal for a string
+   - =C-c C-s= - search the journal for a string.
 
    All journal entries are registered in the Emacs Calendar. To see available journal entries do =C-x
    calendar=. Bindings available in the =calendar-mode=:
 
-   - =j= - view an entry in a new buffer
+   - =j= - view an entry in a new buffer.
 
-   - =C-j= - view an entry but not switch to it
+   - =C-j= - view an entry but do not switch to it.
 
-   - =i j= - add a new entry
+   - =i j= - add a new entry into the day's file (creates the file if not present).
 
-   - =f w= - search in all entries of the current week
+   - =f w= - search in all entries of the current week.
 
-   - =f m= - search in all entries of the current month
+   - =f m= - search in all entries of the current month.
 
-   - =f y= - search in all entries of the current year
+   - =f y= - search in all entries of the current year.
 
-   - =f f= - search in all entries of all time
+   - =f f= - search in all entries of all time.
 
-   - =[= - go to previous entry
+   - =[= - go to previous day with journal entries.
 
-   - =]= - go to next entry
+   - =]= - go to next day with journal entries.
 
 ** Advanced Usage and Customization
 
@@ -109,7 +110,7 @@
     Customization options related to journal directory and files:
 
     - =org-journal-dir= - the journal path. Tweaking this variable will also update =auto-mode-alist= to
-      make sure journal files are handled using the correct mode.
+      make sure journal files are opened in =org-journal-mode=.
 
     - =org-journal-file-format= - format string for journal file names.
 
@@ -133,7 +134,7 @@
     text search. The former can become slow with bigger journals so the builtin search is a
     recommended option.
 
-    To use the agenda search You can add all the calendar files to your org-agenda by adding
+    To use the agenda search you can add all the calendar files to your org-agenda by adding
     =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include files with an
     all-numeric name:
 : \\`[^.].*\\.org\\'\\|[0-9]+\\'
@@ -151,7 +152,7 @@
 
     By default =org-journal= will try to /carry over/ previous day TODO-marked items whenever a new
     journal file is created. The older journal entry will be /moved/ (i.e., deleted and reinserted) to
-    the current day file.
+    the current day's file.
 
     This feature is controlled through the =org-journal-carryover-items= variable. Set this to =nil= to
     disable this feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of matching tags,
