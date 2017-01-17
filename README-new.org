@@ -49,7 +49,7 @@
   ** TODO teach org-journal how to brew coffee                   :org-journal:
 #+END_SRC
 
-** Quickstart
+** Installation
 
    =org-journal= is available through [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]. So installation should be
    trivial:
@@ -60,12 +60,16 @@
 
    Then add =(require 'org-journal)= to your =.emacs=.
 
+** Quickstart
+
    Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal directory in the
    default path (customized using the =org-journal-dir= variable), open a file in =org-journal-mode= and
    insert a journal entry template.
 
    Same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while skipping
    entry creation, which is useful for taking a look at the current journal file.
+
+** Basic Usage
 
    Bindings available in =org-journal-mode=:
 
@@ -77,7 +81,8 @@
 
    - =C-c C-s= - search the journal for a string
 
-   To see available journal entries do =C-x calendar=. Bindings available in the =calendar-mode=:
+   All journal entries are registered within in the Emacs Calendar. To see available journal entries
+   do =C-x calendar=. Bindings available in the =calendar-mode=:
 
    - =j= - view an entry in a new buffer
 
@@ -97,9 +102,66 @@
 
    - =]= - go to next entry
 
-** TODO Manual
+** Advanced Usage and Customization
 
    customization, agenda vs search, integration, etc
+
+*** Journal Directory and Files
+
+    Customization options related to journal directory and files:
+
+    - =org-journal-dir= - the journal path. Tweaking this variable will also update =auto-mode-alist= to
+      make sure journal files are handled using the correct mode.
+
+    - =org-journal-file-format= - format string for journal file names.
+
+*** Journal File Content
+
+    Customization options related to the journal file contents:
+
+    - =org-journal-date-format= - date format format =org-journal= uses when showing a date within a
+      journal and search results page.
+
+    - =org-journal-date-prefix= - this string will prefix the date at the top of a journal file.
+
+    - =org-journal-time-format= - a timestamp format that will prefix every entry within a daily
+      journal file.
+
+    - =org-journal-time-prefix= - a string that will prefix every entry within a daily journal file.
+
+*** Searching the Journal
+
+    When using =org-journal= has two searching options: the usual =org-mode= agenda search and the
+    builtin plain text search. The former can become slow with bigger journals so the builtin search
+    is a recommended option.
+
+    To use the agenda search You can add all the calendar files to your org-agenda by adding
+    =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include files with an
+    all-numeric name:
+: \\`[^.].*\\.org\\'\\|[0-9]+\\'
+
+    That way, you can use org-agenda to search for /TODO/ items or tagged items in your org-journal.
+
+    The builtin search is available through the following function: =org-journal-search=. By default it will ask
+    for the time interval to search within (accepting the =org-read-date= format such as "-1y" or
+    "-1m") and the string to search for. Given a prefix argument (=C-u org-journal-search=) it will go
+    through the whole journal.
+
+    Search is also available through the Emacs Calendar as described in "Basic Usage".
+
+*** Carry Over
+
+    By default =org-journal= will try to /carry over/ previous day TODO-marked items whenever a new
+    journal file is created. The older journal entry will be /moved/ (i.e., deleted and inserted in the new
+    file) to the current day file.
+
+    This feature is controlled through the =org-journal-carryover-items= variable. Set this to =nil= to
+    disable this feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of matching tags,
+    properties, and todo states. By default, this is ~TODO=”TODO”~, which will match TODO items.
+
+*** Encryption
+
+    The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
 
 ** FAQ
 
