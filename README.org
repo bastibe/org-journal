@@ -114,6 +114,10 @@
 
     - =org-journal-file-format= - format string for journal file names.
 
+    - =org-journal-find-file= - a function to use when opening a a journal file. Be default it opens a
+      window using =find-file-other-window=. Set this to =find-file= if you don't want org-journal to
+      split your window.
+
 *** Journal File Content
 
     Customization options related to the journal file contents:
@@ -145,6 +149,9 @@
     =org-journal-mode=). By default it will ask for the time interval to search within (accepting the
     =org-read-date= format such as "-1y" or "-1m") and the string to search for. Given a prefix
     argument (=C-u org-journal-search=) it will go through the whole journal.
+
+    The order of the search results (ascending or descending by date) can be customized using the
+    =org-journal-search-results-order-by= variable.
 
     Search is also available through the Emacs Calendar as described in "Basic Usage".
 
