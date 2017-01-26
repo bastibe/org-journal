@@ -174,7 +174,7 @@ match TODO items.
 
 *** Encryption
 
-    The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
+The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
 
 ** FAQ
 
