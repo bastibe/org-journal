@@ -1,0 +1,58 @@
+- 2013-06-04 V1.0 Bastian Bechtold ::
+  Initial working prototype. More or less simply an extension of personal-diary with org-mode files.
+
+- 2013-06-12 V1.3.4 Bastian Bechtold ::
+  Several bug fixes and documentation improvements.
+
+- 2013-08-23 V1.4 Bastian Bechtold ::
+  Now supports more customization
+
+- 2013-09-17 V1.4.3 Bastian Bechtold ::
+  Several bugfixes and autoloading (which kind of mostly works)
+
+- 2013-10-02 V1.4.4 Bastian Bechtold ::
+  Create org-journal directory if not present (thank you, Donghyun Cho!)
+
+- 2013-11-10 V1.4.8 Bastian Bechtold ::
+  Fixed opening of journal files for reading (thank you, Matthew M. Keeler!)
+  View mode now stays active when switching between files (thank you, Matthew M. Keeler!)
+  Some autoload fixes
+
+- 2014-03-10 V1.4.8 Bastian Bechtold ::
+  Some bug fixes on opening files (thank you, Ram Raghunathan!)
+
+- 2014-06-17 V1.5 Bastian Bechtold ::
+  Some more bug fixes for autoloading
+  Simplified setup by auto generating the file pattern from the file format.
+
+- 2014-11-19 V1.6 Bastian Bechtold ::
+  Changed default key bindings to comply with Emacs' standards.
+
+- 2014-08-12 V1.6.2 Bastian Bechtold ::
+  Added prefix argument to open-current-entry (thank you, Vladimir Kazanov!)
+
+- 2014-08-12 V1.6.3 Bastian Bechtold ::
+  Added key binding for viewing but not switching to entry (thank you, Vladimir Kazanov!)
+
+- 2014-17-12 V1.6.4 Bastian Bechtold ::
+  Journal files should open correctly when restored by desktop-save-mode now.
+
+- 2015-03-01 V1.7.0 Bastian Bechtold ::
+  Added functions for searching journal entries in date ranges (thank you, Vladimir Kazanov!).
+
+- 2015-05-04 V1.8.0 Bastian Bechtold ::
+  No more empty files when creating new entries with prefix (thank you, Vladimir Kazanov!). \\
+  You can now customize whether org-journal-mode will hide entries (thank you, Boris Buliga!).
+
+- 2015-06-22 V1.9.0 Bastian Bechtold ::
+  Journal files can now be encrypted if you set ~org-journal-enable-encryption~ (thank you, Donghyun Cho and Puneeth Chaganti!).
+
+- 2015-07-01 V1.9.1 Bastian Bechtold ::
+  Encryption and prefix now work for calendar-created entries (thank you, Puneeth Chaganti!).
+
+- 2015-09-07 V1.10.0 Bastian Bechtold ::
+  Add option to find-file in same window.
+
+- 2016-04-27 V1.11.0 Bastian Bechtold ::
+  Add highlight to search results (thank you, aJchemist!).
+  Add option to carry over TODO items from previous entry when creating a new entry.
