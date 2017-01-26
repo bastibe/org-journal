@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.11.4
+;; Version: 1.12.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -91,7 +91,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.11.4"
+  :version "1.12.0"
   :group 'applications)
 
 (defface org-journal-highlight
