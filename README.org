@@ -61,6 +61,11 @@ should be trivial:
 
 Then add =(require 'org-journal)= to your =.emacs=.
 
+*** Spacemacs Layer for org-journal
+
+To use =org-journal= on Spacemacs with Spacemacs-style key bindings, please check
+[[https://github.com/borgnix/spacemacs-journal][journal]] layer.
+
 ** Quickstart
 
 Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal
