@@ -61,6 +61,15 @@ should be trivial:
 
 Then add =(require 'org-journal)= to your =.emacs=.
 
+*** Spacemacs Layer for org-journal
+
+To use =org-journal= on Spacemacs, you could :
+
+1. =git clone https://github.com/borgnix/spacemacs-journal.git ~/.emacs.d/private/journal=
+2. add it to your =~/.spacemacs=. You will need to add =journal= to the existing =dotspacemacs-configuration-layers= list in this file.
+
+The manual of the journal layer can be found at https://github.com/borgnix/spacemacs-journal
+
 ** Quickstart
 
 Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal
