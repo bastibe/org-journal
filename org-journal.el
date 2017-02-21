@@ -256,8 +256,8 @@ the time's day."
          (should-add-entry-p (not prefix)))
 
     ;; open journal file
-    (if (not (string= entry-path (buffer-file-name)))
-        (funcall org-journal-find-file entry-path))
+    (unless (string= entry-path (buffer-file-name))
+      (funcall org-journal-find-file entry-path))
     (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p))
@@ -279,7 +279,7 @@ the time's day."
       (when (and new-file-p org-journal-carryover-items)
         (save-excursion (org-journal-carryover)))
 
-      ;; skip adding entry if a prefix is given
+      ;; insert the header of the entry
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
         (insert "\n" org-journal-time-prefix
@@ -294,7 +294,7 @@ the time's day."
         (show-all))
 
       ;; open the recent entry when the prefix is given
-      (if should-add-entry-p
+      (when should-add-entry-p
         (show-entry))
 
       (set-buffer-modified-p unsaved))))
