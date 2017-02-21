@@ -187,6 +187,9 @@ See agenda tags view match description for the format of this."
 Otherwise, date ascending."
   :type 'symbol :group 'org-journal)
 
+(defvar org-journal-after-entry-create-hook nil
+  "Hook called after journal entry creation")
+
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
       (org-journal-format-string->regex org-journal-file-format))
@@ -247,9 +250,12 @@ If no TIME is given, uses the current time."
 ;;;###autoload
 (defun org-journal-new-entry (prefix &optional time)
   "Open today's journal file and start a new entry.
-Giving the command a prefix arg will just open a today's file,
-without adding an entry. If given a time, create an entry for
-the time's day."
+Giving the command a PREFIX arg will just open a today's file,
+without adding an entry. If given a TIME, create an entry for the
+time's day.
+
+Whenever a journal entry is created the
+`org-journal-after-entry-create-hook' hook is run"
   (interactive "P")
   (org-journal-dir-check-or-create)
   (let* ((entry-path (org-journal-get-entry-path time))
@@ -282,10 +288,11 @@ the time's day."
       ;; insert the header of the entry
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
-        (insert "\n" org-journal-time-prefix
-                (if (= (time-to-days (current-time)) (time-to-days time))
-                    (format-time-string org-journal-time-format)
-                  "")))
+        (let ((timestamp (if (= (time-to-days (current-time)) (time-to-days time))
+                             (format-time-string org-journal-time-format)
+                           "")))
+          (insert "\n" org-journal-time-prefix timestamp))
+        (run-hooks 'org-journal-after-entry-create-hook))
 
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
