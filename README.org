@@ -145,7 +145,7 @@ To use the agenda search, you can add all the calendar files to your org-agenda 
 =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include
 files with an all-numeric name:
 
-: \\`[^.].*\\.org\\'\\|[0-9]+\\'
+: \\`[^.].*\\.org\\'\\|\\`[0-9]+\\'
 
 That way, you can use org-agenda to search for /TODO/ items or tagged items in your
 org-journal.
