@@ -56,14 +56,14 @@ settings):
 should be trivial:
 
 #+BEGIN_EXAMPLE
-    C-x package-install org-journal
+    M-x package-install org-journal
 #+END_EXAMPLE
 
 Then add =(require 'org-journal)= to your =.emacs=.
 
 ** Quickstart
 
-Doing =C-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal
+Doing =M-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal
 directory in the default path (customized using the =org-journal-dir= variable), open or
 create a file in =org-journal-mode=, and insert a template for a new journal entry.
 
@@ -84,7 +84,7 @@ Bindings available in =org-journal-mode=:
  - =C-c C-s= - search the journal for a string.
 
 All journal entries are registered in the Emacs Calendar. To see available journal
-entries do =C-x calendar=. Bindings available in the =calendar-mode=:
+entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
 - =j= - view an entry in a new buffer.
 
