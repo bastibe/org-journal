@@ -124,7 +124,8 @@ Customization options related to journal directory and files:
 Customization options related to the journal file contents:
 
 - =org-journal-date-format= - date format format =org-journal= uses when showing a
-  date within a journal and search results page.
+  date within a journal and search results page. If set to a function, it is evaluated 
+  and inserted.
 
 - =org-journal-date-prefix= - this string will prefix the date at the top of a journal
   file.
