@@ -81,7 +81,7 @@ Bindings available in =org-journal-mode=:
 - =C-c C-j= - insert a new entry into the current journal file (creates the file if not
   present).
 
- - =C-c C-s= - search the journal for a string.
+- =C-c C-s= - search the journal for a string.
 
 All journal entries are registered in the Emacs Calendar. To see available journal
 entries do =M-x calendar=. Bindings available in the =calendar-mode=:
@@ -196,6 +196,15 @@ To use =org-journal= with Spacemacs, you can:
 2. add it to your =~/.spacemacs=. You will need to add =journal= to the existing =dotspacemacs-configuration-layers= list in this file.
 
 The manual of the journal layer can be found at https://github.com/borgnix/spacemacs-journal
+
+*** Some key-bindings in org-journal overwrite org-mode key bindings
+
+Major modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-journal overwrites 
+- =C-c C-s= (=org-schedule=) with =org-journal-search= 
+- =C-c C-f= (=org-forward-heading-same-level=) with =org-journal-open-next-entry= 
+- =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry= 
+- =C-c C-j= (=org-goto=) with =org-journal-new-entry=
+However, this is Emacs, and if you don't like a key binding, change it!
 
 ** Contributors
 
