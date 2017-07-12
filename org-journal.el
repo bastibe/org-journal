@@ -271,8 +271,7 @@ Whenever a journal entry is created the
       (funcall org-journal-find-file entry-path))
     (org-journal-decrypt)
     (goto-char (point-max))
-    (let ((unsaved (buffer-modified-p))
-          (new-file-p (equal (point-max) 1)))
+    (let ((new-file-p (equal (point-max) 1)))
 
       ;; empty file? Add a date timestamp
       (when new-file-p
@@ -309,9 +308,7 @@ Whenever a journal entry is created the
 
       ;; open the recent entry when the prefix is given
       (when should-add-entry-p
-        (show-entry))
-
-      (set-buffer-modified-p unsaved))))
+        (show-entry)))))
 
 (defun org-journal-carryover ()
   "Moves all items matching org-journal-carryover-items from the
