@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.12.1
+;; Version: 1.12.2
 
 ;;; Commentary:
 
@@ -648,7 +648,7 @@ org-journal-time-prefix."
     (dolist (file files)
       (let ((filetime (org-journal-calendar-date->time
                        (org-journal-file-name->calendar-date
-                        (file-name-base file)))))
+                        (file-name-nondirectory file)))))
         (cond ((not (and period-start period-end))
                (push file result))
 
@@ -697,7 +697,7 @@ org-journal-time-prefix."
            (fullstr (nth 2 res))
            (time (org-journal-calendar-date->time
                   (org-journal-file-name->calendar-date
-                   (file-name-base fname))))
+                   (file-name-nondirectory fname))))
            (label (format-time-string org-journal-date-format time))
 
            (label-end (format-time-string org-journal-date-format period-start)))
@@ -722,7 +722,7 @@ org-journal-time-prefix."
          (lnum (cdr target)))
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
-      (org-journal-file-name->calendar-date (file-name-base fname))))
+      (org-journal-file-name->calendar-date (file-name-nondirectory fname))))
     (show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
