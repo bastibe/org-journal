@@ -2,7 +2,7 @@
 
 * org-journal
 
-  Adapted from http://www.emacswiki.org/PersonalDiary
+  Adapted from https://www.emacswiki.org/emacs/PersonalDiary
 
   Functions to maintain a simple personal diary / journal using in Emacs.
 
