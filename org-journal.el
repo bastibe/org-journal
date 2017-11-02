@@ -541,6 +541,7 @@ prefix is given, don't add a new heading."
 ;;; Journal search facilities
 ;;
 
+;;;###autoload
 (defun org-journal-search (str &optional period-name)
   "Search for a string in the journal within a given interval.
 See `org-read-date` for information on ways to specify dates.
