@@ -109,7 +109,6 @@ org-journal. Use org-journal-file-format instead.")
   (while (search-forward str nil t)
     (put-text-property (match-beginning 0) (match-end 0) 'font-lock-face 'org-journal-highlight)))
 
-;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
   Setting this will update auto-mode-alist using
@@ -119,7 +118,6 @@ org-journal. Use org-journal-file-format instead.")
          (set-default symbol value)
          (org-journal-update-auto-mode-alist)))
 
-;;;###autoload
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names, by default \"YYYYMMDD\".
   This pattern must include `%Y`, `%m` and `%d`. Setting this
