@@ -70,7 +70,7 @@ org-journal. Use org-journal-file-format instead.")
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (expand-file-name (file-name-as-directory org-journal-dir))
+  (let ((name (concat (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
                       (substring org-journal-file-pattern 1))))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
@@ -238,9 +238,10 @@ Otherwise, date ascending."
 (defun org-journal-get-entry-path (&optional time)
   "Return the path to an entry given a TIME.
 If no TIME is given, uses the current time."
-  (expand-file-name
-   (format-time-string org-journal-file-format time)
-   (file-name-as-directory org-journal-dir)))
+  (file-truename
+   (expand-file-name
+    (format-time-string org-journal-file-format time)
+    (file-name-as-directory org-journal-dir))))
 
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
