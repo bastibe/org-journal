@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.12.2
+;; Version: 1.12.3
 
 ;;; Commentary:
 

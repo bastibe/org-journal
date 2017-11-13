@@ -59,6 +59,18 @@
 
 ## 2017-01-26 V1.12.0 Bastian Bechtold
   - Add customization option for the search order (thank you, aJchemist!).
-  - Add LICENSE 
+  - Add LICENSE
   - Add keybinding for searching the journal outside of the calendar (thank you, Vladimir Kazanov!)
   - Improve README tremendously (thank you, Vladimir Kazanov and Grace Gahman!)
+
+## 2017-07-05 V1.12.1 Bastian Bechtold
+  - Adds documentation for spacemacs (thank you, borgnix!)
+  - Documentation improvements (thank you, Vladimir Kazanov!)
+  - Allows functions as org-journal-date-prefix (thank you, Samim, Pezeshki!)
+
+## 2017-09-28 V1.12.2 Bastian Bechtold
+  - Fixes buffer modified flag (should fix many accidental journal deletions)
+
+## 2017-11-13 V1.12.3 Bastian Bechtold
+  - Autoload fixes (thank you, Troy Hinckley!)
+  - Fixes for org-journal-file-format if it has a file extension or is behind a symlink.
