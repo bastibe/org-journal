@@ -206,6 +206,10 @@ Major modes are supposed to only use key bindings of the form =C-c C-?=, where =
 - =C-c C-j= (=org-goto=) with =org-journal-new-entry=
 However, this is Emacs, and if you don't like a key binding, change it!
 
+*** Opening journal entries from the calendar are not editable
+
+Old entries are opened in =view-mode=, which has convenient key bindings for browsing files. Most notably, you can quickly close =view-mode= buffers with =q=, scroll them with the =SPC= and =DEL=, or quit =view-mode= with =e=. 
+
 ** Contributors
 
 See [[file:CONTRIBUTORS][CONTRIBUTORS]].
