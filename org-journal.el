@@ -388,18 +388,21 @@ Return nil when it's impossible to figure out the level."
 (defun org-journal-new-date-entry (prefix &optional event)
   "Open the journal for the date indicated by point and start a new entry.
 If the date is not today, it won't be given a time heading. If a
-prefix is given, don't add a new heading."
+prefix is given, don't add a new heading.
+If the date is in the future, create a schedule entry."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
-    (org-journal-new-entry prefix time)))
+    (if (time-less-p time (current-time))
+        (org-journal-new-entry prefix time)
+      (org-journal-new-scheduled-entry (format-time-string "%Y-%m-%d" time)))))
 
 ;;;###autoload
-(defun org-journal-new-scheduled-entry ()
+(defun org-journal-new-scheduled-entry (&optional scheduled-time)
   "Create a new SCHEDULED TODO entry in the future."
   (interactive)
-  (let ((scheduled-time (org-read-date nil nil nil "Date:")))
+  (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
     (org-journal-new-entry nil (org-time-string-to-time scheduled-time))
     (insert "TODO ")
     (save-excursion
