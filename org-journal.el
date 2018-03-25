@@ -287,7 +287,8 @@ Whenever a journal entry is created the
         (goto-char (point-max)))
 
       ;; move TODOs from previous day here
-      (when (and new-file-p org-journal-carryover-items)
+      (when (and org-journal-carryover-items
+                 (string= entry-path (org-journal-get-entry-path (current-time))))
         (save-excursion (org-journal-carryover)))
 
       ;; insert the header of the entry
@@ -393,6 +394,16 @@ prefix is given, don't add a new heading."
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-new-entry prefix time)))
+
+;;;###autoload
+(defun org-journal-new-scheduled-entry ()
+  "Create a new SCHEDULED TODO entry in the future."
+  (interactive)
+  (let ((scheduled-time (org-read-date nil nil nil "Date:")))
+    (org-journal-new-entry nil (org-time-string-to-time scheduled-time))
+    (insert "TODO ")
+    (save-excursion
+      (insert "\nSCHEDULED: <" scheduled-time ">"))))
 
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one"
