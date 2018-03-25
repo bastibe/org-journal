@@ -228,9 +228,11 @@ Otherwise, date ascending."
      (define-key calendar-mode-map "[" 'org-journal-previous-entry)
      (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
      (define-key calendar-mode-map (kbd "f f") 'org-journal-search-forever)
+     (define-key calendar-mode-map (kbd "f F") 'org-journal-search-future)
      (define-key calendar-mode-map (kbd "f w") 'org-journal-search-calendar-week)
      (define-key calendar-mode-map (kbd "f m") 'org-journal-search-calendar-month)
-     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)))
+     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)
+     (define-key calendar-mode-map (kbd "f s") 'org-journal-search-future-scheduled)))
 
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
@@ -564,24 +566,38 @@ If a prefix argument is given, search all dates."
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair))))
     (org-journal-search-by-string str start end)))
+
 (defvar org-journal-search-history nil)
 
 (defun org-journal-search-calendar-week (str)
   "Search for a string within a current calendar-mode week entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'week))
+
 (defun org-journal-search-calendar-month (str)
   "Search for a string within a current calendar-mode month entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'month))
+
 (defun org-journal-search-calendar-year (str)
   "Search for a string within a current calendar-mode year entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'year))
+
 (defun org-journal-search-forever (str)
   "Search for a string within all entries"
   (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'forever))
+
+(defun org-journal-search-future (str)
+  "Search for a string within all future entries"
+  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (org-journal-search str 'future))
+
+(defun org-journal-search-future-scheduled ()
+  "Search for TODOs within all future entries"
+  (interactive)
+  (org-journal-search "TODO" 'future))
 
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
@@ -603,6 +619,12 @@ calendar accordingly."
    ((eq period-name 'forever)
     (cons (list 1 1 1971)
           (list 12 31 2030)))
+
+   ;; future start/end
+   ((eq period-name 'future)
+    (let ((date (decode-time (current-time))))
+         (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
+               (list 12 31 2030))))
 
    ;; extract a year start/end using the calendar curson
    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
@@ -645,8 +667,6 @@ if no string is given, search for all entries using
 org-journal-time-prefix."
   (when (time-less-p period-end period-start)
     (error "Period end cannot be before the start"))
-  (when (time-less-p (current-time) period-start)
-    (error "Period start cannot be in the future"))
   (let* ((search-str (if (string= "" str) org-journal-time-prefix str))
          (files (org-journal-search-build-file-list period-start period-end))
          (results (org-journal-search-do-search search-str files)))
