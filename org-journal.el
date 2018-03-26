@@ -599,6 +599,65 @@ If a prefix argument is given, search all dates."
   (interactive)
   (org-journal-search "TODO" 'future))
 
+;; This macro is needed for many of the following functions.
+(defmacro org-journal-with-find-file (file &rest body)
+  "Executes BODY in FILE. Use this to insert text into FILE.
+The buffer is disposed after the macro exits (unless it already
+existed before)."
+  `(save-excursion
+     (let ((current-buffer (current-buffer))
+           (buffer-exists (get-buffer (file-name-nondirectory ,file)))
+           (result nil))
+       (if buffer-exists
+           (switch-to-buffer buffer-exists)
+         (find-file ,file))
+       (setq result (progn ,@body))
+       (basic-save-buffer)
+      (unless buffer-exists
+        (kill-buffer))
+      (switch-to-buffer current-buffer)
+      result)))
+
+(defun org-journal-build-schedule-view ()
+  (interactive)
+  (find-file-other-window "*Org-journal schedule*")
+  (view-mode nil)
+  (erase-buffer)
+  (org-mode)
+  (insert "#+TITLE: Org-Journal Schedule\n\n")
+  (let* ((schedule-buffer (current-buffer))
+         (period-pair (org-journal-read-period 'future))
+         (start (org-journal-calendar-date->time (car period-pair)))
+         (end (org-journal-calendar-date->time (cdr period-pair)))
+         (file-list (org-journal-search-build-file-list start end))
+         (search-results nil))
+    (dolist (filename file-list)
+      (let ((time (org-journal-calendar-date->time
+                   (org-journal-file-name->calendar-date
+                    (file-name-nondirectory filename))))
+            (copy-mapper (lambda () (let ((subtree (org-journal-extract-current-subtree nil)))
+                 ;; since the next subtree now starts at point,
+                 ;; continue mapping from before that, to include it
+                 ;; in the search
+                 (backward-char)
+                 (setq org-map-continue-from (point))
+                 subtree)))
+            (content-to-copy nil))
+        (if (functionp org-journal-date-format)
+            (insert (funcall org-journal-date-format time))
+          (insert org-journal-date-prefix
+                  (format-time-string org-journal-date-format time)
+                  "\n"))
+        (org-journal-with-find-file
+         filename
+         (setq content-to-copy (org-map-entries copy-mapper
+                                                "+SCHEDULED>=\"<now>\"")))
+        (if content-to-copy
+            (insert (mapconcat 'identity content-to-copy "") "\n")
+          (insert "N/A"))))
+    (set-buffer-modified-p nil)
+    (view-mode t)))
+
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
 start/end; if PERIOD-NAME is 'forever, set the period from the
