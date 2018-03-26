@@ -322,7 +322,7 @@ previous day's file to the current file."
       (let ((org-journal-find-file 'find-file)
             (delete-mapper
              (lambda ()
-               (let ((subtree (org-journal-extract-current-subtree)))
+               (let ((subtree (org-journal-extract-current-subtree t)))
                  ;; since the next subtree now starts at point,
                  ;; continue mapping from before that, to include it
                  ;; in the search
@@ -338,17 +338,17 @@ previous day's file to the current file."
       (insert "\n")
       (insert (mapconcat 'identity all-todos "")))))
 
-(defun org-journal-extract-current-subtree ()
-  "Get the string content of the entire current subtree, and
-delete it."
+(defun org-journal-extract-current-subtree (delete-p)
+  "Get the string content of the entire current subtree."
   (let* ((start (progn (beginning-of-line)
                        (point)))
          (end (progn (org-end-of-subtree)
                      (outline-next-heading)
                      (point)))
          (subtree (buffer-substring-no-properties start end)))
-    (delete-region start end)
-    (save-buffer)
+    (when delete-p
+      (delete-region start end)
+      (save-buffer))
     subtree))
 
 (defun org-journal-time-entry-level ()
