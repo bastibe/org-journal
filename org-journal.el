@@ -401,12 +401,13 @@ If the date is in the future, create a schedule entry."
       (org-journal-new-scheduled-entry (format-time-string "%Y-%m-%d" time)))))
 
 ;;;###autoload
-(defun org-journal-new-scheduled-entry (&optional scheduled-time)
+(defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
   "Create a new SCHEDULED TODO entry in the future."
-  (interactive)
+  (interactive "P")
   (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
     (org-journal-new-entry nil (org-time-string-to-time scheduled-time))
-    (insert "TODO ")
+    (if (not prefix)
+        (insert "TODO "))
     (save-excursion
       (insert "\nSCHEDULED: <" scheduled-time ">"))))
 
