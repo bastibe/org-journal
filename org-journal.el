@@ -109,6 +109,16 @@ org-journal. Use org-journal-file-format instead.")
   (while (search-forward str nil t)
     (put-text-property (match-beginning 0) (match-end 0) 'font-lock-face 'org-journal-highlight)))
 
+(defface org-journal-calendar-entry-face
+  '((t (:foreground "#aa0000" :slant italic)))
+  "Face for highlighting org-journal entries in M-x calendar."
+  :group 'org-journal)
+
+(defface org-journal-calendar-scheduled-face
+  '((t (:foreground "#600000" :slant italic)))
+  "Face for highlighting future org-journal entries in M-x calendar."
+  :group 'org-journal)
+
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
   Setting this will update auto-mode-alist using
@@ -477,7 +487,10 @@ If the date is in the future, create a schedule entry."
   "Mark days in the calendar for which a diary entry is present"
   (dolist (journal-entry (org-journal-list-dates))
     (if (calendar-date-is-visible-p journal-entry)
-        (calendar-mark-visible-date journal-entry))))
+        (if (time-less-p (org-journal-calendar-date->time journal-entry)
+                         (current-time))
+            (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
+          (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face)))))
 
 ;;;###autoload
 (defun org-journal-read-entry (arg &optional event)
