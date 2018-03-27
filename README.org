@@ -100,6 +100,8 @@ entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
 - =f f= - search in all entries of all time.
 
+- =f F= - search in all entries in the future.
+
 - =[= - go to previous day with journal entries.
 
 - =]= - go to next day with journal entries.
@@ -176,6 +178,20 @@ match TODO items.
 *** Encryption
 
 The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
+
+*** Scheduling
+
+An easy way of keeping track of appointments or future TODOs is to simply create a journal
+entry in the future. Such entries will show up in the current day's journal entry once you
+reach that day.
+
+There are a few helper functions to deal with such scheduled entries:
+
+- =org-journal-new-scheduled-entry= - prompts for a date, and creates a new journal entry
+  on that date with its =SCHEDULED= property set to the date. By default, this is a TODO
+  entry. Set the prefix to avoid the TODO.
+
+- =org-journal-schedule-view= - creates a read-only overview of scheduled entries.
 
 ** FAQ
 

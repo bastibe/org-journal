@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.12.4
+;; Version: 1.13.0
 
 ;;; Commentary:
 
@@ -51,6 +51,7 @@
 ;;                   f m to search all entries of the current month
 ;;                   f y to search all entries of the current year
 ;;                   f f to search all entries of all time
+;;                   f F to search all entries in the future
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
 ;; When viewing a journal entry: C-c C-b to view previous entry
@@ -95,7 +96,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.12.0"
+  :version "1.13.0"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -241,8 +242,7 @@ Otherwise, date ascending."
      (define-key calendar-mode-map (kbd "f F") 'org-journal-search-future)
      (define-key calendar-mode-map (kbd "f w") 'org-journal-search-calendar-week)
      (define-key calendar-mode-map (kbd "f m") 'org-journal-search-calendar-month)
-     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)
-     (define-key calendar-mode-map (kbd "f s") 'org-journal-search-future-scheduled)))
+     (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)))
 
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
