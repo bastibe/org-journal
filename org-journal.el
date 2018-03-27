@@ -618,10 +618,10 @@ existed before)."
       (switch-to-buffer current-buffer)
       result)))
 
-(defun org-journal-build-schedule-view ()
+(defun org-journal-schedule-view ()
   (interactive)
   (find-file-other-window "*Org-journal schedule*")
-  (view-mode nil)
+  (view-mode -1)
   (erase-buffer)
   (org-mode)
   (insert "#+TITLE: Org-Journal Schedule\n\n")
@@ -631,7 +631,15 @@ existed before)."
          (end (org-journal-calendar-date->time (cdr period-pair)))
          (file-list (org-journal-search-build-file-list start end))
          (search-results nil))
-    (dolist (filename file-list)
+    (dolist (filename (sort file-list
+                            (lambda (x y)
+                              (time-less-p
+                               (org-journal-calendar-date->time
+                                (org-journal-file-name->calendar-date
+                                 (file-name-nondirectory x)))
+                               (org-journal-calendar-date->time
+                                (org-journal-file-name->calendar-date
+                                 (file-name-nondirectory y)))))))
       (let ((time (org-journal-calendar-date->time
                    (org-journal-file-name->calendar-date
                     (file-name-nondirectory filename))))
@@ -656,7 +664,8 @@ existed before)."
             (insert (mapconcat 'identity content-to-copy "") "\n")
           (insert "N/A"))))
     (set-buffer-modified-p nil)
-    (view-mode t)))
+    (view-mode t)
+    (goto-char (point-min))))
 
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
