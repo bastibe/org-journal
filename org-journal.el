@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.13.2
+;; Version: 1.13.3
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
@@ -98,7 +98,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.13.2"
+  :version "1.13.3"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -416,7 +416,7 @@ If the date is in the future, create a schedule entry."
                 (calendar-cursor-to-date t event))))
     (if (time-less-p time (current-time))
         (org-journal-new-entry prefix time)
-      (org-journal-new-scheduled-entry (format-time-string "%Y-%m-%d" time)))))
+      (org-journal-new-scheduled-entry prefix (format-time-string "%Y-%m-%d" time)))))
 
 ;;;###autoload
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
