@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.13.0
+;; Version: 1.13.1
 
 ;;; Commentary:
 
@@ -78,6 +78,7 @@ org-journal. Use org-journal-file-format instead.")
 
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
+(add-hook 'org-agenda-mode-hook 'org-journal-update-org-agenda-files)
 
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
@@ -96,7 +97,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.13.0"
+  :version "1.13.1"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -186,6 +187,11 @@ to encrypt/decrypt it."
   like kill-buffer-hook. "
   :type 'function :group 'org-journal)
 
+(defcustom org-journal-enable-agenda-integration nil
+  "If non-nil, automatically adds current and future org-journal
+  files to org-agenda-files."
+  :type 'boolean :group 'org-journal)
+
 (defcustom org-journal-find-file 'find-file-other-window
   "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
   :type 'function :group 'org-journal)
@@ -221,6 +227,7 @@ Otherwise, date ascending."
   "Mode for writing or viewing entries written in the journal"
   (turn-on-visual-line-mode)
   (add-hook 'after-save-hook 'org-journal-redraw-calendar nil t)
+  (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
   (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
   (run-mode-hooks))
 
@@ -632,7 +639,33 @@ existed before)."
       (switch-to-buffer current-buffer)
       result)))
 
+(defun org-journal-update-org-agenda-files ()
+  "Adds the current and future journal files to org-agenda-files.
+And cleans out past org-journal files."
+  (when org-journal-enable-agenda-integration
+    (let ((agenda-files-without-org-journal
+           (remove-if
+            (lambda (f)
+              (and (string= (file-name-directory f) (expand-file-name org-journal-dir))
+                   (string-match org-journal-file-pattern (file-name-nondirectory f))))
+            org-agenda-files))
+          (org-journal-agenda-files
+           (remove-if
+            ;; skip files that are older than today
+            (lambda (f)
+              (time-less-p
+               (org-journal-calendar-date->time
+                (org-journal-file-name->calendar-date
+                 (file-name-nondirectory f)))
+               (time-subtract (current-time) (days-to-time 1))))
+            (directory-files org-journal-dir t
+                             org-journal-file-pattern))))
+      (setq org-agenda-files (append agenda-files-without-org-journal
+                                     org-journal-agenda-files)))))
+
 (defun org-journal-schedule-view ()
+  "Opens a new window with all scheduled journal entries.
+Think of this as a faster, less fancy version of your org-agenda."
   (interactive)
   (find-file-other-window "*Org-journal schedule*")
   (view-mode -1)

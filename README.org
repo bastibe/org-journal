@@ -126,7 +126,7 @@ Customization options related to journal directory and files:
 Customization options related to the journal file contents:
 
 - =org-journal-date-format= - date format format =org-journal= uses when showing a
-  date within a journal and search results page. If set to a function, it is evaluated 
+  date within a journal and search results page. If set to a function, it is evaluated
   and inserted.
 
 - =org-journal-date-prefix= - this string will prefix the date at the top of a journal
@@ -144,14 +144,15 @@ Customization options related to the journal file contents:
 built-in plain text search. The former can become slow with bigger journals, so the
 built-in search is a recommended option.
 
-To use the agenda search, you can add all the calendar files to your org-agenda by adding
+To use the agenda search, you can add all journal entries to your org-agenda by adding
 =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include
-files with an all-numeric name:
+files matching your =org-journal-file-pattern= (=\\`[^.].*\\.org\\'\\|\\`[0-9]+\\'= for
+the default all-numeric file format).
 
-: \\`[^.].*\\.org\\'\\|\\`[0-9]+\\'
-
-That way, you can use org-agenda to search for /TODO/ items or tagged items in your
-org-journal.
+However, this can become /very/ slow if you have many journal entries. As a compromize,
+you can set =org-journal-enable-agenda-integration= to =t=, which automatically adds the
+current and all future journal entries to the agenda. This is enough to get an overview
+over current and future tasks.
 
 The built-in search is available through the following function: =org-journal-search=
 (=C-c C-s= in =org-journal-mode=). By default, it will ask for the time interval to search
@@ -179,11 +180,14 @@ match TODO items.
 
 The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
 
-*** Scheduling
+*** Agenda and Scheduling
 
 An easy way of keeping track of appointments or future TODOs is to simply create a journal
-entry in the future. Such entries will show up in the current day's journal entry once you
-reach that day.
+entry in the future. Such entries will automatically get a =SCHEDULED= property and show
+up in the current day's journal entry once you reach that day.
+
+- if =org-journal-enable-agenda-integration= is =t=, org-journal will automatically add
+  the current and all future journal entries to =org-agenda-files=.
 
 There are a few helper functions to deal with such scheduled entries:
 
@@ -233,16 +237,16 @@ The manual of the journal layer can be found at https://github.com/borgnix/space
 
 *** Some key-bindings in org-journal overwrite org-mode key bindings
 
-Major modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-journal overwrites 
-- =C-c C-s= (=org-schedule=) with =org-journal-search= 
-- =C-c C-f= (=org-forward-heading-same-level=) with =org-journal-open-next-entry= 
-- =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry= 
+Major modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-journal overwrites
+- =C-c C-s= (=org-schedule=) with =org-journal-search=
+- =C-c C-f= (=org-forward-heading-same-level=) with =org-journal-open-next-entry=
+- =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry=
 - =C-c C-j= (=org-goto=) with =org-journal-new-entry=
 However, this is Emacs, and if you don't like a key binding, change it!
 
 *** Opening journal entries from the calendar are not editable
 
-Old entries are opened in =view-mode=, which has convenient key bindings for browsing files. Most notably, you can quickly close =view-mode= buffers with =q=, scroll them with the =SPC= and =DEL=, or quit =view-mode= with =e=. 
+Old entries are opened in =view-mode=, which has convenient key bindings for browsing files. Most notably, you can quickly close =view-mode= buffers with =q=, scroll them with the =SPC= and =DEL=, or quit =view-mode= with =e=.
 
 ** Contributors
 
