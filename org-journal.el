@@ -2,7 +2,8 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.13.1
+;; Version: 1.13.2
+;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
 
@@ -97,7 +98,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.13.1"
+  :version "1.13.2"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -322,12 +323,12 @@ Whenever a journal entry is created the
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
       (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
-          (hide-sublevels (org-journal-time-entry-level))
-        (show-all))
+          (outline-hide-sublevels (org-journal-time-entry-level))
+        (outline-show-all))
 
       ;; open the recent entry when the prefix is given
       (when should-add-entry-p
-        (show-entry)))))
+        (outline-show-entry)))))
 
 (defun org-journal-carryover ()
   "Moves all items matching org-journal-carryover-items from the
@@ -639,27 +640,28 @@ existed before)."
       (switch-to-buffer current-buffer)
       result)))
 
+(require 'seq)
 (defun org-journal-update-org-agenda-files ()
   "Adds the current and future journal files to org-agenda-files.
 And cleans out past org-journal files."
   (when org-journal-enable-agenda-integration
     (let ((agenda-files-without-org-journal
-           (remove-if
+           (seq-filter
             (lambda (f)
-              (and (string= (file-name-directory f) (expand-file-name org-journal-dir))
-                   (string-match org-journal-file-pattern (file-name-nondirectory f))))
+              (not (and (string= (file-name-directory f) (expand-file-name org-journal-dir))
+                        (string-match org-journal-file-pattern (file-name-nondirectory f)))))
             org-agenda-files))
           (org-journal-agenda-files
-           (remove-if
+           (seq-filter
             ;; skip files that are older than today
             (lambda (f)
-              (time-less-p
-               (org-journal-calendar-date->time
-                (org-journal-file-name->calendar-date
-                 (file-name-nondirectory f)))
-               (time-subtract (current-time) (days-to-time 1))))
-            (directory-files org-journal-dir t
-                             org-journal-file-pattern))))
+              (not (time-less-p
+                    (org-journal-calendar-date->time
+                     (org-journal-file-name->calendar-date
+                      (file-name-nondirectory f)))
+                    (time-subtract (current-time) (days-to-time 1)))))
+              (directory-files org-journal-dir t
+                               org-journal-file-pattern))))
       (setq org-agenda-files (append agenda-files-without-org-journal
                                      org-journal-agenda-files)))))
 
@@ -878,7 +880,7 @@ org-journal-time-prefix."
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
       (org-journal-file-name->calendar-date (file-name-nondirectory fname))))
-    (show-all) ; TODO: could not find out a proper way to go to a hidden line
+    (outline-show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
 

@@ -77,3 +77,9 @@
 
 ## 2018-03-27 V1.13.0 Bastian Bechtold
   - Implements scheduling of future events
+
+## 2018-04-02 V1.13.1 Bastian Bechtold
+  - Implements org-agenda integration
+
+## 2018-04-02 V1.13.2 Bastian Bechtold
+  - Fixes deprecation warnings and requires Emacs >= 25.1
