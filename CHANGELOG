@@ -83,3 +83,9 @@
 
 ## 2018-04-02 V1.13.2 Bastian Bechtold
   - Fixes deprecation warnings and requires Emacs >= 25.1
+
+## 2018-04-02 V1.13.3 Bastian Bechtold
+  - Fixes prefix for future journal entries
+
+## 2018-04-18 V1.13.4 Bastian Bechtold
+  - Fixes issue if org-journal-dir does not end in "/"
