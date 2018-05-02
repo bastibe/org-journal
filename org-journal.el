@@ -450,7 +450,7 @@ If the date is in the future, create a schedule entry."
           (find-file filename)
           (org-journal-decrypt)
           (view-mode (if view-mode-p 1 -1))
-          (org-show-subtree))
+          (if (org-at-heading-p) (org-show-subtree)))
       (message "No next journal entry after this one"))))
 
 (defun org-journal-open-previous-entry ()
@@ -475,7 +475,7 @@ If the date is in the future, create a schedule entry."
           (find-file filename)
           (org-journal-decrypt)
           (view-mode (if view-mode-p 1 -1))
-          (org-show-subtree))
+          (if (org-at-heading-p) (org-show-subtree)))
       (message "No previous journal entry before this one"))))
 
 ;;
@@ -542,7 +542,7 @@ If the date is in the future, create a schedule entry."
                 (setq view-exit-action 'kill-buffer))
               (set (make-local-variable 'org-hide-emphasis-markers) t)
               (org-journal-decrypt)
-              (org-show-subtree))
+              (if (org-at-heading-p) (org-show-subtree)))
             (if (not noselect)
                 (funcall org-journal-find-file org-journal-file)
               (display-buffer buf t))))
