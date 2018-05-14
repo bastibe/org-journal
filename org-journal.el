@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.13.4
+;; Version: 1.14.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
@@ -98,7 +98,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.13.4"
+  :version "1.14.0"
   :group 'applications)
 
 (defface org-journal-highlight
@@ -276,12 +276,29 @@ If no TIME is given, uses the current time."
   "Open today's journal file and start a new entry.
 Giving the command a PREFIX arg will just open a today's file,
 without adding an entry. If given a TIME, create an entry for the
-time's day.
+time's day. If no TIME was given, use the current time (which is
+interpreted as belonging to yesterday if smaller than
+`org-extend-today-until`).
 
 Whenever a journal entry is created the
 `org-journal-after-entry-create-hook' hook is run"
   (interactive "P")
   (org-journal-dir-check-or-create)
+
+  ;; if time is before org-extend-today-until, interpret it as
+  ;; part of the previous day:
+  (let ((current-time (decode-time time)))
+    (if (and (not time) ; time was not given
+             (< (nth 2 current-time)
+                org-extend-today-until))
+        (setq time (encode-time (nth 0 current-time)      ; second
+                                (nth 1 current-time)      ; minute
+                                (nth 2 current-time)      ; hour
+                                (1- (nth 3 current-time)) ; day
+                                (nth 4 current-time)      ; month
+                                (nth 5 current-time)      ; year
+                                (nth 8 current-time)))))  ; timezone
+
   (let* ((entry-path (org-journal-get-entry-path time))
          (should-add-entry-p (not prefix)))
 

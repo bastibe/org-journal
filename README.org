@@ -121,6 +121,11 @@ Customization options related to journal directory and files:
   opens a window using =find-file-other-window=. Set this to =find-file= if you don't want
   org-journal to split your window.
 
+- =org-extend-today-until= - a number that indicates the hour of
+  /your/ end of the day. If you create a new entry with
+  =org-journal-new-entry= earlier than this time, the journal entry
+  will go into the previous day's journal.
+
 *** Journal File Content
 
 Customization options related to the journal file contents:
