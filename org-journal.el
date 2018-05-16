@@ -287,17 +287,17 @@ Whenever a journal entry is created the
 
   ;; if time is before org-extend-today-until, interpret it as
   ;; part of the previous day:
-  (let ((current-time (decode-time time)))
+  (let ((now (decode-time nil)))
     (if (and (not time) ; time was not given
-             (< (nth 2 current-time)
+             (< (nth 2 now)
                 org-extend-today-until))
-        (setq time (encode-time (nth 0 current-time)      ; second
-                                (nth 1 current-time)      ; minute
-                                (nth 2 current-time)      ; hour
-                                (1- (nth 3 current-time)) ; day
-                                (nth 4 current-time)      ; month
-                                (nth 5 current-time)      ; year
-                                (nth 8 current-time)))))  ; timezone
+        (setq time (encode-time (nth 0 now)      ; second
+                                (nth 1 now)      ; minute
+                                (nth 2 now)      ; hour
+                                (1- (nth 3 now)) ; day
+                                (nth 4 now)      ; month
+                                (nth 5 now)      ; year
+                                (nth 8 now)))))  ; timezone
 
   (let* ((entry-path (org-journal-get-entry-path time))
          (should-add-entry-p (not prefix)))
