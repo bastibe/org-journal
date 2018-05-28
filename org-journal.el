@@ -366,7 +366,8 @@ previous day's file to the current file."
                  subtree))))
         (org-journal-open-previous-entry)
         (setq all-todos (org-map-entries delete-mapper
-                                         org-journal-carryover-items))))
+                                         org-journal-carryover-items))
+        (save-buffer)))
     (switch-to-buffer current-buffer-name)
     (when all-todos
       (unless (eq (current-column) 0) (insert "\n"))
@@ -382,8 +383,7 @@ previous day's file to the current file."
                      (point)))
          (subtree (buffer-substring-no-properties start end)))
     (when delete-p
-      (delete-region start end)
-      (save-buffer))
+      (delete-region start end))
     subtree))
 
 (defun org-journal-time-entry-level ()
