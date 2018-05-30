@@ -734,6 +734,77 @@ Think of this as a faster, less fancy version of your org-agenda."
     (view-mode t)
     (goto-char (point-min))))
 
+(defun org-journal-icalendar ()
+  (interactive)
+  (find-file-other-window "*Org-journal ICalendar*")
+  (view-mode -1)
+  (erase-buffer)
+  (insert "BEGIN:VCALENDAR\n"
+          "VERSION:2.0\n"
+          "PRODID:~//hacksw/handcal/NONSGML v1.0//EN\n")
+  (let* ((schedule-buffer (current-buffer))
+         (period-pair (org-journal-read-period 'future))
+         (start (org-journal-calendar-date->time (car period-pair)))
+         (end (org-journal-calendar-date->time (cdr period-pair)))
+         (file-list (org-journal-search-build-file-list start end))
+         (search-results nil))
+    (dolist (filename (sort file-list
+                            (lambda (x y)
+                              (time-less-p
+                               (org-journal-calendar-date->time
+                                (org-journal-file-name->calendar-date
+                                 (file-name-nondirectory x)))
+                               (org-journal-calendar-date->time
+                                (org-journal-file-name->calendar-date
+                                 (file-name-nondirectory y)))))))
+      (let ((time (org-journal-calendar-date->time
+                   (org-journal-file-name->calendar-date
+                    (file-name-nondirectory filename))))
+            (headline-mapper
+             (lambda ()
+               (let ((element (org-element-at-point)))
+                 (org-end-of-subtree)
+                 (outline-next-heading)
+                 ;; since the next subtree now starts at point,
+                 ;; continue mapping from before that, to include it
+                 ;; in the search
+                 (backward-char)
+                 (setq org-map-continue-from (point))
+                 element)))
+            (content nil)
+            (title nil))
+        (insert "BEGIN:VEVENT\n")
+        ;; creation time of this event
+        (insert "DTSTAMP:" (format-time-string "%Y%m%dT%H%M%SZ" time) "\n")
+        ;; description
+        (org-journal-with-find-file
+         filename
+         (setq elements (org-map-entries headline-mapper
+                                         "+SCHEDULED>=\"<now>\"")))
+        (dolist (element elements)
+          (insert "SUMMARY:" (plist-get (cadr element) ':title) "\n")
+          (let* ((scheduled (plist-get (cadr element) ':scheduled))
+                 (start-time (encode-time 0 ; second
+                                          (or (plist-get (cadr scheduled) ':minute-start) 0)
+                                          (or (plist-get (cadr scheduled) ':hour-start) 0)
+                                          (plist-get (cadr scheduled) ':day-start)
+                                          (plist-get (cadr scheduled) ':month-start)
+                                          (plist-get (cadr scheduled) ':year-start)))
+                 (end-time (encode-time 0 ; second
+                                        (or (plist-get (cadr scheduled) ':minute-end) 0)
+                                        (or (plist-get (cadr scheduled) ':hour-end) 0)
+                                        (plist-get (cadr scheduled) ':day-end)
+                                        (plist-get (cadr scheduled) ':month-end)
+                                        (plist-get (cadr scheduled) ':year-end))))
+            (insert "DTSTART:" (format-time-string "%Y%m%dT%H%M%SZ" start-time) "\n")
+            (insert "DTEND:" (format-time-string "%Y%m%dT%H%M%SZ" end-time) "\n")))
+            ;; (insert "DESCRIPTION:" "\n")))
+        (insert "END:VENVENT\n")))
+    (insert "END:VCALENDAR\n")
+    (set-buffer-modified-p nil)
+    (view-mode t)
+    (goto-char (point-min))))
+
 (defun org-journal-read-period (period-name)
   "If the PERIOD-NAME is nil, then ask the user for period
 start/end; if PERIOD-NAME is 'forever, set the period from the
