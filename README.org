@@ -202,6 +202,17 @@ There are a few helper functions to deal with such scheduled entries:
 
 - =org-journal-schedule-view= - creates a read-only overview of scheduled entries.
 
+- =org-journal-schedule-export= - saves all future entries as an iCalendar file that you
+  can import into a calendar application. There are three customizable variables
+  =org-journal-ics-export-scheduled-object=, =org-journal-ics-export-todo-object=,
+  =org-journal-ics-export-journal-object=, which define how journal entries should be
+  represented in the iCalendar file. They default to =VEVENT= for scheduled entries,
+  =VTODO= for TODO items, and =VJOURNAL= anything else. =VEVENT= are normal calendar
+  entries, =VTODO= are /Tasks/, which some calendar applications display differently, and
+  =VJOURNAL= are journal entries, which some calendar applications don't support. If TODO
+  entries or non-scheduled entries do not show up in your calendar, you can try setting
+  the above variables to =VEVENT=.
+
 *** Journal Capture Template
 
 You can configure a capture template in order to integrate =org-journal= with =org-capture=,

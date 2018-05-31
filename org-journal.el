@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.14.0
+;; Version: 1.15.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
