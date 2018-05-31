@@ -740,14 +740,13 @@ Think of this as a faster, less fancy version of your org-agenda."
   (view-mode -1)
   (erase-buffer)
   (insert "BEGIN:VCALENDAR\n"
-          "VERSION:2.0\n"
-          "PRODID:~//hacksw/handcal/NONSGML v1.0//EN\n")
+          "VERSION:1.0\n"
+          "PRODID:org-journal\n")
   (let* ((schedule-buffer (current-buffer))
          (period-pair (org-journal-read-period 'future))
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair)))
-         (file-list (org-journal-search-build-file-list start end))
-         (search-results nil))
+         (file-list (org-journal-search-build-file-list start end)))
     (dolist (filename (sort file-list
                             (lambda (x y)
                               (time-less-p
@@ -760,46 +759,40 @@ Think of this as a faster, less fancy version of your org-agenda."
       (let ((time (org-journal-calendar-date->time
                    (org-journal-file-name->calendar-date
                     (file-name-nondirectory filename))))
-            (headline-mapper
-             (lambda ()
-               (let ((element (org-element-at-point)))
-                 (org-end-of-subtree)
-                 (outline-next-heading)
-                 ;; since the next subtree now starts at point,
-                 ;; continue mapping from before that, to include it
-                 ;; in the search
-                 (backward-char)
-                 (setq org-map-continue-from (point))
-                 element)))
-            (content nil)
-            (title nil))
-        (insert "BEGIN:VEVENT\n")
-        ;; creation time of this event
-        (insert "DTSTAMP:" (format-time-string "%Y%m%dT%H%M%SZ" time) "\n")
-        ;; description
+            summary dtstamp dtstart dtend description uid)
         (org-journal-with-find-file
          filename
-         (setq elements (org-map-entries headline-mapper
-                                         "+SCHEDULED>=\"<now>\"")))
-        (dolist (element elements)
-          (insert "SUMMARY:" (plist-get (cadr element) ':title) "\n")
-          (let* ((scheduled (plist-get (cadr element) ':scheduled))
-                 (start-time (encode-time 0 ; second
-                                          (or (plist-get (cadr scheduled) ':minute-start) 0)
-                                          (or (plist-get (cadr scheduled) ':hour-start) 0)
-                                          (plist-get (cadr scheduled) ':day-start)
-                                          (plist-get (cadr scheduled) ':month-start)
-                                          (plist-get (cadr scheduled) ':year-start)))
-                 (end-time (encode-time 0 ; second
-                                        (or (plist-get (cadr scheduled) ':minute-end) 0)
-                                        (or (plist-get (cadr scheduled) ':hour-end) 0)
-                                        (plist-get (cadr scheduled) ':day-end)
-                                        (plist-get (cadr scheduled) ':month-end)
-                                        (plist-get (cadr scheduled) ':year-end))))
-            (insert "DTSTART:" (format-time-string "%Y%m%dT%H%M%SZ" start-time) "\n")
-            (insert "DTEND:" (format-time-string "%Y%m%dT%H%M%SZ" end-time) "\n")))
-            ;; (insert "DESCRIPTION:" "\n")))
-        (insert "END:VENVENT\n")))
+         (dolist (headline (org-element-map (org-element-parse-buffer)
+                              'headline 'identity))
+           (when (org-element-property ':scheduled headline)
+             (setq summary (car (org-element-property ':title headline)))
+             (let* ((scheduled (org-element-property ':scheduled headline))
+                    (start-time (encode-time 0 ; second
+                                             (or (plist-get (cadr scheduled) ':minute-start) 0)
+                                             (or (plist-get (cadr scheduled) ':hour-start) 0)
+                                             (plist-get (cadr scheduled) ':day-start)
+                                             (plist-get (cadr scheduled) ':month-start)
+                                             (plist-get (cadr scheduled) ':year-start)))
+                    (end-time (encode-time 0 ; second
+                                           (or (plist-get (cadr scheduled) ':minute-end) 0)
+                                           (or (plist-get (cadr scheduled) ':hour-end) 0)
+                                           (plist-get (cadr scheduled) ':day-end)
+                                           (plist-get (cadr scheduled) ':month-end)
+                                           (plist-get (cadr scheduled) ':year-end))))
+               (setq dtstamp (format-time-string "%Y%m%dT%H%M%SZ" start-time))
+               (setq dtstart (format-time-string "%Y%m%dT%H%M%SZ" start-time))
+               (setq dtend (format-time-string "%Y%m%dT%H%M%SZ" end-time))
+               (setq description (buffer-substring-no-properties
+                                  (org-element-property ':contents-begin headline)
+                                  (org-element-property ':contents-end headline)))))))
+        (when summary
+          (insert "BEGIN:VEVENT\n"
+                  "SUMMARY:" summary "\n"
+                  "DTSTAMP:" dtstamp "\n"
+                  "DTSTART:" dtstart "\n"
+                  "DTEND:" dtend "\n"
+                  "DESCRIPTION:" (replace-regexp-in-string "\n" "\\\\n\n" description) "\n"
+                  "END:VEVENT\n"))))))))
     (insert "END:VCALENDAR\n")
     (set-buffer-modified-p nil)
     (view-mode t)
