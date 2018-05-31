@@ -759,13 +759,18 @@ Think of this as a faster, less fancy version of your org-agenda."
       (let ((time (org-journal-calendar-date->time
                    (org-journal-file-name->calendar-date
                     (file-name-nondirectory filename))))
-            summary dtstamp dtstart dtend description uid)
+            summary dtstamp dtstart dtend description uid type)
         (org-journal-with-find-file
          filename
          (dolist (headline (org-element-map (org-element-parse-buffer)
-                              'headline 'identity))
+                               'headline 'identity))
+           (cond ((eq (org-element-property ':todo-type headline) 'todo)
+                  (setq type "VTODO"))
+                 ((org-element-property ':scheduled headline)
+                  (setq type "VEVENT"))
+                 (t (setq type "VJOURNAL")))
+           (setq summary (car (org-element-property ':title headline)))
            (when (org-element-property ':scheduled headline)
-             (setq summary (car (org-element-property ':title headline)))
              (let* ((scheduled (org-element-property ':scheduled headline))
                     (start-time (encode-time 0 ; second
                                              (or (plist-get (cadr scheduled) ':minute-start) 0)
@@ -781,18 +786,22 @@ Think of this as a faster, less fancy version of your org-agenda."
                                            (plist-get (cadr scheduled) ':year-end))))
                (setq dtstamp (format-time-string "%Y%m%dT%H%M%SZ" start-time))
                (setq dtstart (format-time-string "%Y%m%dT%H%M%SZ" start-time))
-               (setq dtend (format-time-string "%Y%m%dT%H%M%SZ" end-time))
-               (setq description (buffer-substring-no-properties
-                                  (org-element-property ':contents-begin headline)
-                                  (org-element-property ':contents-end headline)))))))
+               (setq dtend (format-time-string "%Y%m%dT%H%M%SZ" end-time))))
+           (setq uid (concat (replace-regexp-in-string "\s" "" summary)
+                             (file-name-nondirectory filename)))
+           (setq description (buffer-substring-no-properties
+                              (org-element-property ':contents-begin headline)
+                              (org-element-property ':contents-end headline)))))
         (when summary
-          (insert "BEGIN:VEVENT\n"
+          (insert "BEGIN:" type "\n"
                   "SUMMARY:" summary "\n"
-                  "DTSTAMP:" dtstamp "\n"
-                  "DTSTART:" dtstart "\n"
-                  "DTEND:" dtend "\n"
                   "DESCRIPTION:" (replace-regexp-in-string "\n" "\\\\n\n" description) "\n"
-                  "END:VEVENT\n"))))))))
+                  "UID:" uid "\n")
+          (when dtstamp
+              (insert "DTSTAMP:" dtstamp "\n"
+                      "DTSTART:" dtstart "\n"
+                      "DTEND:" dtend "\n"))
+          (insert "END:" type "\n"))))))))
     (insert "END:VCALENDAR\n")
     (set-buffer-modified-p nil)
     (view-mode t)
