@@ -188,8 +188,8 @@ The journal can be encrypted using =org-crypt= when ~org-journal-enable-encrypti
 *** Agenda and Scheduling
 
 An easy way of keeping track of appointments or future TODOs is to simply create a journal
-entry in the future. Such entries will automatically get a =SCHEDULED= property and show
-up in the current day's journal entry once you reach that day.
+entry in the future. Such entries will automatically get a timestamp and show up in the
+current day's journal entry once you reach that day.
 
 - if =org-journal-enable-agenda-integration= is =t=, org-journal will automatically add
   the current and all future journal entries to =org-agenda-files=.
@@ -197,21 +197,25 @@ up in the current day's journal entry once you reach that day.
 There are a few helper functions to deal with such scheduled entries:
 
 - =org-journal-new-scheduled-entry= - prompts for a date, and creates a new journal entry
-  on that date with its =SCHEDULED= property set to the date. By default, this is a TODO
-  entry. Set the prefix to avoid the TODO.
+  on that date with its timestamp set to the date. By default, this is a TODO entry. Set
+  the prefix to avoid the TODO.
 
 - =org-journal-schedule-view= - creates a read-only overview of scheduled entries.
 
-- =org-journal-schedule-export= - saves all future entries as an iCalendar file that you
-  can import into a calendar application. There are three customizable variables
-  =org-journal-ics-export-scheduled-object=, =org-journal-ics-export-todo-object=,
-  =org-journal-ics-export-journal-object=, which define how journal entries should be
-  represented in the iCalendar file. They default to =VEVENT= for scheduled entries,
-  =VTODO= for TODO items, and =VJOURNAL= anything else. =VEVENT= are normal calendar
-  entries, =VTODO= are /Tasks/, which some calendar applications display differently, and
-  =VJOURNAL= are journal entries, which some calendar applications don't support. If TODO
-  entries or non-scheduled entries do not show up in your calendar, you can try setting
-  the above variables to =VEVENT=.
+**** iCalendar export
+
+You can export your scheduled entries to an iCalendar file, and subscribe to that file in
+your calendar application. You need to enable the agenda integration for this to work. I
+also recommend you set the following values before exporting:
+
+#+begin_src elisp
+(setq org-journal-enable-agenda-integration t
+      org-icalendar-store-UID t
+      org-icalendar-include-todo "all"
+      org-icalendar-combined-agenda-file "~/path/to/org-journal.ics")
+#+end_src
+
+With this done, you can export your agenda, including your scheduled entries, with =(org-icalendar-combine-agenda-files)=.
 
 *** Journal Capture Template
 
