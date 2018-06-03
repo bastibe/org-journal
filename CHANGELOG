@@ -90,5 +90,8 @@
 ## 2018-04-18 V1.13.4 Bastian Bechtold
   - Fixes issue if org-journal-dir does not end in "/"
 
-## 2018-05-14 V1.14.0 Bastian Bechtold
+## 2018-05-14 V1.14.1 Bastian Bechtold
   - Adds support for org-extend-today-until
+
+## 2018-06-03 V1.14.2 Bastian Bechtold
+  - Changes "SCHEDULED" entries to entries with timestamp (because that's how org does it)
