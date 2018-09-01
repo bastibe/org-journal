@@ -164,6 +164,11 @@ org-journal. Use org-journal-file-format instead.")
 string if you want to disable timestamps."
   :type 'string :group 'org-journal)
 
+(defcustom org-journal-time-format-post-midnight ""
+  "When non-blank, a separate time format string for after midnight,
+when the current time is before the hour set by `org-extend-today-until`."
+  :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-prefix "** "
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
@@ -334,13 +339,18 @@ Whenever a journal entry is created the
         (when should-add-entry-p
           (unless (eq (current-column) 0) (insert "\n"))
           (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
-                 (timestamp (cond ((= day-discrepancy 0)
-                                   (format-time-string org-journal-time-format))
-                                  ((and (= day-discrepancy 1) oetu-active-p)
-                                   (format-time-string org-journal-time-format))
-                                  ;; TODO: option for different timestamp format
-                                  ;; when post-midnight with org-extend-day-until
-                                  (t ""))))
+                 (timestamp (cond
+                             ;; “time” is today, use normal timestamp format
+                             ((= day-discrepancy 0)
+                              (format-time-string org-journal-time-format))
+                             ;; “time” is yesterday with org-extend-today-until,
+                             ;; use different timestamp format if available
+                             ((and (= day-discrepancy 1) oetu-active-p)
+                              (if (not (string-equal org-journal-time-format-post-midnight ""))
+                                  (format-time-string org-journal-time-format-post-midnight)
+                                  (format-time-string org-journal-time-format)))
+                             ;; “time” is on some other day, use blank timestamp
+                             (t ""))))
             (insert "\n" org-journal-time-prefix timestamp))
           (run-hooks 'org-journal-after-entry-create-hook))
 
