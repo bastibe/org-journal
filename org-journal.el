@@ -164,6 +164,11 @@ org-journal. Use org-journal-file-format instead.")
 string if you want to disable timestamps."
   :type 'string :group 'org-journal)
 
+(defcustom org-journal-time-format-post-midnight ""
+  "When non-blank, a separate time format string for after midnight,
+when the current time is before the hour set by `org-extend-today-until`."
+  :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-prefix "** "
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
@@ -287,65 +292,77 @@ Whenever a journal entry is created the
 
   ;; if time is before org-extend-today-until, interpret it as
   ;; part of the previous day:
-  (let ((now (decode-time nil)))
-    (if (and (not time) ; time was not given
-             (< (nth 2 now)
-                org-extend-today-until))
-        (setq time (encode-time (nth 0 now)      ; second
-                                (nth 1 now)      ; minute
-                                (nth 2 now)      ; hour
-                                (1- (nth 3 now)) ; day
-                                (nth 4 now)      ; month
-                                (nth 5 now)      ; year
-                                (nth 8 now)))))  ; timezone
+  (let ((oetu-active-p nil))
+    (let ((now (decode-time nil)))
+      (if (and (not time) ; time was not given
+               (< (nth 2 now)
+                  org-extend-today-until))
+          (setq oetu-active-p t
+                time (encode-time (nth 0 now)      ; second
+                                  (nth 1 now)      ; minute
+                                  (nth 2 now)      ; hour
+                                  (1- (nth 3 now)) ; day
+                                  (nth 4 now)      ; month
+                                  (nth 5 now)      ; year
+                                  (nth 8 now)))))  ; timezone
 
-  (let* ((entry-path (org-journal-get-entry-path time))
-         (should-add-entry-p (not prefix)))
+    (let* ((entry-path (org-journal-get-entry-path time))
+           (should-add-entry-p (not prefix)))
 
-    ;; open journal file
-    (unless (string= entry-path (buffer-file-name))
-      (funcall org-journal-find-file entry-path))
-    (org-journal-decrypt)
-    (goto-char (point-max))
-    (let ((new-file-p (equal (point-max) 1)))
+      ;; open journal file
+      (unless (string= entry-path (buffer-file-name))
+        (funcall org-journal-find-file entry-path))
+      (org-journal-decrypt)
+      (goto-char (point-max))
+      (let ((new-file-p (equal (point-max) 1)))
 
-      ;; empty file? Add a date timestamp
-      (when new-file-p
-        (if (functionp org-journal-date-format)
-            (insert (funcall org-journal-date-format time))
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format time))))
+        ;; empty file? Add a date timestamp
+        (when new-file-p
+          (if (functionp org-journal-date-format)
+              (insert (funcall org-journal-date-format time))
+              (insert org-journal-date-prefix
+                      (format-time-string org-journal-date-format time))))
 
-      ;; add crypt tag if encryption is enabled and tag is not present
-      (when org-journal-enable-encryption
-        (goto-char (point-min))
-        (unless (member org-crypt-tag-matcher (org-get-tags))
-          (org-set-tags-to org-crypt-tag-matcher))
-        (goto-char (point-max)))
+        ;; add crypt tag if encryption is enabled and tag is not present
+        (when org-journal-enable-encryption
+          (goto-char (point-min))
+          (unless (member org-crypt-tag-matcher (org-get-tags))
+            (org-set-tags-to org-crypt-tag-matcher))
+          (goto-char (point-max)))
 
-      ;; move TODOs from previous day here
-      (when (and org-journal-carryover-items
-                 (string= entry-path (org-journal-get-entry-path (current-time))))
-        (save-excursion (org-journal-carryover)))
+        ;; move TODOs from previous day here
+        (when (and org-journal-carryover-items
+                   (string= entry-path (org-journal-get-entry-path (current-time))))
+          (save-excursion (org-journal-carryover)))
 
-      ;; insert the header of the entry
-      (when should-add-entry-p
-        (unless (eq (current-column) 0) (insert "\n"))
-        (let ((timestamp (if (= (time-to-days (current-time)) (time-to-days time))
-                             (format-time-string org-journal-time-format)
-                           "")))
-          (insert "\n" org-journal-time-prefix timestamp))
-        (run-hooks 'org-journal-after-entry-create-hook))
+        ;; insert the header of the entry
+        (when should-add-entry-p
+          (unless (eq (current-column) 0) (insert "\n"))
+          (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
+                 (timestamp (cond
+                             ;; “time” is today, use normal timestamp format
+                             ((= day-discrepancy 0)
+                              (format-time-string org-journal-time-format))
+                             ;; “time” is yesterday with org-extend-today-until,
+                             ;; use different timestamp format if available
+                             ((and (= day-discrepancy 1) oetu-active-p)
+                              (if (not (string-equal org-journal-time-format-post-midnight ""))
+                                  (format-time-string org-journal-time-format-post-midnight)
+                                  (format-time-string org-journal-time-format)))
+                             ;; “time” is on some other day, use blank timestamp
+                             (t ""))))
+            (insert "\n" org-journal-time-prefix timestamp))
+          (run-hooks 'org-journal-after-entry-create-hook))
 
-      ;; switch to the outline, hide subtrees
-      (org-journal-mode)
-      (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
-          (outline-hide-sublevels (org-journal-time-entry-level))
-        (outline-show-all))
+        ;; switch to the outline, hide subtrees
+        (org-journal-mode)
+        (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
+            (outline-hide-sublevels (org-journal-time-entry-level))
+            (outline-show-all))
 
-      ;; open the recent entry when the prefix is given
-      (when should-add-entry-p
-        (outline-show-entry)))))
+        ;; open the recent entry when the prefix is given
+        (when should-add-entry-p
+          (outline-show-entry))))))
 
 (defun org-journal-carryover ()
   "Moves all items matching org-journal-carryover-items from the
