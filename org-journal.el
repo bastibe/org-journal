@@ -243,6 +243,16 @@ Otherwise, date ascending."
 (define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
 (define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
 
+;; Save and kill org-journal window 
+(defun org-journal-save-entry-and-exit()
+  "Simple convenience function. 
+  Saves the buffer of the current day's entry and kills the window
+  Similar to org-capture like behavior"
+  (interactive)
+  (save-buffer)
+  (kill-buffer-and-window))
+(define-key org-journal-mode-map (kbd "C-x C-s") 'org-journal-save-entry-and-exit)
+
 ;;;###autoload
 (eval-after-load "calendar"
   '(progn
