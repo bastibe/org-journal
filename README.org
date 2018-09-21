@@ -262,6 +262,10 @@ Major modes are supposed to only use key bindings of the form =C-c C-?=, where =
 - =C-c C-f= (=org-forward-heading-same-level=) with =org-journal-open-next-entry=
 - =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry=
 - =C-c C-j= (=org-goto=) with =org-journal-new-entry=
+
+**** Other overwrites 
+- =C-x C-s= (=save-buffer=) is overwritten with =org-journal-save-entry-and-exit=. This saves the buffer for the current day's entry and kills the window. Similar to org-capture. 
+
 However, this is Emacs, and if you don't like a key binding, change it!
 
 *** Opening journal entries from the calendar are not editable
