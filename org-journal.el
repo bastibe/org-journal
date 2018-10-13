@@ -685,7 +685,7 @@ And cleans out past org-journal files."
               (not (and (string= (expand-file-name (file-name-directory f))
                                  (expand-file-name (file-name-as-directory org-journal-dir)))
                         (string-match org-journal-file-pattern (file-name-nondirectory f)))))
-            org-agenda-files))
+            (org-agenda-files)))
           (org-journal-agenda-files
            (seq-filter
             ;; skip files that are older than today
