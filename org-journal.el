@@ -528,12 +528,12 @@ If the date is in the future, create a schedule entry."
           ;; Unix standard forward slash.
           (or (seq-contains org-journal-file-pattern 92)  ; 92 is \
               (seq-contains org-journal-file-pattern 47)) ; 47 is /
-        ;; otherwise, just look for a forward slash
-        (seq-contains org-journal-file-pattern 47))
+          ;; otherwise, just look for a forward slash
+          (seq-contains org-journal-file-pattern 47))
       ;; grab the file list. We can’t use directory-files-recursively’s
       ;; regexp facility to filter it, because that only checks the
-      ;; regexp against the files' relative names, and we need to check
-      ;; the regexp against the absolute file names.
+      ;; regexp against the base filenames, and we need to check it
+      ;; against filenames relative to org-journal-dir.
       (mapcar #'org-journal-file-name->calendar-date
               (seq-filter (lambda (file-path)
                             (string-match-p org-journal-file-pattern
@@ -541,10 +541,10 @@ If the date is in the future, create a schedule entry."
                                              file-path
                                              org-journal-dir)))
                           (directory-files-recursively org-journal-dir "\.*")))
-    ;; if org-journal-file-pattern has no path separator, use the
-    ;; old, simpler method of gathering the journal files
-    (mapcar #'org-journal-file-name->calendar-date
-            (directory-files org-journal-dir nil org-journal-file-pattern nil))))
+      ;; if org-journal-file-pattern has no path separator, use the
+      ;; old, simpler method of gathering the journal files
+      (mapcar #'org-journal-file-name->calendar-date
+              (directory-files org-journal-dir nil org-journal-file-pattern nil))))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
