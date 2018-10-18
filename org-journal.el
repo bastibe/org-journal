@@ -521,30 +521,17 @@ If the date is in the future, create a schedule entry."
   "Loads the list of files in the journal directory, and converts
   it into a list of calendar DATE elements"
   (org-journal-dir-check-or-create)
-  ;; check if org-journal-file-pattern contains a path separator.
-  (if (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-          ;; if we’re on DOS or Windows, check for two potential path
-          ;; separators: the Microsoft-standard backslash, or the
-          ;; Unix standard forward slash.
-          (or (seq-contains org-journal-file-pattern 92)  ; 92 is \
-              (seq-contains org-journal-file-pattern 47)) ; 47 is /
-          ;; otherwise, just look for a forward slash
-          (seq-contains org-journal-file-pattern 47))
-      ;; grab the file list. We can’t use directory-files-recursively’s
-      ;; regexp facility to filter it, because that only checks the
-      ;; regexp against the base filenames, and we need to check it
-      ;; against filenames relative to org-journal-dir.
-      (mapcar #'org-journal-file-name->calendar-date
-              (seq-filter (lambda (file-path)
-                            (string-match-p org-journal-file-pattern
-                                            (file-relative-name
-                                             file-path
-                                             org-journal-dir)))
-                          (directory-files-recursively org-journal-dir "\.*")))
-      ;; if org-journal-file-pattern has no path separator, use the
-      ;; old, simpler method of gathering the journal files
-      (mapcar #'org-journal-file-name->calendar-date
-              (directory-files org-journal-dir nil org-journal-file-pattern nil))))
+  ;; grab the file list. We can’t use directory-files-recursively’s
+  ;; regexp facility to filter it, because that only checks the
+  ;; regexp against the base filenames, and we need to check it
+  ;; against filenames relative to org-journal-dir.
+  (let ((file-list (directory-files-recursively org-journal-dir "\.*"))
+        (predicate (lambda (file-path)
+                     (string-match-p
+                      org-journal-file-pattern
+                      (file-relative-name file-path org-journal-dir)))))
+    (mapcar #'org-journal-file-name->calendar-date
+            (seq-filter predicate file-list))))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
