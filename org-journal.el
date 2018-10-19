@@ -320,8 +320,8 @@ Whenever a journal entry is created the
         (when new-file-p
           (if (functionp org-journal-date-format)
               (insert (funcall org-journal-date-format time))
-            (insert org-journal-date-prefix
-                    (format-time-string org-journal-date-format time))))
+              (insert org-journal-date-prefix
+                      (format-time-string org-journal-date-format time))))
 
         ;; add crypt tag if encryption is enabled and tag is not present
         (when org-journal-enable-encryption
@@ -348,7 +348,7 @@ Whenever a journal entry is created the
                              ((and (= day-discrepancy 1) oetu-active-p)
                               (if (not (string-equal org-journal-time-format-post-midnight ""))
                                   (format-time-string org-journal-time-format-post-midnight)
-                                (format-time-string org-journal-time-format)))
+                                  (format-time-string org-journal-time-format)))
                              ;; “time” is on some other day, use blank timestamp
                              (t ""))))
             (insert "\n" org-journal-time-prefix timestamp))
@@ -358,7 +358,7 @@ Whenever a journal entry is created the
         (org-journal-mode)
         (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
             (outline-hide-sublevels (org-journal-time-entry-level))
-          (outline-show-all))
+            (outline-show-all))
 
         ;; open the recent entry when the prefix is given
         (when should-add-entry-p
