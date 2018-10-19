@@ -526,12 +526,12 @@ If the date is in the future, create a schedule entry."
   ;; regexp against the base filenames, and we need to check it
   ;; against filenames relative to org-journal-dir.
   (let ((file-list (directory-files-recursively org-journal-dir "\.*"))
+        (get-relative-paths (lambda (file-path)
+                              (file-relative-name file-path org-journal-dir)))
         (predicate (lambda (file-path)
-                     (string-match-p
-                      org-journal-file-pattern
-                      (file-relative-name file-path org-journal-dir)))))
+                     (string-match-p org-journal-file-pattern file-path))))
     (mapcar #'org-journal-file-name->calendar-date
-            (seq-filter predicate file-list))))
+            (seq-filter predicate (seq-map get-relative-paths file-list)))))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
