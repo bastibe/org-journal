@@ -95,7 +95,7 @@ org-journal. Use org-journal-file-format instead.")
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
    "\\'"))
 
-; Customizable variables
+                                        ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
   :version "1.14.3"
@@ -320,8 +320,8 @@ Whenever a journal entry is created the
         (when new-file-p
           (if (functionp org-journal-date-format)
               (insert (funcall org-journal-date-format time))
-              (insert org-journal-date-prefix
-                      (format-time-string org-journal-date-format time))))
+            (insert org-journal-date-prefix
+                    (format-time-string org-journal-date-format time))))
 
         ;; add crypt tag if encryption is enabled and tag is not present
         (when org-journal-enable-encryption
@@ -348,7 +348,7 @@ Whenever a journal entry is created the
                              ((and (= day-discrepancy 1) oetu-active-p)
                               (if (not (string-equal org-journal-time-format-post-midnight ""))
                                   (format-time-string org-journal-time-format-post-midnight)
-                                  (format-time-string org-journal-time-format)))
+                                (format-time-string org-journal-time-format)))
                              ;; “time” is on some other day, use blank timestamp
                              (t ""))))
             (insert "\n" org-journal-time-prefix timestamp))
@@ -358,7 +358,7 @@ Whenever a journal entry is created the
         (org-journal-mode)
         (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
             (outline-hide-sublevels (org-journal-time-entry-level))
-            (outline-show-all))
+          (outline-show-all))
 
         ;; open the recent entry when the prefix is given
         (when should-add-entry-p
@@ -467,7 +467,7 @@ If the date is in the future, create a schedule entry."
   "Open the next journal entry starting from a currently displayed one"
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
-                        (file-name-nondirectory (buffer-file-name))))
+                        (file-relative-name (buffer-file-name) org-journal-dir)))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
     ;; insert current buffer in list if not present
@@ -491,7 +491,7 @@ If the date is in the future, create a schedule entry."
   "Open the previous journal entry starting from a currently displayed one"
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
-                        (file-name-nondirectory (buffer-file-name))))
+                        (file-relative-name (buffer-file-name) org-journal-dir)))
         (view-mode-p view-mode)
         (dates (reverse (org-journal-list-dates))))
     ;; insert current buffer in list if not present
@@ -678,10 +678,10 @@ existed before)."
          (find-file ,file))
        (setq result (progn ,@body))
        (basic-save-buffer)
-      (unless buffer-exists
-        (kill-buffer))
-      (switch-to-buffer current-buffer)
-      result)))
+       (unless buffer-exists
+         (kill-buffer))
+       (switch-to-buffer current-buffer)
+       result)))
 
 (require 'seq)
 (defun org-journal-update-org-agenda-files ()
@@ -693,7 +693,7 @@ And cleans out past org-journal files."
             (lambda (f)
               (not (and (string= (expand-file-name (file-name-directory f))
                                  (expand-file-name (file-name-as-directory org-journal-dir)))
-                        (string-match org-journal-file-pattern (file-name-nondirectory f)))))
+                        (string-match org-journal-file-pattern (file-relative-name f org-journal-dir)))))
             (org-agenda-files)))
           (org-journal-agenda-files
            (seq-filter
@@ -702,10 +702,10 @@ And cleans out past org-journal files."
               (not (time-less-p
                     (org-journal-calendar-date->time
                      (org-journal-file-name->calendar-date
-                      (file-name-nondirectory f)))
+                      (file-relative-name f org-journal-dir)))
                     (time-subtract (current-time) (days-to-time 1)))))
-              (directory-files org-journal-dir t
-                               org-journal-file-pattern))))
+            (directory-files org-journal-dir t
+                             org-journal-file-pattern))))
       (setq org-agenda-files (append agenda-files-without-org-journal
                                      org-journal-agenda-files)))))
 
@@ -729,20 +729,20 @@ Think of this as a faster, less fancy version of your org-agenda."
                               (time-less-p
                                (org-journal-calendar-date->time
                                 (org-journal-file-name->calendar-date
-                                 (file-name-nondirectory x)))
+                                 (file-relative-name x org-journal-dir)))
                                (org-journal-calendar-date->time
                                 (org-journal-file-name->calendar-date
-                                 (file-name-nondirectory y)))))))
+                                 (file-relative-name y org-journal-dir)))))))
       (let ((time (org-journal-calendar-date->time
                    (org-journal-file-name->calendar-date
-                    (file-name-nondirectory filename))))
+                    (file-relative-name filename org-journal-dir))))
             (copy-mapper (lambda () (let ((subtree (org-journal-extract-current-subtree nil)))
-                 ;; since the next subtree now starts at point,
-                 ;; continue mapping from before that, to include it
-                 ;; in the search
-                 (backward-char)
-                 (setq org-map-continue-from (point))
-                 subtree)))
+                                      ;; since the next subtree now starts at point,
+                                      ;; continue mapping from before that, to include it
+                                      ;; in the search
+                                      (backward-char)
+                                      (setq org-map-continue-from (point))
+                                      subtree)))
             (content-to-copy nil))
         (if (functionp org-journal-date-format)
             (insert (funcall org-journal-date-format time))
@@ -784,8 +784,8 @@ calendar accordingly."
    ;; future start/end
    ((eq period-name 'future)
     (let ((date (decode-time (current-time))))
-         (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
-               (list 12 31 2030))))
+      (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
+            (list 12 31 2030))))
 
    ;; extract a year start/end using the calendar curson
    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
@@ -843,7 +843,7 @@ org-journal-time-prefix."
     (dolist (file files)
       (let ((filetime (org-journal-calendar-date->time
                        (org-journal-file-name->calendar-date
-                        (file-name-nondirectory file)))))
+                        (file-relative-name file org-journal-dir)))))
         (cond ((not (and period-start period-end))
                (push file result))
 
@@ -898,7 +898,7 @@ org-journal-time-prefix."
            (fullstr (nth 2 res))
            (time (org-journal-calendar-date->time
                   (org-journal-file-name->calendar-date
-                   (file-name-nondirectory fname))))
+                   (file-relative-name fname org-journal-dir))))
            (label (org-journal-format-date time))
 
            (label-end (org-journal-format-date period-start)))
@@ -923,7 +923,7 @@ org-journal-time-prefix."
          (lnum (cdr target)))
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
-      (org-journal-file-name->calendar-date (file-name-nondirectory fname))))
+      (org-journal-file-name->calendar-date (file-relative-name fname org-journal-dir))))
     (outline-show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
