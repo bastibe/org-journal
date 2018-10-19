@@ -420,6 +420,7 @@ Return nil when it's impossible to figure out the level."
 
 (defun org-journal-file-name->calendar-date (file-name)
   "Convert an org-journal file name to a calendar date.
+   The file name given should be relative to org-journal-dir.
    If org-journal-file-pattern does not contain capture groups,
    fall back to the old behavior of taking substrings."
   (if (and (integerp (string-match "\(\?1:" org-journal-file-pattern))
