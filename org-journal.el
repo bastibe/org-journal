@@ -95,7 +95,7 @@ org-journal. Use org-journal-file-format instead.")
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
    "\\'"))
 
-                                        ; Customizable variables
+; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
   :version "1.14.3"
@@ -678,10 +678,10 @@ existed before)."
          (find-file ,file))
        (setq result (progn ,@body))
        (basic-save-buffer)
-       (unless buffer-exists
-         (kill-buffer))
-       (switch-to-buffer current-buffer)
-       result)))
+      (unless buffer-exists
+        (kill-buffer))
+      (switch-to-buffer current-buffer)
+      result)))
 
 (require 'seq)
 (defun org-journal-update-org-agenda-files ()
@@ -704,8 +704,8 @@ And cleans out past org-journal files."
                      (org-journal-file-name->calendar-date
                       (file-relative-name f org-journal-dir)))
                     (time-subtract (current-time) (days-to-time 1)))))
-            (directory-files org-journal-dir t
-                             org-journal-file-pattern))))
+              (directory-files org-journal-dir t
+                               org-journal-file-pattern))))
       (setq org-agenda-files (append agenda-files-without-org-journal
                                      org-journal-agenda-files)))))
 
@@ -737,12 +737,12 @@ Think of this as a faster, less fancy version of your org-agenda."
                    (org-journal-file-name->calendar-date
                     (file-relative-name filename org-journal-dir))))
             (copy-mapper (lambda () (let ((subtree (org-journal-extract-current-subtree nil)))
-                                      ;; since the next subtree now starts at point,
-                                      ;; continue mapping from before that, to include it
-                                      ;; in the search
-                                      (backward-char)
-                                      (setq org-map-continue-from (point))
-                                      subtree)))
+                 ;; since the next subtree now starts at point,
+                 ;; continue mapping from before that, to include it
+                 ;; in the search
+                 (backward-char)
+                 (setq org-map-continue-from (point))
+                 subtree)))
             (content-to-copy nil))
         (if (functionp org-journal-date-format)
             (insert (funcall org-journal-date-format time))
@@ -784,8 +784,8 @@ calendar accordingly."
    ;; future start/end
    ((eq period-name 'future)
     (let ((date (decode-time (current-time))))
-      (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
-            (list 12 31 2030))))
+         (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
+               (list 12 31 2030))))
 
    ;; extract a year start/end using the calendar curson
    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
