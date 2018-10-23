@@ -61,7 +61,7 @@
 ;;; Code:
 
 (defvar org-journal-file-pattern
-  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'"
+  (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
   "This matches journal files in your journal directory.
 This variable is created and updated automatically by
 org-journal. Use org-journal-file-format instead.")
@@ -72,10 +72,8 @@ org-journal. Use org-journal-file-format instead.")
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
-                      (substring org-journal-file-pattern 1))))
-    (add-to-list 'auto-mode-alist
-                 (cons name 'org-journal-mode))))
+  (add-to-list 'auto-mode-alist
+               (cons org-journal-file-pattern 'org-journal-mode)))
 
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
@@ -86,13 +84,13 @@ org-journal. Use org-journal-file-format instead.")
   "Update org-journal-file-pattern with the current
   org-journal-file-format"
   (concat
-   "^"
+   (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
    (replace-regexp-in-string
     "%d" "\\\\(?3:[0-9][0-9]\\\\)"
     (replace-regexp-in-string
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
-      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
+      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" org-journal-file-format)))
    "\\'"))
 
 ; Customizable variables
@@ -123,12 +121,16 @@ org-journal. Use org-journal-file-format instead.")
   :group 'org-journal)
 
 (defcustom org-journal-dir "~/Documents/journal/"
-  "Directory containing journal entries.
-  Setting this will update auto-mode-alist using
-  `(org-journal-update-auto-mode-alist)`"
+  "Directory containing journal entries. Setting this will update the
+  internal `org-journal-file-pattern` to a regex that matches the
+  new `org-journal-dir` using `(org-journal-format-string->regex
+  org-journal-file-format)`, and update `auto-mode-alist` using
+  `(org-journal-update-auto-mode-alist)`."
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
+         (setq org-journal-file-pattern
+               (org-journal-format-string->regex org-journal-file-format))
          (org-journal-update-auto-mode-alist)))
 
 (defcustom org-journal-file-format "%Y%m%d"
@@ -420,7 +422,6 @@ Return nil when it's impossible to figure out the level."
 
 (defun org-journal-file-name->calendar-date (file-name)
   "Convert an org-journal file name to a calendar date.
-   The file name given should be relative to org-journal-dir.
    If org-journal-file-pattern does not contain capture groups,
    fall back to the old behavior of taking substrings."
   (if (and (integerp (string-match "\(\?1:" org-journal-file-pattern))
@@ -468,7 +469,7 @@ If the date is in the future, create a schedule entry."
   "Open the next journal entry starting from a currently displayed one"
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
-                        (file-relative-name (buffer-file-name) org-journal-dir)))
+                        (buffer-file-name)))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
     ;; insert current buffer in list if not present
@@ -492,7 +493,7 @@ If the date is in the future, create a schedule entry."
   "Open the previous journal entry starting from a currently displayed one"
   (interactive)
   (let ((calendar-date (org-journal-file-name->calendar-date
-                        (file-relative-name (buffer-file-name) org-journal-dir)))
+                        (buffer-file-name)))
         (view-mode-p view-mode)
         (dates (reverse (org-journal-list-dates))))
     ;; insert current buffer in list if not present
@@ -518,21 +519,24 @@ If the date is in the future, create a schedule entry."
 ;;
 
 ;;;###autoload
-(defun org-journal-list-dates ()
-  "Loads the list of files in the journal directory, and converts
-  it into a list of calendar DATE elements"
+(defun org-journal-list-files ()
+  "Returns a list of all files in the journal directory"
   (org-journal-dir-check-or-create)
   ;; grab the file list. We can’t use directory-files-recursively’s
   ;; regexp facility to filter it, because that only checks the
   ;; regexp against the base filenames, and we need to check it
   ;; against filenames relative to org-journal-dir.
-  (let ((file-list (directory-files-recursively org-journal-dir "\.*"))
-        (get-relative-paths (lambda (file-path)
-                              (file-relative-name file-path org-journal-dir)))
+  (let ((file-list (directory-files-recursively
+                    (file-truename (expand-file-name (file-name-as-directory org-journal-dir))) "\.*"))
         (predicate (lambda (file-path)
                      (string-match-p org-journal-file-pattern file-path))))
-    (mapcar #'org-journal-file-name->calendar-date
-            (seq-filter predicate (seq-map get-relative-paths file-list)))))
+    (seq-filter predicate file-list)))
+
+(defun org-journal-list-dates ()
+  "Loads the list of files in the journal directory, and converts
+  it into a list of calendar DATE elements"
+  (mapcar #'org-journal-file-name->calendar-date
+          (org-journal-list-files)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
@@ -692,9 +696,7 @@ And cleans out past org-journal files."
     (let ((agenda-files-without-org-journal
            (seq-filter
             (lambda (f)
-              (not (and (string= (expand-file-name (file-name-directory f))
-                                 (expand-file-name (file-name-as-directory org-journal-dir)))
-                        (string-match org-journal-file-pattern (file-relative-name f org-journal-dir)))))
+              (not (string-match org-journal-file-pattern f)))
             (org-agenda-files)))
           (org-journal-agenda-files
            (seq-filter
@@ -702,11 +704,9 @@ And cleans out past org-journal files."
             (lambda (f)
               (not (time-less-p
                     (org-journal-calendar-date->time
-                     (org-journal-file-name->calendar-date
-                      (file-relative-name f org-journal-dir)))
+                     (org-journal-file-name->calendar-date f))
                     (time-subtract (current-time) (days-to-time 1)))))
-              (directory-files org-journal-dir t
-                               org-journal-file-pattern))))
+            (org-journal-list-files))))
       (setq org-agenda-files (append agenda-files-without-org-journal
                                      org-journal-agenda-files)))))
 
@@ -729,14 +729,11 @@ Think of this as a faster, less fancy version of your org-agenda."
                             (lambda (x y)
                               (time-less-p
                                (org-journal-calendar-date->time
-                                (org-journal-file-name->calendar-date
-                                 (file-relative-name x org-journal-dir)))
+                                (org-journal-file-name->calendar-date x))
                                (org-journal-calendar-date->time
-                                (org-journal-file-name->calendar-date
-                                 (file-relative-name y org-journal-dir)))))))
+                                (org-journal-file-name->calendar-date y))))))
       (let ((time (org-journal-calendar-date->time
-                   (org-journal-file-name->calendar-date
-                    (file-relative-name filename org-journal-dir))))
+                   (org-journal-file-name->calendar-date filename)))
             (copy-mapper (lambda () (let ((subtree (org-journal-extract-current-subtree nil)))
                  ;; since the next subtree now starts at point,
                  ;; continue mapping from before that, to include it
@@ -838,13 +835,11 @@ org-journal-time-prefix."
 
 (defun org-journal-search-build-file-list (&optional period-start period-end)
   "Build a list of journal files within a given time interval"
-  (let ((files (directory-files org-journal-dir t
-                                org-journal-file-pattern))
+  (let ((files (org-journal-list-files))
         result)
     (dolist (file files)
       (let ((filetime (org-journal-calendar-date->time
-                       (org-journal-file-name->calendar-date
-                        (file-relative-name file org-journal-dir)))))
+                       (org-journal-file-name->calendar-date file))))
         (cond ((not (and period-start period-end))
                (push file result))
 
@@ -898,8 +893,7 @@ org-journal-time-prefix."
            (lnum (nth 1 res))
            (fullstr (nth 2 res))
            (time (org-journal-calendar-date->time
-                  (org-journal-file-name->calendar-date
-                   (file-relative-name fname org-journal-dir))))
+                  (org-journal-file-name->calendar-date fname)))
            (label (org-journal-format-date time))
 
            (label-end (org-journal-format-date period-start)))
@@ -924,7 +918,7 @@ org-journal-time-prefix."
          (lnum (cdr target)))
     (org-journal-read-or-display-entry
      (org-journal-calendar-date->time
-      (org-journal-file-name->calendar-date (file-relative-name fname org-journal-dir))))
+      (org-journal-file-name->calendar-date fname)))
     (outline-show-all) ; TODO: could not find out a proper way to go to a hidden line
     (goto-char (point-min))
     (forward-line (1- lnum))))
