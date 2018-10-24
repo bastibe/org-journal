@@ -80,19 +80,18 @@ org-journal. Use org-journal-file-format instead.")
 (add-hook 'org-agenda-mode-hook 'org-journal-update-org-agenda-files)
 
 ;;;###autoload
-(defun org-journal-update-file-pattern ()
+(defun org-journal-format-string->regex (format-string)
   "Update org-journal-file-pattern with the current
-  org-journal-dir and org-journal-file-format"
-  (setq org-journal-file-pattern
-        (concat
-         (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
-         (replace-regexp-in-string
-          "%d" "\\\\(?3:[0-9][0-9]\\\\)"
-          (replace-regexp-in-string
-           "%m" "\\\\(?2:[0-9][0-9]\\\\)"
-           (replace-regexp-in-string
-            "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" org-journal-file-format)))
-         "\\'")))
+  org-journal-file-format"
+  (concat
+   (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
+   (replace-regexp-in-string
+    "%d" "\\\\(?3:[0-9][0-9]\\\\)"
+    (replace-regexp-in-string
+     "%m" "\\\\(?2:[0-9][0-9]\\\\)"
+     (replace-regexp-in-string
+      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" org-journal-file-format)))
+   "\\'"))
 
 ; Customizable variables
 (defgroup org-journal nil
@@ -130,7 +129,8 @@ org-journal. Use org-journal-file-format instead.")
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
-         (org-journal-update-file-pattern)
+         (setq org-journal-file-pattern
+               (org-journal-format-string->regex org-journal-file-format))
          (org-journal-update-auto-mode-alist)))
 
 (defcustom org-journal-file-format "%Y%m%d"
@@ -144,7 +144,8 @@ org-journal. Use org-journal-file-format instead.")
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
-         (org-journal-update-file-pattern)
+         (setq org-journal-file-pattern
+               (org-journal-format-string->regex value))
          (org-journal-update-auto-mode-alist)))
 
 (defcustom org-journal-date-format "%A, %x"
@@ -218,7 +219,8 @@ Otherwise, date ascending."
   "Hook called after journal entry creation")
 
 ;; Automatically switch to journal mode when opening a journal entry file
-(org-journal-update-file-pattern)
+(setq org-journal-file-pattern
+      (org-journal-format-string->regex org-journal-file-format))
 (org-journal-update-auto-mode-alist)
 
 (require 'calendar)
