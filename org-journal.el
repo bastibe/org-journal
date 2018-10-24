@@ -80,17 +80,17 @@ org-journal. Use org-journal-file-format instead.")
 (add-hook 'org-agenda-mode-hook 'org-journal-update-org-agenda-files)
 
 ;;;###autoload
-(defun org-journal-format-string->regex (format-string)
+(defun org-journal-dir-and-format->regex (dir format)
   "Update org-journal-file-pattern with the current
   org-journal-file-format"
   (concat
-   (file-truename (expand-file-name (file-name-as-directory org-journal-dir)))
+   (file-truename (expand-file-name (file-name-as-directory dir)))
    (replace-regexp-in-string
     "%d" "\\\\(?3:[0-9][0-9]\\\\)"
     (replace-regexp-in-string
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
-      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" org-journal-file-format)))
+      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format)))
    "\\'"))
 
 ; Customizable variables
@@ -123,29 +123,36 @@ org-journal. Use org-journal-file-format instead.")
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries. Setting this will update the
   internal `org-journal-file-pattern` to a regex that matches the
-  new `org-journal-dir` using `(org-journal-format-string->regex
-  org-journal-file-format)`, and update `auto-mode-alist` using
-  `(org-journal-update-auto-mode-alist)`."
+  directory, using `org-journal-dir-and-format->regex`, and update
+  `auto-mode-alist` using `(org-journal-update-auto-mode-alist)`."
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
-         (setq org-journal-file-pattern
-               (org-journal-format-string->regex org-journal-file-format))
+         ;; if org-journal-file-format is not yet bound, we’ll need a default value
+         (let ((format (if (boundp 'org-journal-file-format)
+                           org-journal-file-format
+                         "%Y%m%d")))
+           (setq org-journal-file-pattern
+                 (org-journal-dir-and-format->regex value format)))
          (org-journal-update-auto-mode-alist)))
 
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names, by default \"YYYYMMDD\".
   This pattern must include `%Y`, `%m` and `%d`. Setting this
   will update the internal `org-journal-file-pattern` to a regex
-  that matches the format string using
-  `(org-journal-format-string->regex format-string)`, and update
+  that matches the format string, using
+  `org-journal-dir-and-format->regex`, and update
   `auto-mode-alist` using
   `(org-journal-update-auto-mode-alist)`."
   :type 'string :group 'org-journal
   :set (lambda (symbol value)
          (set-default symbol value)
-         (setq org-journal-file-pattern
-               (org-journal-format-string->regex value))
+         ;; If org-journal-dir is not yet bound, we’ll need a default value
+         (let ((dir (if (boundp 'org-journal-dir)
+                        org-journal-dir
+                      "~/Documents/journal/")))
+           (setq org-journal-file-pattern
+                 (org-journal-dir-and-format->regex dir value)))
          (org-journal-update-auto-mode-alist)))
 
 (defcustom org-journal-date-format "%A, %x"
@@ -220,7 +227,7 @@ Otherwise, date ascending."
 
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
-      (org-journal-format-string->regex org-journal-file-format))
+      (org-journal-dir-and-format->regex org-journal-dir org-journal-file-format))
 (org-journal-update-auto-mode-alist)
 
 (require 'calendar)
