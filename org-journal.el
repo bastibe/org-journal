@@ -536,7 +536,7 @@ If the date is in the future, create a schedule entry."
   (let ((file-list (directory-files-recursively
                     (file-truename (expand-file-name (file-name-as-directory org-journal-dir))) "\.*"))
         (predicate (lambda (file-path)
-                     (string-match-p org-journal-file-pattern file-path))))
+                     (string-match-p org-journal-file-pattern (file-truename file-path)))))
     (seq-filter predicate file-list)))
 
 (defun org-journal-list-dates ()
@@ -702,16 +702,16 @@ And cleans out past org-journal files."
   (when org-journal-enable-agenda-integration
     (let ((agenda-files-without-org-journal
            (seq-filter
-            (lambda (f)
-              (not (string-match org-journal-file-pattern f)))
+            (lambda (fname)
+              (not (string-match org-journal-file-pattern fname)))
             (org-agenda-files)))
           (org-journal-agenda-files
            (seq-filter
             ;; skip files that are older than today
-            (lambda (f)
+            (lambda (fname)
               (not (time-less-p
                     (org-journal-calendar-date->time
-                     (org-journal-file-name->calendar-date f))
+                     (org-journal-file-name->calendar-date fname))
                     (time-subtract (current-time) (days-to-time 1)))))
             (org-journal-list-files))))
       (setq org-agenda-files (append agenda-files-without-org-journal
