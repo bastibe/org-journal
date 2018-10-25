@@ -115,7 +115,7 @@ Customization options related to journal directory and files:
 - =org-journal-dir= - the journal path. Tweaking this variable will also update
   =auto-mode-alist= to ensure journal files are opened in =org-journal-mode=.
 
-- =org-journal-file-format= - format string for journal file names.
+- =org-journal-file-format= - format string for journal file names (may contain directories relative to =org-journal-dir=).
 
 - =org-journal-find-file= - a function to use when opening a journal file. By default it
   opens a window using =find-file-other-window=. Set this to =find-file= if you don't want
