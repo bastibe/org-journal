@@ -95,3 +95,10 @@
 
 ## 2018-06-03 V1.14.2 Bastian Bechtold
   - Changes "SCHEDULED" entries to entries with timestamp (because that's how org does it)
+
+## 2018-07-23 V1.14.3 Bastian Bechtold
+  - Removes debug output. Sorry about that.
+
+## 2018-11-15 V1.15.0 Bastian Bechtold
+  - adds org-journal-time-format-post-midnight for formatting post-midnight timestamps (Thank you, Tina Russell!)
+  - adds support for subdirectories in org-journal-file-format (Thank you, Tina Russell!)

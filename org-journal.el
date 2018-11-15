@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.14.3
+;; Version: 1.15.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
@@ -96,7 +96,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.14.3"
+  :version "1.15.0"
   :group 'applications)
 
 (defface org-journal-highlight
