@@ -107,13 +107,13 @@
      pagecolor="#ffffff"
      inkscape:window-height="720"
      inkscape:window-maximized="1"
-     inkscape:zoom="1"
+     inkscape:zoom="4.0307674"
      inkscape:window-x="0"
      showgrid="false"
      borderopacity="1.0"
      inkscape:current-layer="layer1"
-     inkscape:cx="65.027159"
-     inkscape:cy="68.969521"
+     inkscape:cx="68.969498"
+     inkscape:cy="68.969498"
      fit-margin-top="0"
      fit-margin-right="5.856265"
      fit-margin-bottom="0"
@@ -126,13 +126,7 @@
      inkscape:measure-start="177.223,82.6686"
      inkscape:measure-end="180.412,82.6686"
      units="px"
-     inkscape:snap-global="true">
-    <sodipodi:guide
-       position="5.8548546,12.213452"
-       orientation="0,1"
-       id="guide236"
-       inkscape:locked="false" />
-  </sodipodi:namedview>
+     inkscape:snap-global="true" />
   <g
      id="layer1"
      inkscape:label="Cover"
@@ -884,7 +878,7 @@ GPL version 2: http://www.gnu.org/licenses/gpl-2.0.html
 GPL current version: http://www.gnu.org/licenses/gpl.html
 Original clipart: https://openclipart.org/detail/144781/diary-by-gsagri04
 Org Mode unicorn art: https://commons.wikimedia.org/wiki/File:Org-mode-unicorn.svg</dc:description>
-        <dc:source></dc:source>
+        <dc:source />
         <dc:creator>
           <cc:Agent>
             <dc:title>Tina Russell</dc:title>
