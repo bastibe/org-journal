@@ -1,5 +1,8 @@
 [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]]
 
+#+CAPTION: The org-journal logo
+[[./org-journal.svg]]
+
 * org-journal
 
   Adapted from https://www.emacswiki.org/emacs/PersonalDiary
