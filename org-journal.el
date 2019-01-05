@@ -872,6 +872,8 @@ org-journal-time-prefix."
     (dolist (fname (reverse files))
       (with-temp-buffer
         (insert-file-contents fname)
+        (when org-journal-enable-encryption
+          (org-decrypt-entry))
         (while (search-forward str nil t)
           (let* ((fullstr (buffer-substring-no-properties
                            (line-beginning-position)
