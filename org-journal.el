@@ -59,6 +59,8 @@
 ;;                               C-c C-f to view next entry
 
 ;;; Code:
+(when (version< org-version "9.2")
+  (defalias 'org-set-tags-to 'org-set-tags))
 
 (defvar org-journal-file-pattern
   (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
@@ -949,9 +951,9 @@ org-journal-time-prefix."
 ;; Setup encryption by default
 ;;;###autoload
 (add-hook 'org-journal-mode-hook
-          (lambda () (org-add-hook org-journal-encrypt-on
-                                   'org-journal-encryption-hook
-                                   nil t)))
+          (lambda () (add-hook org-journal-encrypt-on
+                               'org-journal-encryption-hook
+                               nil t)))
 
 (provide 'org-journal)
 
