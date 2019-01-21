@@ -103,8 +103,7 @@ org-journal. Use org-journal-file-format instead.")
 
 (defface org-journal-highlight
   '((t (:foreground "#ff1493")))
-  "Face for highlighting org-journal buffers."
-  :group 'org-journal)
+  "Face for highlighting org-journal buffers.")
 
 (defun org-journal-highlight (str)
   "Highlight STR in current-buffer"
@@ -114,20 +113,18 @@ org-journal. Use org-journal-file-format instead.")
 
 (defface org-journal-calendar-entry-face
   '((t (:foreground "#aa0000" :slant italic)))
-  "Face for highlighting org-journal entries in M-x calendar."
-  :group 'org-journal)
+  "Face for highlighting org-journal entries in M-x calendar.")
 
 (defface org-journal-calendar-scheduled-face
   '((t (:foreground "#600000" :slant italic)))
-  "Face for highlighting future org-journal entries in M-x calendar."
-  :group 'org-journal)
+  "Face for highlighting future org-journal entries in M-x calendar.")
 
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries. Setting this will update the
   internal `org-journal-file-pattern` to a regex that matches the
   directory, using `org-journal-dir-and-format->regex`, and update
   `auto-mode-alist` using `(org-journal-update-auto-mode-alist)`."
-  :type 'string :group 'org-journal
+  :type 'string
   :set (lambda (symbol value)
          (set-default symbol value)
          ;; if org-journal-file-format is not yet bound, we’ll need a default value
@@ -146,7 +143,7 @@ org-journal. Use org-journal-file-format instead.")
   `org-journal-dir-and-format->regex`, and update
   `auto-mode-alist` using
   `(org-journal-update-auto-mode-alist)`."
-  :type 'string :group 'org-journal
+  :type 'string
   :set (lambda (symbol value)
          (set-default symbol value)
          ;; If org-journal-dir is not yet bound, we’ll need a default value
@@ -162,33 +159,33 @@ org-journal. Use org-journal-file-format instead.")
   DATE is what Emacs thinks is an appropriate way to format days
   in your language. If you define it as a function, it is evaluated
   and inserted."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-date-prefix "* "
   "String that is put before every date at the top of a journal
   file. By default, this is a org-mode heading. Another good idea
   would be \"#+TITLE: \" for org titles."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-time-format "%R "
   "Format string for time, by default HH:MM. Set it to a blank
 string if you want to disable timestamps."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-time-format-post-midnight ""
   "When non-blank, a separate time format string for after midnight,
 when the current time is before the hour set by `org-extend-today-until`."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-time-prefix "** "
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-hide-entries-p t
   "If true, org-journal-mode will hide all but the current entry
    when creating a new one."
-  :type 'boolean :group 'org-journal)
+  :type 'boolean)
 
 (require 'org-crypt nil 'noerror)
 
@@ -197,32 +194,32 @@ when the current time is before the hour set by `org-extend-today-until`."
 `org-crypt-tag-matcher' tag for encrypting. Whenever a user
 saves/opens these journal entries, emacs asks a user passphrase
 to encrypt/decrypt it."
-  :type 'boolean :group 'org-journal)
+  :type 'boolean)
 
 (defcustom org-journal-encrypt-on 'before-save-hook
   "Hook on which to encrypt entries. It can be set to other hooks
   like kill-buffer-hook. "
-  :type 'function :group 'org-journal)
+  :type 'function)
 
 (defcustom org-journal-enable-agenda-integration nil
   "If non-nil, automatically adds current and future org-journal
   files to org-agenda-files."
-  :type 'boolean :group 'org-journal)
+  :type 'boolean)
 
 (defcustom org-journal-find-file 'find-file-other-window
   "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
-  :type 'function :group 'org-journal)
+  :type 'function)
 
 (defcustom org-journal-carryover-items "TODO=\"TODO\""
   "Carry over items that match these criteria from the previous entry to new entries.
 See agenda tags view match description for the format of this."
-  :type 'string :group 'org-journal)
+  :type 'string)
 
 (defcustom org-journal-search-results-order-by :asc
   "When :desc, make search results ordered by date descending
 
 Otherwise, date ascending."
-  :type 'symbol :group 'org-journal)
+  :type 'symbol)
 
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation")
