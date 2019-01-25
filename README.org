@@ -146,6 +146,27 @@ Customization options related to the journal file contents:
 - =org-journal-time-prefix= - a string that will prefix every entry within a daily journal
   file.
 
+*** An example setup
+
+A very basic example of customization.
+
+#+BEGIN_SRC emacs-lisp
+(customize-set-variable 'org-journal-dir "~/org/journal/")
+(customize-set-variable 'org-journal-date-format "%A, %d %B %Y")
+(require 'org-journal)
+#+END_SRC
+
+For users of =use-package=, this setup could look like the following:
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-journal
+  :ensure t
+  :defer t
+  :custom
+  (org-journal-dir "~/org/journal/")
+  (org-journal-date-format "%A, %d %B %Y"))
+#+END_SRC
+
 ** Advanced Usage
 *** Searching the Journal
 
