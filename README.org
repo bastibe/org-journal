@@ -109,7 +109,7 @@ entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
 - =]= - go to next day with journal entries.
 
-** Advanced Usage and Customization
+** Setup and customization
 
 *** Journal Directory and Files
 
@@ -146,6 +146,7 @@ Customization options related to the journal file contents:
 - =org-journal-time-prefix= - a string that will prefix every entry within a daily journal
   file.
 
+** Advanced Usage
 *** Searching the Journal
 
 =org-journal= has two searching options: the usual =org-mode= agenda search and the
