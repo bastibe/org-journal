@@ -111,6 +111,11 @@ entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
 ** Setup and customization
 
+The following variables can be customized through =M-x customize=, or configured programmatically in your =.init.el=.
+When configuring manually, the use of =customize-set-variable= is advised over =setq=, since =org-journal= has customization hooks that update auxiliary variables which might not be picked up if set via =setq=.
+
+See below for an example.
+
 *** Journal Directory and Files
 
 Customization options related to journal directory and files:
