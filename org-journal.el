@@ -93,7 +93,7 @@ org-journal. Use org-journal-file-format instead.")
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format)))
-   "\\'"))
+   "\\(\\.gpg\\)?\\'"))
 
 ; Customizable variables
 (defgroup org-journal nil
@@ -196,6 +196,11 @@ saves/opens these journal entries, emacs asks a user passphrase
 to encrypt/decrypt it."
   :type 'boolean)
 
+(defcustom org-journal-encrypt-journal nil
+  "If non-nil, encrypt journal files using gpg.
+The journal files will have the file extension .gpg"
+  :type 'boolean)
+
 (defcustom org-journal-encrypt-on 'before-save-hook
   "Hook on which to encrypt entries. It can be set to other hooks
   like kill-buffer-hook. "
@@ -273,7 +278,10 @@ Otherwise, date ascending."
 If no TIME is given, uses the current time."
   (file-truename
    (expand-file-name
-    (format-time-string org-journal-file-format time)
+    (format-time-string
+     (concat org-journal-file-format
+             (if org-journal-encrypt-journal ".gpg" ""))
+     time)
     (file-name-as-directory org-journal-dir))))
 
 (defun org-journal-dir-check-or-create ()
@@ -582,7 +590,8 @@ If the date is in the future, create a schedule entry."
   "Read an entry for the TIME and either select the new
   window (NOSELECT is nil) or avoid switching (NOSELECT is
   non-nil."
-  (let ((org-journal-file (org-journal-get-entry-path time)))
+  (let ((org-journal-file (concat (org-journal-get-entry-path time)
+                                  (if org-journal-encrypt-journal ".gpg") "")))
     (if (file-exists-p org-journal-file)
         (progn
           ;; open file in view-mode if not opened already
