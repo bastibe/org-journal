@@ -276,13 +276,13 @@ Otherwise, date ascending."
 (defun org-journal-get-entry-path (&optional time)
   "Return the path to an entry given a TIME.
 If no TIME is given, uses the current time."
-  (file-truename
-   (expand-file-name
-    (format-time-string
-     (concat org-journal-file-format
-             (if org-journal-encrypt-journal ".gpg" ""))
-     time)
-    (file-name-as-directory org-journal-dir))))
+  (let ((file (file-truename
+               (expand-file-name
+                (format-time-string (concat org-journal-file-format) time)
+                (file-name-as-directory org-journal-dir)))))
+    (unless (file-exists-p file)
+      (setq file (concat file ".gpg")))
+    file))
 
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
