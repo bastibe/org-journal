@@ -59,6 +59,8 @@
 ;;                               C-c C-f to view next entry
 
 ;;; Code:
+(require 'org)
+
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
