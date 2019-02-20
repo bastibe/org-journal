@@ -102,3 +102,9 @@
 ## 2018-11-15 V1.15.0 Bastian Bechtold
   - adds org-journal-time-format-post-midnight for formatting post-midnight timestamps (Thank you, Tina Russell!)
   - adds support for subdirectories in org-journal-file-format (Thank you, Tina Russell!)
+
+## 2019-02-20 V1.15.1
+  - adds a beautiful logo (Thank you, Tina Russell!)
+  - Fixes issue with encryption, byte-compilation (Thank you, Christian Schwarzgruber!)
+  - Improves documentation (Thank you, EFLS!)
+  - Fixes initialization error (Thank you, Christian Schwarzgruber!)
