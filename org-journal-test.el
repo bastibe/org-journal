@@ -1,0 +1,73 @@
+;; org-journal-test.el ---
+;;
+;; Author: Christian Schwarzgruber (c.schwarzgruber.cs@gmail.com)
+;;
+;; Copyright (c) Christian Schwarzgruber
+;;
+;; Description:
+;;
+(require 'org-journal)
+
+(defvar org-journal-dir-test "/tmp/org-journal")
+
+(defun org-journal-dir-test-setup ()
+  "Create temporary directory."
+  (when (file-exists-p org-journal-dir-test)
+    (delete-directory org-journal-dir-test t))
+  (make-directory org-journal-dir-test))
+
+(defun org-journal-file-pattern-test ()
+  org-journal-file-pattern
+  (org-journal-dir-and-format->regex
+   org-journal-dir org-journal-file-format))
+
+(ert-deftest org-journal-calendar-date-from-file ()
+  "Should return a list with day/month/year"
+  (org-journal-dir-test-setup)
+  (let* ((org-journal-dir org-journal-dir-test)
+         (org-journal-file-pattern (org-journal-file-pattern-test)))
+    (should (equal (org-journal-file-name->calendar-date
+                    (expand-file-name "20190103" org-journal-dir))
+                   '(1 03 2019)))))
+
+(ert-deftest org-journal-convert-time-to-file-type-time-test ()
+  "Testing"
+  (let ((time (current-time))
+        (org-journal-file-type 'daily))
+    (should (equal (org-journal-convert-time-to-file-type-time time)
+                   time))
+    (setq time (encode-time 0 0 0 3 1 2019)
+          org-journal-file-type 'weekly)
+    (should (equal (org-journal-convert-time-to-file-type-time time)
+                   (encode-time 0 0 0 31 12 2018)))
+    (setq time (encode-time 0 0 0 15 4 2019)
+          org-journal-file-type 'monthly)
+    (should (equal (org-journal-convert-time-to-file-type-time time)
+                   (encode-time 0 0 0 1 4 2019)))
+    (setq time (encode-time 0 0 0 3 2 2019)
+          org-journal-file-type 'yearly)
+    (should (equal (org-journal-convert-time-to-file-type-time time)
+                   (encode-time 0 0 0 1 1 2019)))))
+
+
+(ert-deftest org-journal-new-entry-test ()
+  "Org journal new enty test."
+  (org-journal-dir-test-setup)
+  (with-temp-buffer
+    (insert "* Tuesday, 01/01/19\n")
+    (org-set-property "CREATED" "20190101")
+    (insert "* Wednesday, 01/02/19\n")
+    (org-set-property "CREATED" "20190102")
+    (write-file (expand-file-name "20181231" org-journal-dir-test)))
+  (let ((org-journal-dir org-journal-dir-test)
+        (org-journal-file-type 'weekly)
+        (org-journal-carryover-items nil)
+        (org-journal-enable-encryption nil))
+    (org-journal-new-entry nil)
+    (goto-char (point-max))
+    (insert "\n*** TODO TEST")
+    (save-buffer)
+    (kill-buffer)
+    (message "%s" (with-temp-buffer
+                    (insert-file-contents (org-journal-get-entry-path))
+                    (buffer-substring-no-properties (point-min) (point-max))))))
