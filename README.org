@@ -213,7 +213,15 @@ match TODO items.
 
 *** Encryption
 
-The journal can be encrypted using =org-crypt= when ~org-journal-enable-encryption~ is non-nil.
+The journal entry can be encrypted using =org-crypt=, to enable it set
+~org-journal-enable-encryption~ to =t=.
+
+You can also encrypt the journal files itself by setting the variable
+~org-journal-encrypt-journal~ to =t=. =org-journal= will always search for
+journal files with the =.gpg= extension, and highlights them in the calendar,
+etc., regardless of the value of ~org-journal-encrypt-journal~.
+See the info page =(info "(epa)Encrypting/decrypting gpg files")= for more
+information about gpg encryption in Emacs.
 
 *** Agenda and Scheduling
 
