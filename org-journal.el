@@ -280,9 +280,9 @@ Otherwise, date ascending."
 If no TIME is given, uses the current time."
   (let ((file (file-truename
                (expand-file-name
-                (format-time-string (concat org-journal-file-format) time)
+                (format-time-string org-journal-file-format time)
                 (file-name-as-directory org-journal-dir)))))
-    (unless (file-exists-p file)
+    (when (and org-journal-encrypt-journal (not (file-exists-p file)))
       (setq file (concat file ".gpg")))
     file))
 
@@ -545,7 +545,9 @@ If the date is in the future, create a schedule entry."
   (let ((file-list (directory-files-recursively
                     (file-truename (expand-file-name (file-name-as-directory org-journal-dir))) "\.*"))
         (predicate (lambda (file-path)
-                     (string-match-p org-journal-file-pattern (file-truename file-path)))))
+                     (and (string-match-p org-journal-file-pattern (file-truename file-path))
+                          (or org-journal-encrypt-journal
+                              (not (string-match-p "\.gpg$" (file-truename file-path))))))))
     (seq-filter predicate file-list)))
 
 (defun org-journal-list-dates ()
