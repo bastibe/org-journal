@@ -14,21 +14,29 @@
 
 ** Synopsis
 
-=org-journal= maintains a set of files, where each file represents a day. Convenient
-bindings allow the creation of journal records in the current daily file and search within
-all records or specified time intervals. All records can be browsed and searched from the
-Emacs Calendar for convenience. All entries in a specified TODO state will be carried over
-to the next day. Optionally, the journal can also be encrypted.
+=org-journal= maintains a set of files, depending on the value of
+=org-journal-file-type=, a file represents a day, week, month or year. When
+=org-journal-file-type= is set to ='daily=, each file represent a day. In case
+=org-journal-file-type= is set to ='weekly=, a file represents a week,
+etc. Convenient bindings allow the creation of journal records in the current
+daily, weekly, monthly or yearly file and search within all records or
+specified time intervals. All records can be browsed and searched from the
+Emacs Calendar for convenience. All entries in a specified TODO state will be
+carried over to the next day, see =org-journal-carryover-items=. Optionally,
+the journal entry can be encrypted, so can the file, see
+=org-journal-enable-encryption= and =org-journal-encrypt-journal=,
+respectively.
 
-An example of a daily file (it will actually look a lot nicer, depending on your org-mode
+An example of a daily file (it will actually look a lot nicer, depending on
+your org-mode
 settings):
 
-#+BEGIN_SRC
+#+BEGIN_SRC org
   * Tuesday, 06/04/13
   ** 10:28 Company meeting
   Endless discussions about projects. Not much progress
 
-  ** 11:33 Work on org-journal                                   :org-journal:
+  ** 11:33 Work on org-journal
   For the longest time, I wanted to have a cool diary app on my
   computer. However, I simply lacked the right tool for that job. After
   many hours of searching, I finally found PersonalDiary on EmacsWiki.
@@ -39,7 +47,7 @@ settings):
   Thus, I spent the last two hours making that diary use org-mode
   and represent every entry as an org-mode headline. Very cool!
 
-  ** 15:33 Work on org-journal                                   :org-journal:
+  ** 15:33 Work on org-journal
   Now my journal automatically creates the right headlines (adds the
   current time stamp if on the current day, does not add a time stamp
   for any other day). Additionally, it automatically collapses the
@@ -47,10 +55,43 @@ settings):
   view mode, shows only headlines in new-entry-mode). Emacs and elisp
   are really cool!
 
-  ** 16:40 Work on org-journal                                   :org-journal:
+  ** 16:40 Work on org-journal
   I uploaded my journal mode to marmalade and Github! Awesome!
 
-  ** TODO teach org-journal how to brew coffee                   :org-journal:
+  ** TODO teach org-journal how to brew coffee
+#+END_SRC
+
+An example of a weekly/monthly/yearly journal file, see also
+=org-journal-file-type=.
+
+#+BEGIN_SRC
+  * Tuesday, 06/04/13
+    :PROPERTIES:
+    :CREATED:  20130604
+    :END:
+  ** 10:28 Company meeting
+  ...
+
+  ** 11:33 Work on org-journal
+  ...
+
+  ** 15:33 Work on org-journal
+  ...
+
+  ** 16:40 Work on org-journal
+  ...
+
+  * Wednesday, 06/05/13
+    :PROPERTIES:
+    :CREATED:  20130605
+    :END:
+  ** 10:28 A new day
+  ...
+
+  ** 11:33 Work is almost over
+  ...
+
+  ** TODO teach org-journal how to brew coffee
 #+END_SRC
 
 ** Installation
@@ -133,6 +174,9 @@ Customization options related to journal directory and files:
   /your/ end of the day. If you create a new entry with
   =org-journal-new-entry= earlier than this time, the journal entry
   will go into the previous day's journal.
+
+- =org-journal-file-type= - the journal file type either 'daily (default),
+  'weekly, 'monthly or 'yearly.
 
 *** Journal File Content
 
@@ -275,14 +319,15 @@ as in the following example:
 
 ** FAQ
 
-*** Can I use monthly/weekly journal entries instead of daily ones?
+*** Can I use weekly/monthly/yearly journal entries instead of daily ones?
 
-=org-journal= currently only supports daily entries.
+Yes, see =org-journal-file-type=.
 
 *** Can I have multiple journals?
 
-At the moment, this is not possible. But it should be possible to switch the value of
-=org-journal-directory= using a custom function or directory local variables.
+At the moment, this is not possible. But it should be possible to switch the
+value of =org-journal-directory= using a custom function or directory local
+variables.
 
 *** Can I use org-journal with Spacemacs?
 
