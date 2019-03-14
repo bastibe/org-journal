@@ -397,7 +397,7 @@ hook is run."
               (org-set-property "CREATED" (format-time-string "%Y%m%d" time)))
             (when org-journal-enable-encryption
               (unless (member org-crypt-tag-matcher (org-get-tags))
-                (org-set-tags-to org-crypt-tag-matcher))))))
+                (org-set-tags org-crypt-tag-matcher))))))
       (org-journal-decrypt)
       (goto-char (point-max))
 
