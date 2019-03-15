@@ -573,10 +573,8 @@ don't add a new heading. If the date is in the future, create a schedule entry."
     (unless (member calendar-date dates)
       (setq dates (cons calendar-date dates))
       (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
-    (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
-    (calendar-exit)
     (if dates
         (let* ((time (org-journal-calendar-date->time (car dates)))
                (filename (org-journal-get-entry-path time)))
@@ -599,10 +597,8 @@ don't add a new heading. If the date is in the future, create a schedule entry."
       (setq dates (cons calendar-date dates))
       ;; reverse-sort!
       (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
-    (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))
-    (calendar-exit)
     (if (and dates (cadr dates))
         (let* ((date (cadr dates))
                (time (org-journal-calendar-date->time date))
