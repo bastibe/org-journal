@@ -62,6 +62,8 @@
 ;;; Code:
 (require 'org)
 (require 'cal-iso)
+(require 'org-crypt nil 'noerror)
+(require 'seq)
 
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
@@ -201,8 +203,6 @@ By default, this is an org-mode sub-heading."
 (defcustom org-journal-hide-entries-p t
   "If true, `org-journal-mode' will hide all but the current entry when creating a new one."
   :type 'boolean)
-
-(require 'org-crypt nil 'noerror)
 
 (defcustom org-journal-enable-encryption nil
   "If non-nil, new journal entries will have a `org-crypt-tag-matcher' tag for encrypting.
@@ -807,12 +807,11 @@ existed before)."
          (find-file ,file))
        (setq result (progn ,@body))
        (basic-save-buffer)
-      (unless buffer-exists
-        (kill-buffer))
-      (switch-to-buffer current-buffer)
-      result)))
+       (unless buffer-exists
+         (kill-buffer))
+       (switch-to-buffer current-buffer)
+       result)))
 
-(require 'seq)
 (defun org-journal-update-org-agenda-files ()
   "Adds the current and future journal files to `org-agenda-files', and cleans
 out past org-journal files."
