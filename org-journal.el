@@ -133,7 +133,7 @@ org-journal. Use `org-journal-file-format' instead.")
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
 
-Setting this will update theinternal `org-journal-file-pattern' to a regex
+Setting this will update the internal `org-journal-file-pattern' to a regex
 that matches the directory, using `org-journal-dir-and-format->regex', and
 update `auto-mode-alist' using `org-journal-update-auto-mode-alist'."
   :type 'string
