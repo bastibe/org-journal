@@ -287,6 +287,10 @@ See agenda tags view match description for the format of this."
 
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
+(defun org-journal-daily-p ()
+  "Returns t if `org-journal-file-type' is set to `'daily'."
+  (eq org-journal-file-type 'daily))
+
 (defun org-journal-convert-time-to-file-type-time (&optional time)
   "Converts TIME to the file type format date.
 
@@ -393,7 +397,7 @@ hook is run."
             (insert entry-header)
             ;; For 'weekly, 'monthly and 'yearly journal entries
             ;; create a "CREATED" property with the current date.
-            (unless (eq org-journal-file-type 'daily)
+            (unless (org-journal-daily-p)
               (org-set-property "CREATED" (format-time-string "%Y%m%d" time)))
             (when org-journal-enable-encryption
               (unless (member org-crypt-tag-matcher (org-get-tags))
@@ -565,7 +569,7 @@ don't add a new heading. If the date is in the future, create a schedule entry."
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one."
   (interactive)
-  (let ((calendar-date (if (eq org-journal-file-type 'daily)
+  (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (buffer-file-name))
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
@@ -588,7 +592,7 @@ don't add a new heading. If the date is in the future, create a schedule entry."
 (defun org-journal-open-previous-entry ()
   "Open the previous journal entry starting from a currently displayed one."
   (interactive)
-  (let ((calendar-date (if (eq org-journal-file-type 'daily)
+  (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (buffer-file-name))
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
@@ -606,7 +610,7 @@ don't add a new heading. If the date is in the future, create a schedule entry."
                (filename (org-journal-get-entry-path time)))
           (find-file filename)
           (goto-char (point-max))
-          (if (eq org-journal-file-type 'daily)
+          (if (org-journal-daily-p)
               (org-journal-decrypt)
             (re-search-backward
              (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date)))
@@ -640,12 +644,12 @@ don't add a new heading. If the date is in the future, create a schedule entry."
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
 it into a list of calendar date elements."
-  (let ((dates (mapcar (if (eq org-journal-file-type 'daily)
+  (let ((dates (mapcar (if (org-journal-daily-p)
                            #'org-journal-file-name->calendar-date
                          #'org-journal-file->calendar-dates)
                        (org-journal-list-files))))
     ;; Need to flatten the list and bring dates in correct order.
-    (unless(eq org-journal-file-type 'daily)
+    (unless(org-journal-daily-p)
       (let ((flattened-date-l '())
             flattened-date-reverse-l file-dates)
         (while dates
@@ -702,7 +706,7 @@ is nil or avoid switching when NOSELECT is non-nil."
         (point))
     (if (and (file-exists-p org-journal-file)
              ;; If daily continoue with body of if condition
-             (or (eq org-journal-file-type 'daily)
+             (or (org-journal-daily-p)
                  ;; Search for journal entry
                  (with-temp-buffer
                    (insert-file-contents org-journal-file)
@@ -720,7 +724,7 @@ is nil or avoid switching when NOSELECT is non-nil."
                 (view-mode)
                 (setq view-exit-action 'kill-buffer))
               (set (make-local-variable 'org-hide-emphasis-markers) t)
-              (unless (eq org-journal-file-type 'daily)
+              (unless (org-journal-daily-p)
                 (goto-char point))
               (outline-back-to-heading)
               (org-journal-decrypt)
