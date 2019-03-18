@@ -722,7 +722,7 @@ is nil or avoid switching when NOSELECT is non-nil."
               (set (make-local-variable 'org-hide-emphasis-markers) t)
               (unless (eq org-journal-file-type 'daily)
                 (goto-char point))
-              (org-end-of-subtree)
+              (outline-back-to-heading)
               (org-journal-decrypt)
               (if (org-at-heading-p) (org-show-subtree)))
             (if (not noselect)
