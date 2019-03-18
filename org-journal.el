@@ -62,6 +62,8 @@
 ;;; Code:
 (require 'org)
 (require 'cal-iso)
+(require 'org-crypt nil 'noerror)
+(require 'seq)
 
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
@@ -133,7 +135,7 @@ org-journal. Use `org-journal-file-format' instead.")
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
 
-Setting this will update theinternal `org-journal-file-pattern' to a regex
+Setting this will update the internal `org-journal-file-pattern' to a regex
 that matches the directory, using `org-journal-dir-and-format->regex', and
 update `auto-mode-alist' using `org-journal-update-auto-mode-alist'."
   :type 'string
@@ -202,8 +204,6 @@ By default, this is an org-mode sub-heading."
   "If true, `org-journal-mode' will hide all but the current entry when creating a new one."
   :type 'boolean)
 
-(require 'org-crypt nil 'noerror)
-
 (defcustom org-journal-enable-encryption nil
   "If non-nil, new journal entries will have a `org-crypt-tag-matcher' tag for encrypting.
 
@@ -260,9 +260,7 @@ See agenda tags view match description for the format of this."
   "Journal"
   "Mode for writing or viewing entries written in the journal."
   (turn-on-visual-line-mode)
-  (add-hook 'after-save-hook 'org-journal-redraw-calendar nil t)
   (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
-  (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
   (run-mode-hooks))
 
 ;; Key bindings
@@ -274,6 +272,7 @@ See agenda tags view match description for the format of this."
 ;;;###autoload
 (eval-after-load "calendar"
   '(progn
+    (define-key calendar-mode-map "m" 'org-journal-mark-entries)
     (define-key calendar-mode-map "j" 'org-journal-read-entry)
     (define-key calendar-mode-map (kbd "C-j") 'org-journal-display-entry)
     (define-key calendar-mode-map "]" 'org-journal-next-entry)
@@ -397,7 +396,7 @@ hook is run."
               (org-set-property "CREATED" (format-time-string "%Y%m%d" time)))
             (when org-journal-enable-encryption
               (unless (member org-crypt-tag-matcher (org-get-tags))
-                (org-set-tags-to org-crypt-tag-matcher))))))
+                (org-set-tags org-crypt-tag-matcher))))))
       (org-journal-decrypt)
       (goto-char (point-max))
 
@@ -574,10 +573,8 @@ don't add a new heading. If the date is in the future, create a schedule entry."
     (unless (member calendar-date dates)
       (setq dates (cons calendar-date dates))
       (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
-    (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
-    (calendar-exit)
     (if dates
         (let* ((time (org-journal-calendar-date->time (car dates)))
                (filename (org-journal-get-entry-path time)))
@@ -600,10 +597,8 @@ don't add a new heading. If the date is in the future, create a schedule entry."
       (setq dates (cons calendar-date dates))
       ;; reverse-sort!
       (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
-    (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))
-    (calendar-exit)
     (if (and dates (cadr dates))
         (let* ((date (cadr dates))
                (time (org-journal-calendar-date->time date))
@@ -669,6 +664,7 @@ it into a list of calendar date elements."
 ;;;###autoload
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a diary entry is present"
+  (interactive)
   (dolist (journal-entry (org-journal-list-dates))
     (if (calendar-date-is-visible-p journal-entry)
         (if (time-less-p (org-journal-calendar-date->time journal-entry)
@@ -745,13 +741,6 @@ is nil or avoid switching when NOSELECT is non-nil."
       (setq dates (cdr dates)))
     (if dates (calendar-goto-date (car dates)))))
 
-(defun org-journal-redraw-calendar ()
-  "Redraw the calendar with all current journal entries."
-  (save-window-excursion
-    (calendar-basic-setup nil t)
-    (org-journal-mark-entries)
-    (calendar-exit)))
-
 ;;; Journal search facilities
 ;;
 
@@ -814,12 +803,11 @@ existed before)."
          (find-file ,file))
        (setq result (progn ,@body))
        (basic-save-buffer)
-      (unless buffer-exists
-        (kill-buffer))
-      (switch-to-buffer current-buffer)
-      result)))
+       (unless buffer-exists
+         (kill-buffer))
+       (switch-to-buffer current-buffer)
+       result)))
 
-(require 'seq)
 (defun org-journal-update-org-agenda-files ()
   "Adds the current and future journal files to `org-agenda-files', and cleans
 out past org-journal files."
