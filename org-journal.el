@@ -253,6 +253,7 @@ See agenda tags view match description for the format of this."
 (org-journal-update-auto-mode-alist)
 
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
+(add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
 ;; Journal mode definition
 ;;;###autoload
