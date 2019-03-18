@@ -403,12 +403,13 @@ hook is run."
               (unless (member org-crypt-tag-matcher (org-get-tags))
                 (org-set-tags org-crypt-tag-matcher))))))
       (org-journal-decrypt)
-      (goto-char (point-max))
 
       ;; move TODOs from previous day here
       (when (and org-journal-carryover-items
                  (string= entry-path (org-journal-get-entry-path (current-time))))
         (save-excursion (org-journal-carryover)))
+
+      (goto-char (point-max))
 
       ;; insert the header of the entry
       (when should-add-entry-p
@@ -463,7 +464,7 @@ previous day's file to the current file."
       (save-buffer))
     (switch-to-buffer current-buffer-name)
     (when all-todos
-      (org-end-of-subtree)
+      (outline-end-of-subtree)
       (unless (eq (current-column) 0) (insert "\n"))
       (insert (mapconcat 'identity all-todos "")))))
 
