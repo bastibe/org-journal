@@ -698,8 +698,17 @@ it into a list of calendar date elements."
 (defun org-journal-read-or-display-entry (time &optional noselect)
   "Read an entry for the TIME and either select the new window when NOSELECT
 is nil or avoid switching when NOSELECT is non-nil."
-  (let ((org-journal-file (org-journal-get-entry-path time)))
-    (if (file-exists-p org-journal-file)
+  (let ((org-journal-file (org-journal-get-entry-path time))
+        (point))
+    (if (and (file-exists-p org-journal-file)
+             ;; If daily continoue with body of if condition
+             (or (eq org-journal-file-type 'daily)
+                 ;; Search for journal entry
+                 (with-temp-buffer
+                   (insert-file-contents org-journal-file)
+                   (goto-char (point-min))
+                   (setq point (re-search-forward
+                                (format-time-string " *:CREATED: *%Y%m%d" time) nil t)))))
         (progn
           ;; open file in view-mode if not opened already
           (let ((had-a-buf (get-file-buffer org-journal-file))
@@ -712,8 +721,7 @@ is nil or avoid switching when NOSELECT is non-nil."
                 (setq view-exit-action 'kill-buffer))
               (set (make-local-variable 'org-hide-emphasis-markers) t)
               (unless (eq org-journal-file-type 'daily)
-                (goto-char (point-min))
-                (re-search-forward (format-time-string " *:CREATED: *%Y%m%d" time)))
+                (goto-char point))
               (org-end-of-subtree)
               (org-journal-decrypt)
               (if (org-at-heading-p) (org-show-subtree)))
