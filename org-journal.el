@@ -1,4 +1,4 @@
-;;; org-journal.el --- a simple org-mode based journaling mode
+;;; org-journal.el --- a simple org-mode based journaling mode -*- lexical-binding: t; -*-
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
@@ -440,23 +440,23 @@ hook is run."
 previous day's file to the current file."
   (interactive)
   (let ((current-buffer-name (buffer-name))
+        (org-journal-find-file 'find-file)
+        (delete-mapper
+         (lambda ()
+           (let ((subtree (org-journal-extract-current-subtree t)))
+             ;; since the next subtree now starts at point,
+             ;; continue mapping from before that, to include it
+             ;; in the search
+             (backward-char)
+             (setq org-map-continue-from (point))
+             subtree)))
         (all-todos))
     (save-excursion
-      (let ((org-journal-find-file 'find-file)
-            (delete-mapper
-             (lambda ()
-               (let ((subtree (org-journal-extract-current-subtree t)))
-                 ;; since the next subtree now starts at point,
-                 ;; continue mapping from before that, to include it
-                 ;; in the search
-                 (backward-char)
-                 (setq org-map-continue-from (point))
-                 subtree))))
-        (re-search-backward org-journal-created-re nil t)
-        (org-journal-open-previous-entry)
-        (setq all-todos (org-map-entries delete-mapper
-                                         org-journal-carryover-items))
-        (save-buffer)))
+      (re-search-backward org-journal-created-re nil t)
+      (org-journal-open-previous-entry)
+      (setq all-todos (org-map-entries delete-mapper
+                                       org-journal-carryover-items))
+      (save-buffer))
     (switch-to-buffer current-buffer-name)
     (when all-todos
       (org-end-of-subtree)
@@ -647,7 +647,7 @@ it into a list of calendar date elements."
     ;; Need to flatten the list and bring dates in correct order.
     (unless(eq org-journal-file-type 'daily)
       (let ((flattened-date-l '())
-            flattened-date-reverse-l file-dates date)
+            flattened-date-reverse-l file-dates)
         (while dates
           (setq file-dates (car dates))
           (setq flattened-date-reverse-l '())
@@ -674,7 +674,7 @@ it into a list of calendar date elements."
           (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face)))))
 
 ;;;###autoload
-(defun org-journal-read-entry (arg &optional event)
+(defun org-journal-read-entry (_arg &optional event)
   "Open journal entry for selected date for viewing"
   (interactive
    (list current-prefix-arg last-nonmenu-event))
@@ -683,7 +683,7 @@ it into a list of calendar date elements."
     (org-journal-read-or-display-entry time nil)))
 
 ;;;###autoload
-(defun org-journal-display-entry (arg &optional event)
+(defun org-journal-display-entry (_arg &optional event)
   "Display journal entry for selected date in another window."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
@@ -840,12 +840,10 @@ Think of this as a faster, less fancy version of your `org-agenda'."
   (erase-buffer)
   (org-mode)
   (insert "#+TITLE: Org-Journal Schedule\n\n")
-  (let* ((schedule-buffer (current-buffer))
-         (period-pair (org-journal-read-period 'future))
+  (let* ((period-pair (org-journal-read-period 'future))
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair)))
-         (file-list (org-journal-search-build-file-list start end))
-         (search-results nil))
+         (file-list (org-journal-search-build-file-list start end)))
     (dolist (filename (sort file-list
                             (lambda (x y)
                               (time-less-p
@@ -1021,10 +1019,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
            (fullstr (nth 2 res))
            (time (org-journal-calendar-date->time
                   (org-journal-file-name->calendar-date fname)))
-           (label (org-journal-format-date time))
-
-           (label-end (org-journal-format-date period-start)))
-
+           (label (org-journal-format-date time)))
       (insert-text-button label
                           'action 'org-journal-search-follow-link-action
                           'org-journal-link (cons fname lnum))
