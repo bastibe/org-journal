@@ -1,4 +1,4 @@
-[[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]]
+[[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
 
 #+CAPTION: The org-journal logo
 [[./org-journal.svg]]
@@ -11,6 +11,8 @@
 
   Feel free to use, modify and improve the code!
   — mtvoid, bastibe
+  
+[[open-issues][file:https://img.shields.io/github/issues/bastibe/org-journal.svg]] [[closed-issues][file:https://img.shields.io/github/issues-closed/bastibe/org-journal.svg]] [[open-pull-requests][file:https://img.shields.io/github/issues-pr/bastibe/org-journal.svg]] [[closed-pull-requests][file:https://img.shields.io/github/issues-pr-closed/bastibe/org-journal.svg]]
 
 ** Synopsis
 
