@@ -459,6 +459,7 @@ previous day's file to the current file."
     (save-excursion
       (re-search-backward org-journal-created-re nil t)
       (org-journal-open-previous-entry)
+      (org-journal-mode)
       (setq all-todos (org-map-entries delete-mapper
                                        org-journal-carryover-items))
       (save-buffer))
@@ -567,11 +568,16 @@ don't add a new heading. If the date is in the future, create a schedule entry."
     (save-excursion
       (insert "\n<" scheduled-time ">"))))
 
+(defsubst org-journal-goto-journal-heading ()
+  "Goto to journal heading."
+  (while (org-up-heading-safe)))
+
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one."
   (interactive)
   (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (buffer-file-name))
+                         (org-journal-goto-journal-heading)
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
@@ -581,13 +587,17 @@ don't add a new heading. If the date is in the future, create a schedule entry."
       (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
-    (if dates
-        (let* ((time (org-journal-calendar-date->time (car dates)))
+    (if (and dates (car dates))
+        (let* ((date (car dates))
+               (time (org-journal-calendar-date->time date))
                (filename (org-journal-get-entry-path time)))
           (find-file filename)
-          (org-journal-decrypt)
-          (view-mode (if view-mode-p 1 -1))
-          (if (org-at-heading-p) (org-show-subtree)))
+          (goto-char (point-min))
+          (unless (org-journal-daily-p)
+            (re-search-forward
+             (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
+          (org-journal-finalize-view)
+          (view-mode (if view-mode-p 1 -1)))
       (message "No next journal entry after this one"))))
 
 (defun org-journal-open-previous-entry ()
@@ -595,6 +605,7 @@ don't add a new heading. If the date is in the future, create a schedule entry."
   (interactive)
   (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (buffer-file-name))
+                         (org-journal-goto-journal-heading)
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
         (dates (reverse (org-journal-list-dates))))
@@ -610,15 +621,12 @@ don't add a new heading. If the date is in the future, create a schedule entry."
                (time (org-journal-calendar-date->time date))
                (filename (org-journal-get-entry-path time)))
           (find-file filename)
-          (goto-char (point-max))
-          (if (org-journal-daily-p)
-              (org-journal-decrypt)
-            (re-search-backward
-             (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date)))
-            (org-journal-decrypt)
-            (org-end-of-subtree))
-          (view-mode (if view-mode-p 1 -1))
-          (if (org-at-heading-p) (org-show-subtree)))
+          (goto-char (point-min))
+          (unless (org-journal-daily-p)
+            (re-search-forward
+             (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
+          (org-journal-finalize-view)
+          (view-mode (if view-mode-p 1 -1)))
       (message "No previous journal entry before this one"))))
 
 ;;
@@ -699,6 +707,13 @@ it into a list of calendar date elements."
 ;; silence compiler warning.
 (defvar view-exit-action)
 
+(defun org-journal-finalize-view ()
+  "Finalize visability of entry."
+  (org-journal-decrypt)
+  (outline-back-to-heading)
+  (outline-hide-other)
+  (outline-show-subtree))
+
 ;;;###autoload
 (defun org-journal-read-or-display-entry (time &optional noselect)
   "Read an entry for the TIME and either select the new window when NOSELECT
@@ -727,9 +742,7 @@ is nil or avoid switching when NOSELECT is non-nil."
               (set (make-local-variable 'org-hide-emphasis-markers) t)
               (unless (org-journal-daily-p)
                 (goto-char point))
-              (outline-back-to-heading)
-              (org-journal-decrypt)
-              (if (org-at-heading-p) (org-show-subtree)))
+              (org-journal-finalize-view))
             (if (not noselect)
                 (funcall org-journal-find-file org-journal-file)
               (display-buffer buf t))))

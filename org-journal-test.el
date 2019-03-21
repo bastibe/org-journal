@@ -123,6 +123,7 @@
          (org-journal-carryover-items "TODO=\"TODO\"")
          (org-journal-encrypt-journal nil)
          (org-journal-enable-encryption nil)
+         (org-hide-block-startup t)
          (org-journal-date-format "Test header")
          (org-journal-time-format "%R")
          (new-entry (concat "** " (format-time-string org-journal-time-format))))
