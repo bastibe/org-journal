@@ -569,21 +569,34 @@ don't add a new heading. If the date is in the future, create a schedule entry."
   "Goto to journal heading."
   (while (org-up-heading-safe)))
 
-(defun org-journal-open-next-entry ()
-  "Open the next journal entry starting from a currently displayed one."
-  (interactive)
+(defun org-journal-open-entry (msg &optional prev)
+  "Open journal entry.
+
+If no next/PREVious entry was found print MSG."
   (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (buffer-file-name))
                          (org-journal-goto-journal-heading)
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
-    ;; insert current buffer in list if not present
     (unless (member calendar-date dates)
-      (setq dates (cons calendar-date dates))
-      (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
+      ;; Insert calendar-date into dates list keeping it in order.
+      (setq dates (cl-loop
+                     for date in dates
+                     while (calendar-date-compare (list date) (list calendar-date))
+                     collect date into result and count t into cnt
+                     finally return (if result
+                                        ;; Front
+                                        `(,@result ,calendar-date)
+                                      ;; Somewhere enbetween or end of dates
+                                      `(,calendar-date ,@result ,@(nthcdr cnt dates))))))
+    ;; Reverse list for previous search.
+    (when prev
+      (setq dates (reverse dates)))
     (while (and dates (car dates)
-                (or (calendar-date-compare dates (list calendar-date))
+                (or (if prev
+                        (calendar-date-compare (list calendar-date) dates)
+                      (calendar-date-compare dates (list calendar-date)))
                     (calendar-date-equal (car dates) calendar-date)))
       (setq dates (cdr dates)))
     (if (and dates (car dates))
@@ -597,38 +610,17 @@ don't add a new heading. If the date is in the future, create a schedule entry."
              (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
           (org-journal-finalize-view)
           (view-mode (if view-mode-p 1 -1)))
-      (message "No next journal entry after this one"))))
+      (message msg))))
+
+(defun org-journal-open-next-entry ()
+  "Open the next journal entry starting from a currently displayed one."
+  (interactive)
+  (org-journal-open-entry "No next journal entry after this one"))
 
 (defun org-journal-open-previous-entry ()
   "Open the previous journal entry starting from a currently displayed one."
   (interactive)
-  (let ((calendar-date (if (org-journal-daily-p)
-                           (org-journal-file-name->calendar-date (buffer-file-name))
-                         (org-journal-goto-journal-heading)
-                         (org-journal-entry-date->calendar-date)))
-        (view-mode-p view-mode)
-        (dates (reverse (org-journal-list-dates))))
-    ;; insert current buffer in list if not present
-    (unless (member calendar-date dates)
-      (setq dates (cons calendar-date dates))
-      ;; reverse-sort!
-      (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
-    (while (and dates (car dates)
-                (or (calendar-date-compare (list calendar-date) dates)
-                    (calendar-date-equal (car dates) calendar-date)))
-      (setq dates (cdr dates)))
-    (if (and dates (car dates))
-        (let* ((date (car dates))
-               (time (org-journal-calendar-date->time date))
-               (filename (org-journal-get-entry-path time)))
-          (find-file filename)
-          (goto-char (point-min))
-          (unless (org-journal-daily-p)
-            (re-search-forward
-             (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
-          (org-journal-finalize-view)
-          (view-mode (if view-mode-p 1 -1)))
-      (message "No previous journal entry before this one"))))
+  (org-journal-open-entry "No previous journal entry before this one" t))
 
 ;;
 ;; Functions to browse existing journal entries using the calendar
