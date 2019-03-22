@@ -388,20 +388,19 @@ hook is run."
                  (funcall org-journal-date-format time)
                (concat org-journal-date-prefix
                        (format-time-string org-journal-date-format time)))))
-        (save-excursion
-          (goto-char (point-min))
-          (unless (search-forward entry-header nil t)
-            (goto-char (point-max))
-            (forward-line)
-            (beginning-of-line)
-            (insert entry-header)
-            ;; For 'weekly, 'monthly and 'yearly journal entries
-            ;; create a "CREATED" property with the current date.
-            (unless (org-journal-daily-p)
-              (org-set-property "CREATED" (format-time-string "%Y%m%d" time)))
-            (when org-journal-enable-encryption
-              (unless (member org-crypt-tag-matcher (org-get-tags))
-                (org-set-tags org-crypt-tag-matcher))))))
+        (goto-char (point-min))
+        (unless (search-forward entry-header nil t)
+          (goto-char (point-max))
+          (forward-line)
+          (beginning-of-line)
+          (insert entry-header)
+          ;; For 'weekly, 'monthly and 'yearly journal entries
+          ;; create a "CREATED" property with the current date.
+          (unless (org-journal-daily-p)
+            (org-set-property "CREATED" (format-time-string "%Y%m%d" time)))
+          (when org-journal-enable-encryption
+            (unless (member org-crypt-tag-matcher (org-get-tags))
+              (org-set-tags org-crypt-tag-matcher)))))
       (org-journal-decrypt)
 
       ;; move TODOs from previous day here
@@ -457,9 +456,7 @@ previous day's file to the current file."
              subtree)))
         (all-todos))
     (save-excursion
-      (re-search-backward org-journal-created-re nil t)
       (org-journal-open-previous-entry)
-      (org-journal-mode)
       (setq all-todos (org-map-entries delete-mapper
                                        org-journal-carryover-items))
       (save-buffer))
@@ -585,7 +582,9 @@ don't add a new heading. If the date is in the future, create a schedule entry."
     (unless (member calendar-date dates)
       (setq dates (cons calendar-date dates))
       (sort dates (lambda (a b) (calendar-date-compare (list a) (list b)))))
-    (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
+    (while (and dates (car dates)
+                (or (calendar-date-compare dates (list calendar-date))
+                    (calendar-date-equal (car dates) calendar-date)))
       (setq dates (cdr dates)))
     (if (and dates (car dates))
         (let* ((date (car dates))
@@ -614,10 +613,12 @@ don't add a new heading. If the date is in the future, create a schedule entry."
       (setq dates (cons calendar-date dates))
       ;; reverse-sort!
       (sort dates (lambda (a b) (calendar-date-compare (list b) (list a)))))
-    (while (and dates (calendar-date-compare (list calendar-date) dates))
+    (while (and dates (car dates)
+                (or (calendar-date-compare (list calendar-date) dates)
+                    (calendar-date-equal (car dates) calendar-date)))
       (setq dates (cdr dates)))
-    (if (and dates (cadr dates))
-        (let* ((date (cadr dates))
+    (if (and dates (car dates))
+        (let* ((date (car dates))
                (time (org-journal-calendar-date->time date))
                (filename (org-journal-get-entry-path time)))
           (find-file filename)
