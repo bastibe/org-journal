@@ -279,7 +279,6 @@ anywhere in your file."
   "Mode for writing or viewing entries written in the journal."
   (turn-on-visual-line-mode)
   (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
-  (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
   (when (or org-journal-tag-alist org-journal-tag-persistent-alist)
     (org-journal-set-current-tag-alist))
   (run-mode-hooks))
