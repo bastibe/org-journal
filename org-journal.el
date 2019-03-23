@@ -243,6 +243,23 @@ See agenda tags view match description for the format of this."
   "When :desc, make search results ordered by date descending, otherwise date ascending."
   :type 'symbol)
 
+(defcustom org-journal-tag-alist nil
+  "Default tags for use in Org-Journal mode.
+This is analogous to `org-tag-alist', and uses the same format.
+If nil, the default, then `org-tag-alist' is used instead.
+This can also be overridden on a file-local level by using a “#+TAGS:”
+keyword."
+  :type (get 'org-tag-alist 'custom-type))
+
+(defcustom org-journal-tag-persistent-alist nil
+  "Persistent tags for use in Org-Journal mode.
+This is analogous to `org-tag-persistent-alist', and uses the same
+format. If nil, the default, then `org-tag-persistent-alist' is used
+instead. These tags cannot be overridden with a “#+TAGS:” keyword, but
+they can be disabled per-file by adding the line “#+STARTUP: noptag”
+anywhere in your file."
+  :type (get 'org-tag-persistent-alist 'custom-type))
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -262,6 +279,9 @@ See agenda tags view match description for the format of this."
   "Mode for writing or viewing entries written in the journal."
   (turn-on-visual-line-mode)
   (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
+  (add-hook 'after-revert-hook 'org-journal-redraw-calendar nil t)
+  (when (or org-journal-tag-alist org-journal-tag-persistent-alist)
+    (org-journal-set-current-tag-alist))
   (run-mode-hooks))
 
 ;; Key bindings
@@ -343,6 +363,22 @@ the first date of the year."
         (make-directory org-journal-dir t)
       (error "Journal directory is necessary to use org-journal.")))
   t)
+
+(defun org-journal-set-current-tag-alist ()
+  "Set `org-current-tag-alist' for the current journal file.
+This allows the use of `org-journal-tag-alist' and
+`org-journal-tag-persistent-alist', which when non-nil override
+`org-tag-alist' and `org-journal-tag-persistent-alist' respectively."
+  (setq org-current-tag-alist ; this var is always buffer-local
+        (org--tag-add-to-alist
+         (or org-journal-tag-persistent-alist org-tag-persistent-alist)
+         (let* ((alist (org--setup-collect-keywords
+                        (org-make-options-regexp
+                         '("FILETAGS" "TAGS" "SETUPFILE"))))
+                (tags (cdr (assq 'tags alist))))
+           (if (and alist tags)
+               (org-tag-string-to-alist tags)
+             (or org-journal-tag-alist org-tag-alist))))))
 
 ;;;###autoload
 (defun org-journal-new-entry (prefix &optional time)
