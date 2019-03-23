@@ -540,6 +540,7 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
         (push (org-journal-entry-date->calendar-date) dates)))
     dates))
 
+;; FIXME(cschwarzgruber): needs to be fixed for weekly/monthly/yearly journal files must go the right location to insert new entry
 ;;;###autoload
 (defun org-journal-new-date-entry (prefix &optional event)
   "Open the journal for the date indicated by point and start a new entry.
@@ -972,33 +973,52 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
          (files (org-journal-search-build-file-list period-start period-end))
          (results (org-journal-search-do-search search-str files)))
     (with-current-buffer-window
-     "*Org-journal search*" nil nil
-     (org-journal-search-print-results str results period-start period-end))))
+        "*Org-journal search*" nil nil
+        (org-journal-search-print-results str results period-start period-end))))
 
-(defun org-journal-search-build-file-list (&optional period-start period-end)
+(defun org-journal-search-build-file-list (period-start period-end)
   "Build a list of journal files within a given time interval."
-  (let ((files (org-journal-list-files))
-        result)
-    (dolist (file files)
-      (let ((filetime (org-journal-calendar-date->time
-                       (org-journal-file-name->calendar-date file))))
-        (cond ((not (and period-start period-end))
-               (push file result))
+  (unless (and period-start period-end ;; Check for null values
+               (car period-start) (cdr period-start)
+               (car period-end) (cdr period-end))
+    (error "Time `%s' and/or `%s' are not valid" period-start period-end))
 
-              ((and period-start period-end
-                    (time-less-p period-start filetime)
-                    (time-less-p filetime period-end))
-               (push file result))
-
-              ((and period-start
-                    (not period-end)
-                    (time-less-p period-start filetime))
-               (push file result))
-
-              ((and period-end
-                    (not period-start)
-                    (time-less-p filetime period-end))
-               (push file result)))))
+  (let (result filetime)
+    (dolist (file (org-journal-list-files))
+      (setq filetime (org-journal-calendar-date->time
+                      (org-journal-file-name->calendar-date file)))
+      (when (and
+             (time-less-p
+              period-start
+              ;; Convert to start-period boundary.
+              (pcase org-journal-file-type
+                ;; For daily, filetime is period start boundary.
+                (`daily filetime)
+                ;; For weekly, filetime +6 days is start-period boundary.
+                (`weekly
+                 (let* ((time (decode-time filetime))
+                        (day (+ 6 (nth 3 time))) ;; End of week
+                        (month (nth 4 time))
+                        (year (nth 5 time))
+                        (last-day-of-month (calendar-last-day-of-month month year)))
+                   (when (> day last-day-of-month)
+                     (setq day (- day last-day-of-month))
+                     (when (= month  12)
+                       (setq month 0)
+                       (setq year (1+ year)))
+                     (setq month (1+ month)))
+                   (encode-time 0 0 0 day month year)))
+                ;; For monthly, end of month is start-period boundary.
+                (`monthly
+                 (let* ((time (decode-time filetime))
+                        (month (nth 4 time))
+                        (year (nth 5 time)))
+                   (encode-time 0 0 0 (calendar-last-day-of-month month year) month year)))
+                ;; For yearly, end of year is start-period boundary.
+                (`yearly
+                 (encode-time 0 0 0 31 12 (nth 5 (decode-time filetime))))))
+             (time-less-p filetime period-end))
+        (push file result)))
     result))
 
 (defun org-journal-search-do-search (str files)
@@ -1007,7 +1027,9 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (dolist (fname (reverse files))
       (setq buf (find-file-noselect fname))
       (with-current-buffer buf
+        (goto-char (point-min))
         (when org-journal-enable-encryption
+          ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
           (org-decrypt-entry))
         (while (search-forward str nil t)
           (let* ((fullstr (buffer-substring-no-properties
@@ -1033,8 +1055,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (princ (concat "Search results for \"" str "\" between "
                    label-start " and " label-end
                    ": \n\n")))
-  (let* ((buffers '())
-         fname point fullstr buf time label)
+  (let* (buffers fname point fullstr buf time label)
     (dolist (res results)
       (setq fname (nth 0 res)
             point (nth 1 res)
@@ -1048,13 +1069,17 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                       (re-search-backward org-journal-created-re)
                       (org-journal-entry-date->calendar-date))))
             label (org-journal-format-date time))
-      (cl-pushnew buf buffers)
-      (insert-text-button label
-                          'action 'org-journal-search-follow-link-action
-                          'org-journal-link (cons point time))
-      (princ "\t")
-      (princ fullstr)
-      (princ "\n"))
+      ;; Filter out entries not within period-start/end for weekly/monthly/yearly journal files.
+      (when (or (org-journal-daily-p)
+                (and (time-less-p period-start time)
+                     (time-less-p time period-end)))
+        (cl-pushnew buf buffers)
+        (insert-text-button label
+                            'action 'org-journal-search-follow-link-action
+                            'org-journal-link (cons point time))
+        (princ "\t")
+        (princ fullstr)
+        (princ "\n")))
     (mapc 'kill-buffer buffers))
   (org-journal-highlight str)
   (local-set-key (kbd "q") 'kill-this-buffer)

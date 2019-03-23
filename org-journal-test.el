@@ -1,4 +1,4 @@
-;; org-journal-test.el ---
+;; org-journal-test.el --- -*- lexical-binding: t; -*-
 ;;
 ;; Author: Christian Schwarzgruber (c.schwarzgruber.cs@gmail.com)
 ;;
@@ -37,7 +37,6 @@
   (make-directory org-journal-dir-test))
 
 (defun org-journal-file-pattern-test ()
-  org-journal-file-pattern
   (org-journal-dir-and-format->regex
    org-journal-dir org-journal-file-format))
 
@@ -135,3 +134,53 @@
                        (insert-file-contents (org-journal-get-entry-path))
                        (buffer-substring-no-properties (point-min) (point-max)))
                      (concat "* Test header\n** TODO First\n** TODO Second\n" new-entry "\n")))))
+
+(ert-deftest org-journal-search-build-file-list-test ()
+  "Test for `org-journal-search-build-file-list'."
+  (let* ((org-journal-dir org-journal-dir-test)
+         (org-journal-file-pattern (org-journal-file-pattern-test))
+         (org-journal-file-type 'daily)
+         (org-journal-carryover-items "TODO=\"TODO\"")
+         (org-journal-encrypt-journal nil)
+         (org-journal-enable-encryption nil)
+         (test-file-daily '("20170104" "20170312" "20190201"))
+         (test-file-yearly '("20170101" "20180101" "20190101"))
+         (test-file-weekly '("20170102" "20180430" "20181231"))
+         (test-file-monthly '("20170101" "20180401" "20190301"))
+         (create-files (lambda (test-files)
+                         (org-journal-dir-test-setup)
+                         (dolist (file test-files)
+                           (with-temp-buffer
+                             (write-file (expand-file-name file org-journal-dir-test))))))
+         period-start
+         period-end)
+    (message "Running daily build-file-test")
+    ;; Daily build file boundary check
+    (setq period-start (encode-time 0 0 0 4 1 2017)
+          period-end (encode-time 0 0 0 1 2 2019))
+    (funcall create-files test-file-daily)
+    (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+    (message "Running weekly build-file-test")
+    (setq period-start (encode-time 0 0 0 8 1 2017)
+          period-end (encode-time 0 0 0 31 12 2018))
+    ;; Weekly build file boundary check
+    (setq org-journal-file-type 'weekly)
+    (funcall create-files test-file-weekly)
+    (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+    (message "Running monthly build-file-test")
+    (setq period-start (encode-time 0 0 0 31 1 2017)
+          period-end (encode-time 0 0 0 1 3 2019))
+    ;; Monthly build file boundary check
+    (setq org-journal-file-type 'monthly)
+    (funcall create-files test-file-monthly)
+    (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+    (message "Running yearly build-file-test")
+    (setq period-start (encode-time 0 0 0 31 12 2017)
+          period-end (encode-time 0 0 0 1 1 2019))
+    ;; Yearly build file boundary check
+    (setq org-journal-file-type 'yearly)
+    (funcall create-files test-file-yearly)
+    (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))))
