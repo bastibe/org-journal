@@ -1027,11 +1027,11 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
       (when (and
              (time-less-p
               period-start
-              ;; Convert to start-period boundary.
+              ;; Convert to period-start boundary.
               (pcase org-journal-file-type
-                ;; For daily, filetime is period start boundary.
+                ;; For daily, filetime is period-start boundary.
                 (`daily filetime)
-                ;; For weekly, filetime +6 days is start-period boundary.
+                ;; For weekly, filetime +6 days is period-start boundary.
                 (`weekly
                  (let* ((time (decode-time filetime))
                         (day (+ 6 (nth 3 time))) ;; End of week
@@ -1045,13 +1045,13 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                        (setq year (1+ year)))
                      (setq month (1+ month)))
                    (encode-time 0 0 0 day month year)))
-                ;; For monthly, end of month is start-period boundary.
+                ;; For monthly, end of month is period-start boundary.
                 (`monthly
                  (let* ((time (decode-time filetime))
                         (month (nth 4 time))
                         (year (nth 5 time)))
                    (encode-time 0 0 0 (calendar-last-day-of-month month year) month year)))
-                ;; For yearly, end of year is start-period boundary.
+                ;; For yearly, end of year is period-start boundary.
                 (`yearly
                  (encode-time 0 0 0 31 12 (nth 5 (decode-time filetime))))))
              (time-less-p filetime period-end))
