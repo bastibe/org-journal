@@ -179,7 +179,10 @@ a function, it is evaluated and inserted."
   "String that is put before every date at the top of a journal file.
 
 By default, this is a org-mode heading. Another good idea would be
-\"#+TITLE: \" for org titles."
+\"#+TITLE: \" for org titles.
+
+Setting `org-journal-date-prefix' to something other than \"* \"
+for weekly/monthly/yearly journal files won't work correctly."
   :type 'string)
 
 (defcustom org-journal-time-format "%R "
@@ -499,7 +502,8 @@ previous day's file to the current file."
       (save-buffer))
     (switch-to-buffer current-buffer-name)
     (when all-todos
-      (outline-end-of-subtree)
+      (when (string-match "^\* " org-journal-date-prefix)
+        (outline-end-of-subtree))
       (unless (eq (current-column) 0) (insert "\n"))
       (insert (mapconcat 'identity all-todos "")))))
 
@@ -741,9 +745,11 @@ it into a list of calendar date elements."
 (defun org-journal-finalize-view ()
   "Finalize visability of entry."
   (org-journal-decrypt)
-  (outline-back-to-heading)
-  (outline-hide-other)
-  (outline-show-subtree))
+  (if (not (string-match "^\* " org-journal-date-prefix))
+      (outline-show-all)
+    (outline-back-to-heading)
+    (outline-hide-other)
+    (outline-show-subtree)))
 
 ;;;###autoload
 (defun org-journal-read-or-display-entry (time &optional noselect)
