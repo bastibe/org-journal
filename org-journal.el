@@ -427,6 +427,8 @@ hook is run."
         (unless (search-forward entry-header nil t)
           (goto-char (point-max))
           (forward-line)
+          (when (looking-back "[^\t ]" (point-at-bol))
+            (insert "\n"))
           (beginning-of-line)
           (insert entry-header)
           ;; For 'weekly, 'monthly and 'yearly journal entries
