@@ -313,6 +313,10 @@ anywhere in your file."
   "Returns t if `org-journal-file-type' is set to `'daily'."
   (eq org-journal-file-type 'daily))
 
+(defun org-journal-org-heading-p ()
+  "Returns t if `org-journal-date-prefix' starts with \"* \"."
+  (string-match "^\* " org-journal-date-prefix))
+
 (defun org-journal-convert-time-to-file-type-time (&optional time)
   "Converts TIME to the file type format date.
 
@@ -399,7 +403,7 @@ hook is run."
 
   ;; if time is before org-extend-today-until, interpret it as
   ;; part of the previous day:
-  (let ((oetu-active-p nil))
+  (let (oetu-active-p) ;; org-extend-today-until-active-p
     (let ((now (decode-time nil)))
       (if (and (not time) ; time was not given
                (< (nth 2 now)
@@ -446,9 +450,11 @@ hook is run."
       ;; move TODOs from previous day here
       (when (and org-journal-carryover-items
                  (string= entry-path (org-journal-get-entry-path (current-time))))
-        (save-excursion (org-journal-carryover)))
+        (org-journal-carryover))
 
-      (goto-char (point-max))
+      (if (org-journal-org-heading-p)
+          (outline-end-of-subtree)
+        (goto-char (point-max)))
 
       ;; insert the header of the entry
       (when should-add-entry-p
@@ -469,13 +475,10 @@ hook is run."
           (insert org-journal-time-prefix timestamp))
         (run-hooks 'org-journal-after-entry-create-hook))
 
-      ;; switch to the outline, hide subtrees
-      (org-journal-mode)
       (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
           (outline-hide-sublevels (org-journal-time-entry-level))
-        (outline-show-all))
+        (save-excursion (org-journal-finalize-view)))
 
-      ;; open the recent entry when the prefix is given
       (when should-add-entry-p
         (outline-show-entry)))))
 
@@ -502,7 +505,7 @@ previous day's file to the current file."
       (save-buffer))
     (switch-to-buffer current-buffer-name)
     (when all-todos
-      (when (string-match "^\* " org-journal-date-prefix)
+      (when (org-journal-org-heading-p)
         (outline-end-of-subtree))
       (unless (eq (current-column) 0) (insert "\n"))
       (insert (mapconcat 'identity all-todos "")))))
@@ -524,8 +527,8 @@ previous day's file to the current file."
 of leading asterisks in `org-journal-time-prefix'.
 
 Return nil when it's impossible to figure out the level."
-  (if (string-match "\\(^\*+\\)" org-journal-time-prefix)
-      (length (match-string 1 org-journal-time-prefix))))
+  (when (string-match "\\(^\*+\\)" org-journal-time-prefix)
+    (length (match-string 1 org-journal-time-prefix))))
 
 (defun org-journal-calendar-date->time (calendar-date)
   "Convert a date as returned from the calendar to a time."
@@ -745,11 +748,13 @@ it into a list of calendar date elements."
 (defun org-journal-finalize-view ()
   "Finalize visability of entry."
   (org-journal-decrypt)
-  (if (not (string-match "^\* " org-journal-date-prefix))
-      (outline-show-all)
-    (outline-back-to-heading)
-    (outline-hide-other)
-    (outline-show-subtree)))
+  (if (org-journal-org-heading-p)
+      (progn
+        (org-up-heading-safe)
+        (org-back-to-heading)
+        (outline-hide-other)
+        (outline-show-subtree))
+    (outline-show-all)))
 
 ;;;###autoload
 (defun org-journal-read-or-display-entry (time &optional noselect)
@@ -793,7 +798,8 @@ is nil or avoid switching when NOSELECT is non-nil."
     (while (and dates (not (calendar-date-compare
                             (list (calendar-cursor-to-date)) dates)))
       (setq dates (cdr dates)))
-    (if dates (calendar-goto-date (car dates)))))
+    (when dates
+      (calendar-goto-date (car dates)))))
 
 ;;;###autoload
 (defun org-journal-previous-entry ()
@@ -803,7 +809,8 @@ is nil or avoid switching when NOSELECT is non-nil."
     (while (and dates
                 (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
-    (if dates (calendar-goto-date (car dates)))))
+    (when dates
+      (calendar-goto-date (car dates)))))
 
 ;;; Journal search facilities
 ;;
