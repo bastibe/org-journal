@@ -589,8 +589,11 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
 (defun org-journal-new-date-entry (prefix &optional event)
   "Open the journal for the date indicated by point and start a new entry.
 
-If the date is not today, it won't be given a time heading. If a prefix is given,
-don't add a new heading. If the date is in the future, create a schedule entry."
+If the date is not today, it won't be given a time heading. With one prefix (C-u),
+don't add a new heading.
+
+If the date is in the future, create a schedule entry, unless two universal prefix
+arguments (C-u C-u) are given. In that case insert just the heading."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
   (let* ((time (org-journal-calendar-date->time
@@ -603,12 +606,14 @@ don't add a new heading. If the date is in the future, create a schedule entry."
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
   "Create a new entry in the future."
   (interactive "P")
-  (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
-    (org-journal-new-entry nil (org-time-string-to-time scheduled-time))
-    (if (not prefix)
-        (insert "TODO "))
-    (save-excursion
-      (insert "\n<" scheduled-time ">"))))
+  (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:")))
+        (raw (prefix-numeric-value prefix)))
+    (org-journal-new-entry (= raw 16) (org-time-string-to-time scheduled-time))
+    (unless (= raw 16)
+      (if (not prefix)
+          (insert "TODO "))
+      (save-excursion
+        (insert "\n<" scheduled-time ">")))))
 
 (defsubst org-journal-goto-journal-heading ()
   "Goto to journal heading."
