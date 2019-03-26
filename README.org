@@ -11,7 +11,7 @@
 
   Feel free to use, modify and improve the code!
   — mtvoid, bastibe
-  
+
 [[open-issues][file:https://img.shields.io/github/issues/bastibe/org-journal.svg]] [[closed-issues][file:https://img.shields.io/github/issues-closed/bastibe/org-journal.svg]] [[open-pull-requests][file:https://img.shields.io/github/issues-pr/bastibe/org-journal.svg]] [[closed-pull-requests][file:https://img.shields.io/github/issues-pr-closed/bastibe/org-journal.svg]]
 
 ** Synopsis
@@ -227,8 +227,13 @@ built-in search is a recommended option.
 
 To use the agenda search, you can add all journal entries to your org-agenda by adding
 =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include
-files matching your =org-journal-file-pattern= (=\\`[^.].*\\.org\\'\\|\\`[0-9]+\\'= for
-the default all-numeric file format).
+files matching your =org-journal-file-pattern=.
+
+#+BEGIN_SRC emacs-lisp
+  ;; When =org-journal-file-pattern= has the default value, this would be the regex.
+  (setq org-agenda-file-regexp "\\`\\\([^.].*\\.org\\\|[0-9]\\\{8\\\}\\\(\\.gpg\\\)?\\\)\\'")
+  (add-to-list 'org-agenda-files org-journal-dir)
+#+END_SRC
 
 However, this can become /very/ slow if you have many journal entries. As a compromize,
 you can set =org-journal-enable-agenda-integration= to =t=, which automatically adds the
