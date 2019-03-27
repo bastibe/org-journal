@@ -502,7 +502,9 @@ previous day's file to the current file."
       (when (let ((inhibit-message t)) (org-journal-open-previous-entry))
         (setq all-todos (org-map-entries delete-mapper
                                          org-journal-carryover-items))
-        (save-buffer)))
+        (save-buffer)
+        (when org-journal--kill-buffer
+          (kill-buffer))))
     (switch-to-buffer current-buffer-name)
     (when all-todos
       (when (org-journal-org-heading-p)
@@ -619,6 +621,10 @@ arguments (C-u C-u) are given. In that case insert just the heading."
   "Goto to journal heading."
   (while (org-up-heading-safe)))
 
+(defvar org-journal--kill-buffer nil
+  "Will be set to the `t' if `org-journal-open-entry' is visiting a
+buffer not open already, otherwise `nil'.")
+
 (defun org-journal-open-entry (msg &optional prev)
   "Open journal entry.
 
@@ -653,7 +659,11 @@ If no next/PREVious entry was found print MSG."
         (let* ((date (car dates))
                (time (org-journal-calendar-date->time date))
                (filename (org-journal-get-entry-path time)))
-          (find-file filename)
+          (if (get-file-buffer filename)
+              (progn
+                (switch-to-buffer (get-file-buffer filename))
+                (setq org-journal--kill-buffer nil))
+            (setq org-journal--kill-buffer (find-file filename)))
           (goto-char (point-min))
           (unless (org-journal-daily-p)
             (re-search-forward
