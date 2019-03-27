@@ -499,10 +499,10 @@ previous day's file to the current file."
              subtree)))
         (all-todos))
     (save-excursion
-      (org-journal-open-previous-entry)
-      (setq all-todos (org-map-entries delete-mapper
-                                       org-journal-carryover-items))
-      (save-buffer))
+      (when (let ((inhibit-message t)) (org-journal-open-previous-entry))
+        (setq all-todos (org-map-entries delete-mapper
+                                         org-journal-carryover-items))
+        (save-buffer)))
     (switch-to-buffer current-buffer-name)
     (when all-todos
       (when (org-journal-org-heading-p)
@@ -659,8 +659,10 @@ If no next/PREVious entry was found print MSG."
             (re-search-forward
              (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
           (org-journal-finalize-view)
-          (view-mode (if view-mode-p 1 -1)))
-      (message msg))))
+          (view-mode (if view-mode-p 1 -1))
+          t)
+      (message msg)
+      nil)))
 
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one."
