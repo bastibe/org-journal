@@ -482,6 +482,10 @@ hook is run."
       (when should-add-entry-p
         (outline-show-entry)))))
 
+(defvar org-journal--kill-buffer nil
+  "Will be set to the `t' if `org-journal-open-entry' is visiting a
+buffer not open already, otherwise `nil'.")
+
 (defun org-journal-carryover ()
   "Moves all items matching `org-journal-carryover-items' from the
 previous day's file to the current file."
@@ -620,10 +624,6 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 (defsubst org-journal-goto-journal-heading ()
   "Goto to journal heading."
   (while (org-up-heading-safe)))
-
-(defvar org-journal--kill-buffer nil
-  "Will be set to the `t' if `org-journal-open-entry' is visiting a
-buffer not open already, otherwise `nil'.")
 
 (defun org-journal-open-entry (msg &optional prev)
   "Open journal entry.
