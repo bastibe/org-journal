@@ -186,7 +186,24 @@ Customization options related to the journal file contents:
 
 - =org-journal-date-format= - date format format =org-journal= uses when showing a
   date within a journal and search results page. If set to a function, it is evaluated
-  and inserted.
+  and inserted. This can be used to insert, e.g. some text on a
+  newly created journal file.
+
+  #+BEGIN_SRC emacs-lisp
+  (defun org-journal-date-format-func (time)
+    "Custom function to insert journal date header,
+  and some custom text on a newly created journal file."
+    (when (= (buffer-size) 0)
+      (insert
+       (pcase org-journal-file-type
+         (`daily "#+TITLE: Daily Journal")
+         (`weekly "#+TITLE: Weekly Journal")
+         (`monthly "#+TITLE: Monthly Journal")
+         (`yearly "#+TITLE: Yearly Journal"))))
+    (concat org-journal-date-prefix (format-time-string "%A, %x" time)))
+
+  (setq org-journal-date-format 'org-journal-date-format-func)
+  #+END_SRC
 
 - =org-journal-date-prefix= - this string will prefix the date at the top of a journal
   file.
@@ -357,6 +374,10 @@ However, this is Emacs, and if you don't like a key binding, change it!
 *** Opening journal entries from the calendar are not editable
 
 Old entries are opened in =view-mode=, which has convenient key bindings for browsing files. Most notably, you can quickly close =view-mode= buffers with =q=, scroll them with the =SPC= and =DEL=, or quit =view-mode= with =e=.
+
+*** Can I insert some text on a newly created journal file?
+
+Yes, you can write a custom function and assign it =org-journal-date-format=.
 
 ** Contributors
 
