@@ -379,6 +379,21 @@ Old entries are opened in =view-mode=, which has convenient key bindings for bro
 
 Yes, you can write a custom function and assign it =org-journal-date-format=.
 
+
+** Convenient =org-journal= Snippet Extensions
+
+*** Kill journal buffer after saving buffer (By [[https://github.com/dhruvparamhans][@dhruvparamhans]])
+#+BEGIN_SRC emacs-lisp
+(defun org-journal-save-entry-and-exit()
+  "Simple convenience function.
+  Saves the buffer of the current day's entry and kills the window
+  Similar to org-capture like behavior"
+  (interactive)
+  (save-buffer)
+  (kill-buffer-and-window))
+(define-key org-journal-mode-map (kbd "C-x C-s") 'org-journal-save-entry-and-exit)
+#+END_SRC
+
 ** Contributors
 
 See [[file:CONTRIBUTORS][CONTRIBUTORS]].
