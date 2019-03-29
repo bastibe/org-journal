@@ -309,6 +309,25 @@ anywhere in your file."
 
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
+(defmacro org-journal-with-journal (journal-file fundamental &rest body)
+  "Opens JOURNAL-FILE, or switches to the buffer which is visiting JOURNAL-FILE.
+
+When FUNDAMENTAL is non-nil open in `fundamental-mode'
+
+Returns the last value from BODY."
+  ;; Use find-file... instead of view-file... since
+  ;; view-file does not respect auto-mode-alist
+  `(let* ((buffer-exists (get-file-buffer ,journal-file))
+          (buf (if ,fundamental
+                   (find-file-noselect ,journal-file)
+                 (if buffer-exists
+                     (find-file-noselect ,journal-file)
+                   (generate-new-buffer (file-name-base ,journal-file))))))
+     (with-current-buffer buf
+       (when (and ,fundamental (not buffer-exists))
+         (insert-file-contents ,journal-file))
+       (progn ,@body))))
+
 (defun org-journal-daily-p ()
   "Returns t if `org-journal-file-type' is set to `'daily'."
   (eq org-journal-file-type 'daily))
@@ -582,13 +601,14 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
 (defun org-journal-file->calendar-dates (file)
   "Return journal dates from FILE."
   (interactive "P")
-  (let ((dates '()))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (goto-char (point-min))
-      (while (re-search-forward org-journal-created-re nil t)
-        (push (org-journal-entry-date->calendar-date) dates)))
-    dates))
+  (org-journal-with-journal
+   file t
+   (let (dates)
+     (save-excursion
+       (goto-char (point-min))
+       (while (re-search-forward org-journal-created-re nil t)
+         (push (org-journal-entry-date->calendar-date) dates))
+       dates))))
 
 ;; FIXME(cschwarzgruber): needs to be fixed for weekly/monthly/yearly journal files must go the right location to insert new entry
 ;;;###autoload
@@ -788,25 +808,22 @@ is nil or avoid switching when NOSELECT is non-nil."
                    (goto-char (point-min))
                    (setq point (re-search-forward
                                 (format-time-string " *:CREATED: *%Y%m%d" time) nil t)))))
+        ;; open file in view-mode if not opened already
         (progn
-          ;; open file in view-mode if not opened already
-          (let ((had-a-buf (get-file-buffer org-journal-file))
-                ;; use find-file... instead of view-file... since
-                ;; view-file does not respect auto-mode-alist
-                (buf (find-file-noselect org-journal-file)))
-            (with-current-buffer buf
-              (when (not had-a-buf)
-                (view-mode)
-                (setq view-exit-action 'kill-buffer))
-              (set (make-local-variable 'org-hide-emphasis-markers) t)
-              (unless (org-journal-daily-p)
-                (goto-char point))
-              (org-journal-finalize-view)
-              (setq point (point))
-              (set-window-point (get-buffer-window) point))
-            (if (not noselect)
-                (funcall org-journal-find-file org-journal-file)
-              (display-buffer buf t))))
+          (setq point (org-journal-with-journal
+                       org-journal-file nil
+                       (when (not view-mode)
+                         (view-mode)
+                         (setq view-exit-action 'kill-buffer))
+                       (set (make-local-variable 'org-hide-emphasis-markers) t)
+                       (unless (org-journal-daily-p)
+                         (goto-char point))
+                       (org-journal-finalize-view)
+                       (point)))
+          (if noselect
+              (display-buffer (find-file-noselect org-journal-file) t)
+            (funcall org-journal-find-file org-journal-file))
+          (set-window-point (get-buffer-window (get-file-buffer org-journal-file)) point))
       (message "No journal entry for this date."))))
 
 ;;;###autoload
