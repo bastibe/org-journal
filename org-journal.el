@@ -328,6 +328,16 @@ Returns the last value from BODY."
          (insert-file-contents ,journal-file))
        (progn ,@body))))
 
+(defvar org-journal-created-re " *:CREATED: *[0-9]\\{8\\}"
+  "Regex to find created property.")
+
+(defsubst org-journal-search-forward-created (date)
+  "Search for CREATED tag with date.
+
+DATE should be a calendar date list (MONTH DAY YEAR)."
+  (re-search-forward
+   (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
+
 (defun org-journal-daily-p ()
   "Returns t if `org-journal-file-type' is set to `'daily'."
   (eq org-journal-file-type 'daily))
@@ -439,7 +449,7 @@ hook is run."
     (let* ((entry-path (org-journal-get-entry-path time))
            (should-add-entry-p (not prefix)))
 
-      ;; open journal fiel
+      ;; Open journal file
       (unless (string= entry-path (buffer-file-name))
         (funcall org-journal-find-file entry-path))
 
@@ -451,8 +461,25 @@ hook is run."
                        (format-time-string org-journal-date-format time)))))
         (goto-char (point-min))
         (unless (search-forward entry-header nil t)
-          (goto-char (point-max))
-          (forward-line)
+          ;; Insure we insert the new journal header at the correct location
+          (unless (org-journal-daily-p)
+            (let ((date (decode-time time))
+                  (dates (sort (org-journal-file->calendar-dates (buffer-file-name))
+                               (lambda (a b)
+                                 (calendar-date-compare (list b) (list a)))))
+                  found)
+              (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
+              (while dates
+                (when (calendar-date-compare dates (list date))
+                  (org-journal-search-forward-created (car dates))
+                  (outline-end-of-subtree)
+                  (insert "\n")
+                  (setq found t
+                        dates nil))
+                (setq dates (cdr dates)))
+              (unless found
+                (goto-char (point-max))
+                (forward-line))))
           (when (looking-back "[^\t ]" (point-at-bol))
             (insert "\n"))
           (beginning-of-line)
@@ -583,9 +610,6 @@ fall back to the old behavior of taking substrings."
           (string-to-number (substring file-name 6 8))
           (string-to-number (substring file-name 0 4)))))
 
-(defvar org-journal-created-re " *:CREATED: *[0-9]\\{8\\}"
-  "Regex to find created property.")
-
 (defun org-journal-entry-date->calendar-date ()
   "Return journal calendar-date from current buffer.
 
@@ -686,8 +710,7 @@ If no next/PREVious entry was found print MSG."
             (setq org-journal--kill-buffer (find-file filename)))
           (goto-char (point-min))
           (unless (org-journal-daily-p)
-            (re-search-forward
-             (format " *:CREATED: *%.4d%.2d%.2d" (nth 2 date) (car date) (cadr date))))
+            (org-journal-search-forward-created date))
           (org-journal-finalize-view)
           (view-mode (if view-mode-p 1 -1))
           t)
