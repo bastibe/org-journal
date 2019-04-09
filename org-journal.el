@@ -68,6 +68,9 @@
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
+;; Silent byte-compiler
+(declare-function org--tag-add-to-alist "org")
+
 (defvar org-journal-file-pattern
   (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
   "This matches journal files in your journal directory.
