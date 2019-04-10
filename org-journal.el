@@ -68,6 +68,43 @@
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
+(unless (fboundp 'org--tag-add-to-alist)
+  (defun org--tag-add-to-alist (alist1 alist2)
+    "Merge tags from ALIST1 into ALIST2.
+(This function is from development versions of ‘org-mode’ and is
+reproduced here for compatibility with older versions.)
+
+Duplicates tags outside a group are removed.  Keywords and order
+are preserved.
+
+The function assumes ALIST1 and ALIST2 are proper tag alists.
+See `org-tag-alist' for their structure."
+    (cond
+     ((null alist2) alist1)
+     ((null alist1) alist2)
+     (t
+      (let ((to-add nil)
+            (group-flag nil))
+        (dolist (tag-pair alist1)
+          (pcase tag-pair
+            (`(,(or :startgrouptag :startgroup))
+             (setq group-flag t)
+             (push tag-pair to-add))
+            (`(,(or :endgrouptag :endgroup))
+             (setq group-flag nil)
+             (push tag-pair to-add))
+            (`(,(or :grouptags :newline))
+             (push tag-pair to-add))
+            (`(,tag . ,_)
+             ;; Remove duplicates from ALIST1, unless they are in
+             ;; a group.  Indeed, it makes sense to have a tag appear in
+             ;; multiple groups.
+             (when (or group-flag (not (assoc tag alist2)))
+               (push tag-pair to-add)))
+            (_ (error "Invalid association in tag alist: %S" tag-pair))))
+        ;; Preserve order of ALIST1.
+        (append (nreverse to-add) alist2))))))
+
 (defvar org-journal-file-pattern
   (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
   "This matches journal files in your journal directory.
