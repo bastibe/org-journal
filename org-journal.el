@@ -548,23 +548,25 @@ previous day's file to the current file."
          carryover-items-non-parents
          prev-entry-buffer)
     (save-excursion
-      (when (let ((inhibit-message t))
-              (org-journal-open-previous-entry 'no-select))
-        (setq prev-entry-buffer (current-buffer))
-        ;; Create a sorted list with duplicates removed from the value returned
-        ;; from `org-map-entries'. The returned value from `org-map-entries',
-        ;; is a list where each element is list containing points, which are representing
-        ;; the headers to carryover -- cddr contains the text.
-        (mapc (lambda (carryover-path)
-                (push (car carryover-path) carryover-items-non-parents)
-                (mapc (lambda (heading)
-                        (unless (member heading carryover-items-with-parents)
-                          (push heading carryover-items-with-parents)))
-                      carryover-path))
-              (org-map-entries mapper org-journal-carryover-items))
-        (setq carryover-items-with-parents (sort carryover-items-with-parents
-                                                 (lambda (x y)
-                                                   (< (car x) (car y)))))))
+      (save-restriction
+        (when (let ((inhibit-message t))
+                (org-journal-open-previous-entry 'no-select))
+          (setq prev-entry-buffer (current-buffer))
+          (org-narrow-to-subtree)
+          ;; Create a sorted list with duplicates removed from the value returned
+          ;; from `org-map-entries'. The returned value from `org-map-entries',
+          ;; is a list where each element is list containing points, which are representing
+          ;; the headers to carryover -- cddr contains the text.
+          (mapc (lambda (carryover-path)
+                  (push (car carryover-path) carryover-items-non-parents)
+                  (mapc (lambda (heading)
+                          (unless (member heading carryover-items-with-parents)
+                            (push heading carryover-items-with-parents)))
+                        carryover-path))
+                (org-map-entries mapper org-journal-carryover-items))
+          (setq carryover-items-with-parents (sort carryover-items-with-parents
+                                                   (lambda (x y)
+                                                     (< (car x) (car y))))))))
     (when carryover-items-with-parents
       (when (org-journal-org-heading-p)
         (outline-end-of-subtree))
@@ -583,9 +585,9 @@ previous day's file to the current file."
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
 
-  The carryover item     The parents
-          |              /---------\
-((START END . \"TEXT\") ... (START END . \"TEXT\"))
+    The carryover item       The parents
+          |                  /---------\
+;; ((START END . \"TEXT\") ... (START END . \"TEXT\"))
 "
   (let (start end text carryover-item-with-parents)
     (save-excursion
