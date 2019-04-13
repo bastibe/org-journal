@@ -6,25 +6,6 @@
 ;;
 ;; Description:
 ;;
-;; Test org-journal in a clean Emacs environment. You need to adopt the
-;; path to the package `use-package', `bind-key' and `org-journal'.
-;;
-;; (add-to-list 'load-path "~/.emacs.d/elpa/use-package-20181119.2350")
-;; (add-to-list 'load-path "~/.emacs.d/elpa/bind-key-20180513.430")
-;; (require 'use-package)
-;;
-;; (use-package org-journal
-;;   :load-path "~/Developing/third_party/org-journal"
-;;   :defer 0.5
-;;   :bind (("<f9> s" . org-journal-search)
-;;          ("<f9> j" . org-journal-new-entry))
-;;   :init
-;;   ;; Must be set before loading org-journal
-;;   (setq org-journal-dir "~/emacs/org/journal/")
-;;   :config
-;;   (setq org-journal-encrypt-journal t
-;;         org-journal-file-type 'yearly))
-;;
 
 (require 'ert)
 (require 'org-journal)
@@ -100,7 +81,8 @@
      (insert "** 13:00 Some journal entry 1\n")
      (insert "** TODO Second\n")
      (insert "** 14:00 Some journal entry 2\n")
-     (write-file (expand-file-name "20181231" org-journal-dir-test)))
+     (write-file (expand-file-name "20181231" org-journal-dir-test))
+     (kill-buffer "20181231"))
    (let ((org-journal-file-type 'weekly))
      (org-journal-new-entry nil))
    (write-file (org-journal-get-entry-path))
@@ -113,23 +95,34 @@
                             "\n  :END:\n** TODO First\n** TODO Second\n"
                             new-entry "\n")))))
 
-(ert-deftest org-journal-carryover-items-daily-test ()
+(ert-deftest org-journal-carryover-keep-parents-test ()
   "Org journal new enty test for daily files."
   (org-journal-test-macro
    (with-temp-buffer
      (insert "* Wednesday, 01/02/19\n")
-     (insert "** TODO First\n")
-     (insert "** 13:00 Some journal entry 1\n")
-     (insert "** TODO Second\n")
+     (insert "** a\n")
+     (insert "** TODO a\n")
+     (insert "** b1\n")
+     (insert "*** TODO b1\n")
+     (insert "*** DONE b1\n")
+     (insert "*** b1 note\n")
+     (insert "*** b2\n")
+     (insert "**** TODO b2\n")
+     (insert "**** b3\n")
+     (insert "***** TODO b3\n")
+     (insert "***** DONE b3\n")
+     (insert "** TODO b\n")
      (insert "** 14:00 Some journal entry 2\n")
-     (write-file (expand-file-name "20181231" org-journal-dir-test)))
+     (write-file (expand-file-name "20181231" org-journal-dir-test))
+     (kill-buffer "20181231"))
    (org-journal-new-entry nil)
    (write-file (org-journal-get-entry-path))
    (kill-buffer)
    (should (string= (with-temp-buffer
                       (insert-file-contents (org-journal-get-entry-path))
                       (buffer-substring-no-properties (point-min) (point-max)))
-                    (concat "* Test header\n** TODO First\n** TODO Second\n" new-entry "\n")))))
+                    (concat "* Test header\n** TODO a\n** b1\n*** TODO b1\n*** b2\n**** TODO b2\n**** b3\n***** TODO b3\n** TODO b\n" new-entry "\n")))))
+
 
 (ert-deftest org-journal-search-build-file-list-test ()
   "Test for `org-journal-search-build-file-list'."

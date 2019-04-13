@@ -68,9 +68,6 @@
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
-;; Silent byte-compiler
-(declare-function org--tag-add-to-alist "org")
-
 (defvar org-journal-file-pattern
   (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
   "This matches journal files in your journal directory.
@@ -538,43 +535,70 @@ buffer not open already, otherwise `nil'.")
   "Moves all items matching `org-journal-carryover-items' from the
 previous day's file to the current file."
   (interactive)
-  (let ((current-buffer-name (buffer-name))
-        (org-journal-find-file 'find-file)
-        (delete-mapper
-         (lambda ()
-           (let ((subtree (org-journal-extract-current-subtree t)))
-             ;; since the next subtree now starts at point,
-             ;; continue mapping from before that, to include it
-             ;; in the search
-             (backward-char)
-             (setq org-map-continue-from (point))
-             subtree)))
-        (all-todos))
+  (let* ((org-journal-find-file 'find-file)
+         ;; Doesn't keep value after org-journal-carryover-item-with-parents
+         (mapper (lambda ()
+                   (let ((headings (org-journal-carryover-item-with-parents)))
+                     ;; since the next subtree now starts at point,
+                     ;; continue mapping from before that, to include it
+                     ;; in the search
+                     (setq org-map-continue-from (point))
+                     headings)))
+         carryover-items-with-parents
+         carryover-items-non-parents
+         prev-entry-buffer)
     (save-excursion
-      (when (let ((inhibit-message t)) (org-journal-open-previous-entry))
-        (setq all-todos (org-map-entries delete-mapper
-                                         org-journal-carryover-items))
-        (save-buffer)
-        (when org-journal--kill-buffer
-          (kill-buffer))))
-    (switch-to-buffer current-buffer-name)
-    (when all-todos
+      (when (let ((inhibit-message t))
+              (org-journal-open-previous-entry 'no-select))
+        (setq prev-entry-buffer (current-buffer))
+        ;; Create a sorted list with duplicates removed from the value returned
+        ;; from `org-map-entries'. The returned value from `org-map-entries',
+        ;; is a list where each element is list containing points, which are representing
+        ;; the headers to carryover -- cddr contains the text.
+        (mapc (lambda (carryover-path)
+                (push (car carryover-path) carryover-items-non-parents)
+                (mapc (lambda (heading)
+                        (unless (member heading carryover-items-with-parents)
+                          (push heading carryover-items-with-parents)))
+                      carryover-path))
+              (org-map-entries mapper org-journal-carryover-items))
+        (setq carryover-items-with-parents (sort carryover-items-with-parents
+                                                 (lambda (x y)
+                                                   (< (car x) (car y)))))))
+    (when carryover-items-with-parents
       (when (org-journal-org-heading-p)
         (outline-end-of-subtree))
       (unless (eq (current-column) 0) (insert "\n"))
-      (insert (mapconcat 'identity all-todos "")))))
+      (mapc (lambda (x) (insert (cddr x)))
+            carryover-items-with-parents)
+      ;; Delete carryover items
+      (with-current-buffer prev-entry-buffer
+        (mapc (lambda (x)
+                (kill-region (car x) (cadr x)))
+              carryover-items-non-parents)
+        (save-buffer)
+        (when org-journal--kill-buffer
+          (kill-buffer))))))
 
-(defun org-journal-extract-current-subtree (delete-p)
-  "Get the string content of the entire current subtree."
-  (let* ((start (progn (beginning-of-line)
-                       (point)))
-         (end (progn (org-end-of-subtree)
-                     (outline-next-heading)
-                     (point)))
-         (subtree (buffer-substring-no-properties start end)))
-    (when delete-p
-      (delete-region start end))
-    subtree))
+(defun org-journal-carryover-item-with-parents ()
+  "Return carryover item inclusive the parents.
+
+  The carryover item     The parents
+          |              /---------\
+((START END . \"TEXT\") ... (START END . \"TEXT\"))
+"
+  (let (start end text carryover-item-with-parents)
+    (save-excursion
+      (while (> (org-outline-level) (org-journal-time-entry-level))
+        (org-up-heading-safe)
+        (setq start (point)
+              end (save-excursion (outline-next-heading) (point))
+              text (buffer-substring-no-properties start end))
+        (push (cons start (cons end text)) carryover-item-with-parents)))
+    (setq start (point-at-bol)
+          end (progn (outline-end-of-subtree) (outline-next-heading) (point))
+          text (buffer-substring-no-properties start end))
+    (push (cons start (cons end text)) carryover-item-with-parents)))
 
 (defun org-journal-time-entry-level ()
   "Return the headline level of time entries based on the number
@@ -669,7 +693,7 @@ arguments (C-u C-u) are given. In that case insert just the heading."
   "Goto to journal heading."
   (while (org-up-heading-safe)))
 
-(defun org-journal-open-entry (msg &optional prev)
+(defun org-journal-open-entry (msg &optional prev no-select)
   "Open journal entry.
 
 If no next/PREVious entry was found print MSG."
@@ -705,9 +729,13 @@ If no next/PREVious entry was found print MSG."
                (filename (org-journal-get-entry-path time)))
           (if (get-file-buffer filename)
               (progn
-                (switch-to-buffer (get-file-buffer filename))
+                (if (eq 'no-select no-select)
+                    (set-buffer (get-file-buffer filename))
+                  (switch-to-buffer (get-file-buffer filename)))
                 (setq org-journal--kill-buffer nil))
-            (setq org-journal--kill-buffer (find-file filename)))
+            (setq org-journal--kill-buffer (if (eq 'no-select no-select)
+                                               (set-buffer (find-file-noselect filename))
+                                             (find-file filename))))
           (goto-char (point-min))
           (unless (org-journal-daily-p)
             (org-journal-search-forward-created date))
@@ -717,15 +745,15 @@ If no next/PREVious entry was found print MSG."
       (message msg)
       nil)))
 
-(defun org-journal-open-next-entry ()
+(defun org-journal-open-next-entry (&optional no-select)
   "Open the next journal entry starting from a currently displayed one."
   (interactive)
-  (org-journal-open-entry "No next journal entry after this one"))
+  (org-journal-open-entry "No next journal entry after this one" nil no-select))
 
-(defun org-journal-open-previous-entry ()
+(defun org-journal-open-previous-entry (&optional no-select)
   "Open the previous journal entry starting from a currently displayed one."
   (interactive)
-  (org-journal-open-entry "No previous journal entry before this one" t))
+  (org-journal-open-entry "No previous journal entry before this one" t no-select))
 
 ;;
 ;; Functions to browse existing journal entries using the calendar
@@ -756,7 +784,7 @@ it into a list of calendar date elements."
                          #'org-journal-file->calendar-dates)
                        (org-journal-list-files))))
     ;; Need to flatten the list and bring dates in correct order.
-    (unless(org-journal-daily-p)
+    (unless (org-journal-daily-p)
       (let ((flattened-date-l '())
             flattened-date-reverse-l file-dates)
         (while dates
@@ -987,7 +1015,7 @@ Think of this as a faster, less fancy version of your `org-agenda'."
                    (org-journal-file-name->calendar-date filename)))
             (copy-mapper
              (lambda ()
-               (let ((subtree (org-journal-extract-current-subtree nil)))
+               (let ((subtree (org-journal-carryover-item-with-parents)))
                  ;; since the next subtree now starts at point,
                  ;; continue mapping from before that, to include it
                  ;; in the search
