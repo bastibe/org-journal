@@ -552,7 +552,8 @@ previous day's file to the current file."
         (when (let ((inhibit-message t))
                 (org-journal-open-previous-entry 'no-select))
           (setq prev-entry-buffer (current-buffer))
-          (org-narrow-to-subtree)
+          (unless (org-journal-daily-p) ;; (org-journal-org-heading-p) should work to
+            (org-narrow-to-subtree))
           ;; Create a sorted list with duplicates removed from the value returned
           ;; from `org-map-entries'. The returned value from `org-map-entries',
           ;; is a list where each element is list containing points, which are representing
