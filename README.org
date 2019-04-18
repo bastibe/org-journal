@@ -355,12 +355,18 @@ variables.
 
 *** Can I use org-journal with Spacemacs?
 
-To use =org-journal= with Spacemacs, you can:
+Yes you can!
 
-1. =git clone https://github.com/borgnix/spacemacs-journal.git ~/.emacs.d/private/journal=
-2. add it to your =~/.spacemacs=. You will need to add =journal= to the existing =dotspacemacs-configuration-layers= list in this file.
+- To use =org-journal= with Spacemacs from master branch, you must do this:
 
-The manual of the journal layer can be found at https://github.com/borgnix/spacemacs-journal
+  1. =git clone https://github.com/borgnix/spacemacs-journal.git ~/.emacs.d/private/journal=
+  2. add it to your =~/.spacemacs=. You will need to add =journal= to the
+     existing =dotspacemacs-configuration-layers= list in this file.
+
+  The manual of the journal layer can be found at https://github.com/borgnix/spacemacs-journal
+
+- If you use Spacemacs from the develop branch you can enable `org-journal` by
+  setting `org-enable-org-journal-support` to `t`, see [[https://github.com/syl20bnr/spacemacs/tree/develop/layers/%252Bemacs/org#org-journal-support][Spacemacs org-journal support]].
 
 *** Some key-bindings in org-journal overwrite org-mode key bindings
 
