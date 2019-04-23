@@ -982,12 +982,15 @@ out past org-journal files."
               (not (string-match org-journal-file-pattern fname)))
             (org-agenda-files)))
           (org-journal-agenda-files
-           (let ((future (org-journal-read-period 'future)))
+           (let* ((future (org-journal-read-period 'future))
+                  (beg (car future))
+                  (end (cdr future)))
              ;; TODO(cschwarzgruber): Needs to be adopted for weekly, monthly or yearly journal file type.
              ;; We actually would need to limit the file scope, if we only want TODO's for today, and future.
+             (setcar (cdr beg) (1- (cadr beg)))
              (org-journal-search-build-file-list
-              (org-journal-calendar-date->time (car future))
-              (org-journal-calendar-date->time (cdr future))))))
+              (org-journal-calendar-date->time beg)
+              (org-journal-calendar-date->time end)))))
       (setq org-agenda-files (append not-org-journal-agenda-files
                                      org-journal-agenda-files)))))
 
