@@ -1167,21 +1167,23 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 
 (defun org-journal-search-do-search (str files)
   "Search for a string within a list of files, return match pairs (PATH . LINENUM)."
-  (let (results buf)
+  (let (results result)
     (dolist (fname (reverse files))
-      (setq buf (find-file-noselect fname))
-      (with-current-buffer buf
-        (goto-char (point-min))
-        (when org-journal-enable-encryption
-          ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
-          (org-decrypt-entry))
-        (while (search-forward str nil t)
-          (let* ((fullstr (buffer-substring-no-properties
-                           (line-beginning-position)
-                           (line-end-position)))
-                 (res (list fname (- (point) (length str)) fullstr)))
-            (push res results))))
-      (kill-buffer buf))
+      (setq result (org-journal-with-journal
+                    fname
+                    (goto-char (point-min))
+                    (when org-journal-enable-encryption
+                      ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
+                      (org-decrypt-entry))
+                    (while (search-forward str nil t)
+                      (let* ((fullstr (buffer-substring-no-properties
+                                       (line-beginning-position)
+                                       (line-end-position)))
+                             (res (list fname (- (point) (length str)) fullstr)))
+                        (push res result)))
+                    result))
+      (when result
+        (mapc (lambda (res) (push res results)) result)))
     (cond
       ((eql org-journal-search-results-order-by :desc) results)
       (t (reverse results)))))
@@ -1199,32 +1201,32 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (princ (concat "Search results for \"" str "\" between "
                    label-start " and " label-end
                    ": \n\n")))
-  (let* (buffers fname point fullstr buf time label)
+  (let* (fname point fullstr time label)
     (dolist (res results)
       (setq fname (nth 0 res)
             point (nth 1 res)
             fullstr (nth 2 res)
-            buf (find-file-noselect fname)
-            time (org-journal-calendar-date->time
-                  (if (org-journal-daily-p)
-                      (org-journal-file-name->calendar-date fname)
-                    (with-current-buffer buf
-                      (goto-char point)
-                      (re-search-backward org-journal-created-re)
-                      (org-journal-entry-date->calendar-date))))
-            label (org-journal-format-date time))
+            time (let ((date (if (org-journal-daily-p)
+                                 (org-journal-file-name->calendar-date fname)
+                               (org-journal-with-journal
+                                fname
+                                (goto-char point)
+                                (when (re-search-backward org-journal-created-re nil t)
+                                  (org-journal-entry-date->calendar-date))))))
+                   (when date
+                     (org-journal-calendar-date->time date)))
+            label (and time (org-journal-format-date time)))
       ;; Filter out entries not within period-start/end for weekly/monthly/yearly journal files.
-      (when (or (org-journal-daily-p)
-                (and (time-less-p period-start time)
-                     (time-less-p time period-end)))
-        (cl-pushnew buf buffers)
+      (when (or(org-journal-daily-p)
+               (and time
+                    (time-less-p period-start time)
+                    (time-less-p time period-end)))
         (insert-text-button label
                             'action 'org-journal-search-follow-link-action
                             'org-journal-link (cons point time))
         (princ "\t")
         (princ fullstr)
-        (princ "\n")))
-    (mapc 'kill-buffer buffers))
+        (princ "\n"))))
   (org-journal-highlight str)
   (local-set-key (kbd "q") 'kill-this-buffer)
   (local-set-key (kbd "<tab>") 'forward-button)

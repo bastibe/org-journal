@@ -184,10 +184,9 @@ Customization options related to journal directory and files:
 
 Customization options related to the journal file contents:
 
-- =org-journal-date-format= - date format format =org-journal= uses when showing a
-  date within a journal and search results page. If set to a function, it is evaluated
-  and inserted. This can be used to insert, e.g. some text on a
-  newly created journal file.
+- =org-journal-date-format= - date format =org-journal= uses when showing a date within a journal
+  and search results page. If set to a function, it is evaluated and inserted. This can be used to
+  insert, e.g. some text on a newly created journal file.
 
   #+BEGIN_SRC emacs-lisp
   (defun org-journal-date-format-func (time)
@@ -205,14 +204,12 @@ Customization options related to the journal file contents:
   (setq org-journal-date-format 'org-journal-date-format-func)
   #+END_SRC
 
-- =org-journal-date-prefix= - this string will prefix the date at the top of a journal
+- =org-journal-date-prefix= - this string will prefix the date at the top of a journal file.
+
+- =org-journal-time-format= - a timestamp format that will prefix every entry within a daily journal
   file.
 
-- =org-journal-time-format= - a timestamp format that will prefix every entry within a
-  daily journal file.
-
-- =org-journal-time-prefix= - a string that will prefix every entry within a daily journal
-  file.
+- =org-journal-time-prefix= - a string that will prefix every entry within a daily journal file.
 
 *** An example setup
 
