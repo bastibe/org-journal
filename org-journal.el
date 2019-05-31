@@ -263,6 +263,14 @@ they can be disabled per-file by adding the line “#+STARTUP: noptag”
 anywhere in your file."
   :type (get 'org-tag-persistent-alist 'custom-type))
 
+(defcustom org-journal-search-forward-fn 'search-forward
+  "The function used by `org-journal-search` to look for the string
+forward in a buffer.
+Defaults to search-forward.
+You can, for example, set it to `search-forward-regexp` so the
+search works with regexps."
+  :type 'function)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -1175,7 +1183,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                     (when org-journal-enable-encryption
                       ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
                       (org-decrypt-entry))
-                    (while (search-forward str nil t)
+                    (while (funcall org-journal-search-forward-fn str nil t)
                       (let* ((fullstr (buffer-substring-no-properties
                                        (line-beginning-position)
                                        (line-end-position)))
