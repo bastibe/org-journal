@@ -709,7 +709,7 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 
 If no next/PREVious entry was found print MSG."
   (let ((calendar-date (if (org-journal-daily-p)
-                           (org-journal-file-name->calendar-date (buffer-file-name))
+                           (org-journal-file-name->calendar-date (file-truename (buffer-file-name)))
                          (org-journal-goto-journal-heading)
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
