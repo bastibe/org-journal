@@ -454,7 +454,8 @@ hook is run."
                                   (nth 8 now)))))  ; timezone
 
     (let* ((entry-path (org-journal-get-entry-path time))
-           (should-add-entry-p (not prefix)))
+           (should-add-entry-p (not prefix))
+           match)
 
       ;; Open journal file
       (unless (string= entry-path (buffer-file-name))
@@ -473,20 +474,20 @@ hook is run."
             (let ((date (decode-time time))
                   (dates (sort (org-journal-file->calendar-dates (buffer-file-name))
                                (lambda (a b)
-                                 (calendar-date-compare (list b) (list a)))))
-                  found)
+                                 (calendar-date-compare (list b) (list a))))))
               (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
               (while dates
                 (when (calendar-date-compare dates (list date))
                   (org-journal-search-forward-created (car dates))
                   (outline-end-of-subtree)
                   (insert "\n")
-                  (setq found t
+                  (setq match t
                         dates nil))
-                (setq dates (cdr dates)))
-              (unless found
-                (goto-char (point-max))
-                (forward-line))))
+                (setq dates (cdr dates)))))
+          ;; True if entry must be inserted at the end of the journal file.
+          (unless match
+            (goto-char (point-max))
+            (forward-line))
           (when (looking-back "[^\t ]" (point-at-bol))
             (insert "\n"))
           (beginning-of-line)
