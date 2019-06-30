@@ -426,11 +426,12 @@ This allows the use of `org-journal-tag-alist' and
 (defun org-journal-new-entry (prefix &optional time)
   "Open today's journal file and start a new entry.
 
-Giving the command a PREFIX arg will just open a today's file,
-without adding an entry. If given a TIME, create an entry for the
-time's day. If no TIME was given, use the current time (which is
-interpreted as belonging to yesterday if smaller than
-`org-extend-today-until').
+With a PREFIX arg, open the today's file, create a heading if it doesn't exist yet,
+but do not create a new entry.
+
+If given a TIME, create an entry for the time's day. If no TIME was given,
+use the current time (which is interpreted as belonging to yesterday if
+smaller than `org-extend-today-until`).
 
 Whenever a journal entry is created the `org-journal-after-entry-create-hook'
 hook is run."
