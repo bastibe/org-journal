@@ -274,6 +274,8 @@ search works with regexps."
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
+(defvar org-journal-search-buffer "*Org-journal search*")
+
 
 ;; Automatically switch to journal mode when opening a journal entry file
 (setq org-journal-file-pattern
@@ -862,36 +864,36 @@ it into a list of calendar date elements."
 (defun org-journal-read-or-display-entry (time &optional noselect)
   "Read an entry for the TIME and either select the new window when NOSELECT
 is nil or avoid switching when NOSELECT is non-nil."
-  (let ((org-journal-file (org-journal-get-entry-path time))
-        (point))
-    (if (and (file-exists-p org-journal-file)
+  (let* ((org-journal-file (org-journal-get-entry-path time))
+         (buf-exists (get-file-buffer org-journal-file))
+         buf point)
+    (if (and (when (file-exists-p org-journal-file)
+               (setq buf (find-file-noselect org-journal-file)))
              ;; If daily continoue with body of if condition
              (or (org-journal-daily-p)
                  ;; Search for journal entry
-                 (with-temp-buffer
-                   (insert-file-contents org-journal-file)
-                   (goto-char (point-min))
-                   (setq point (re-search-forward
-                                (format-time-string " *:CREATED: *%Y%m%d" time) nil t)))))
+                 (with-current-buffer buf
+                   (save-mark-and-excursion
+                     (goto-char (point-min))
+                     (setq point (re-search-forward
+                                  (format-time-string " *:CREATED: *%Y%m%d" time) nil t))))))
         (progn
-          ;; open file in view-mode if not opened already
-          (let ((had-a-buf (get-file-buffer org-journal-file))
-                ;; use find-file... instead of view-file... since
-                ;; view-file does not respect auto-mode-alist
-                (buf (find-file-noselect org-journal-file)))
-            (with-current-buffer buf
-              (when (not had-a-buf)
-                (view-mode)
-                (setq view-exit-action 'kill-buffer))
-              (set (make-local-variable 'org-hide-emphasis-markers) t)
-              (unless (org-journal-daily-p)
-                (goto-char point))
-              (org-journal-finalize-view)
-              (setq point (point)))
-            (if noselect
-                (display-buffer buf t)
-              (funcall org-journal-find-file org-journal-file))
-            (set-window-point (get-buffer-window (get-file-buffer org-journal-file)) point)))
+          ;; Use `find-file-noselect' instead of `view-file' as it does not respect `auto-mode-alist'
+          (with-current-buffer buf
+            ;; Open file in view-mode if not opened already.
+            (unless buf-exists
+              (view-mode)
+              (setq view-exit-action 'kill-buffer))
+            (set (make-local-variable 'org-hide-emphasis-markers) t)
+            (unless (org-journal-daily-p)
+              (goto-char point))
+            (org-journal-finalize-view)
+            (setq point (point)))
+          (if noselect
+              (display-buffer buf t)
+            (funcall org-journal-find-file org-journal-file))
+          (set-window-point (get-buffer-window (get-file-buffer org-journal-file)) point)
+          buf)
       (message "No journal entry for this date."))))
 
 ;;;###autoload
@@ -1126,10 +1128,18 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (error "Period end cannot be before the start"))
   (let* ((search-str (if (string= "" str) org-journal-time-prefix str))
          (files (org-journal-search-build-file-list period-start period-end))
-         (results (org-journal-search-do-search search-str files)))
-    (with-current-buffer-window
-        "*Org-journal search*" nil nil
-        (org-journal-search-print-results str results period-start period-end))))
+         (results (org-journal-search-do-search search-str files))
+         (buf (get-buffer-create org-journal-search-buffer))
+         (inhibit-read-only t))
+    (unless (get-buffer-window buf 0)
+      (switch-to-buffer buf))
+    (with-current-buffer buf
+      (org-journal-search-mode)
+      (erase-buffer)
+      (org-journal-search-print-results str results period-start period-end)
+      (goto-char (point-min))
+      (forward-button 1)
+      (button-activate (button-at (point))))))
 
 (defun org-journal-search-build-file-list (period-start period-end)
   "Build a list of journal files within a given time interval."
@@ -1201,17 +1211,47 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 
 (defun org-journal-format-date (time)
   "Format TIME according to `org-journal-date-format'."
-  (if (functionp org-journal-date-format)
-      (funcall org-journal-date-format time)
-    (format-time-string org-journal-date-format time)))
+  (format-time-string "%A, %x" time))
+
+(defun org-journal-search-next ()
+  (interactive)
+  (forward-button 1 t)
+  (button-activate (button-at (point))))
+
+(defun org-journal-search-prev ()
+  (interactive)
+  (backward-button 1 t)
+  (button-activate (button-at (point))))
+
+(defvar org-journal-search-mode-map nil
+  "Keymap for *Org-journal search* buffers.")
+(unless org-journal-search-mode-map
+  (setq org-journal-search-mode-map
+        (let ((map (make-sparse-keymap)))
+          (define-key map "q" 'kill-this-buffer)
+          (define-key map (kbd "<tab>") 'org-journal-search-next)
+          (define-key map (kbd "<backtab>") 'org-journal-search-prev)
+          (define-key map "n" 'org-journal-search-next)
+          (define-key map "p" 'org-journal-search-prev)
+          map)))
+(fset 'org-journal-search-mode-map org-journal-search-mode-map)
+
+(define-derived-mode org-journal-search-mode special-mode
+  "org-journal-search"
+  "Major mode for displaying org-journal search results.
+\\{org-journal-search-mode-map}."
+  (use-local-map org-journal-search-mode-map)
+  (setq truncate-lines t
+        buffer-undo-list t)
+  (hl-line-mode 1))
 
 (defun org-journal-search-print-results (str results period-start period-end)
   "Print search results using text buttons."
   (let ((label-start (org-journal-format-date period-start))
         (label-end (org-journal-format-date period-end)))
-    (princ (concat "Search results for \"" str "\" between "
-                   label-start " and " label-end
-                   ": \n\n")))
+    (insert (concat "Search results for \"" str "\" between "
+                    label-start " and " label-end
+                    ": \n\n")))
   (let* (fname point fullstr time label)
     (dolist (res results)
       (setq fname (nth 0 res)
@@ -1235,24 +1275,16 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
         (insert-text-button label
                             'action 'org-journal-search-follow-link-action
                             'org-journal-link (cons point time))
-        (princ "\t")
-        (princ fullstr)
-        (princ "\n"))))
-  (org-journal-highlight str)
-  (local-set-key (kbd "q") 'kill-this-buffer)
-  (local-set-key (kbd "<tab>") 'forward-button)
-  (local-set-key (kbd "<backtab>") 'backward-button)
-  (local-set-key (kbd "n") 'forward-button)
-  (local-set-key (kbd "p") 'backward-button))
+        (insert "\t" fullstr "\n"))))
+  (org-journal-highlight str))
 
 (defun org-journal-search-follow-link-action (button)
   "Follow the link using info saved in button properties."
   (let* ((target (button-get button 'org-journal-link))
          (point (car target))
-         (time (cdr target)))
-    (org-journal-read-or-display-entry time)
-    (goto-char point)
-    (outline-hide-other)))
+         (time (cdr target))
+         (buf (org-journal-read-or-display-entry time t)))
+    (set-window-point (get-buffer-window buf) point)))
 
 (defun org-journal-decrypt ()
   (when (fboundp 'org-decrypt-entries)
