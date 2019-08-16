@@ -1187,6 +1187,8 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
         (push file result)))
     result))
 
+
+
 (defun org-journal-search-do-search (str files)
   "Search for a string within a list of files, return match pairs (PATH . LINENUM)."
   (let (results result)
@@ -1198,11 +1200,21 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                       ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
                       (org-decrypt-entry))
                     (while (funcall org-journal-search-forward-fn str nil t)
-                      (let* ((fullstr (buffer-substring-no-properties
-                                       (line-beginning-position)
-                                       (line-end-position)))
-                             (res (list fname (- (point) (length str)) fullstr)))
-                        (push res result)))
+                      (push
+                       (list
+                        (let ((date
+                               (if (org-journal-daily-p)
+                                   (org-journal-file-name->calendar-date fname)
+                                 (save-excursion
+                                   (when (re-search-backward org-journal-created-re nil t)
+                                     (org-journal-entry-date->calendar-date))))))
+                          (when date
+                            (org-journal-calendar-date->time date)))
+                        (- (point) (length str))
+                        (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position)))
+                       result))
                     result))
       (when result
         (mapc (lambda (res) (push res results)) result)))
@@ -1253,20 +1265,11 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (insert (concat "Search results for \"" str "\" between "
                     label-start " and " label-end
                     ": \n\n")))
-  (let* (fname point fullstr time label)
+  (let (point fullstr time label)
     (dolist (res results)
-      (setq fname (nth 0 res)
+      (setq time (nth 0 res)
             point (nth 1 res)
             fullstr (nth 2 res)
-            time (let ((date (if (org-journal-daily-p)
-                                 (org-journal-file-name->calendar-date fname)
-                               (org-journal-with-journal
-                                fname
-                                (goto-char point)
-                                (when (re-search-backward org-journal-created-re nil t)
-                                  (org-journal-entry-date->calendar-date))))))
-                   (when date
-                     (org-journal-calendar-date->time date)))
             label (and time (org-journal-format-date time)))
       ;; Filter out entries not within period-start/end for weekly/monthly/yearly journal files.
       (when (or(org-journal-daily-p)

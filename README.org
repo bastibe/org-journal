@@ -190,8 +190,9 @@ Customization options related to the journal file contents:
 
   #+BEGIN_SRC emacs-lisp
   (defun org-journal-date-format-func (time)
-    "Custom function to insert journal date header,
-  and some custom text on a newly created journal file."
+    "Custom function to insert journal date header.
+
+    When buffer is empty prepend a header in front the entry header."
     (concat (when (= (buffer-size) 0)
               (concat
                (pcase org-journal-file-type
