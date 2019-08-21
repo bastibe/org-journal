@@ -60,10 +60,11 @@
 
 
 ;;; Code:
-(require 'org)
 (require 'cal-iso)
+(require 'org)
 (require 'org-crypt nil 'noerror)
 (require 'seq)
+(require 'subr-x)
 
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
@@ -505,7 +506,7 @@ hook is run."
       (org-journal-decrypt)
 
       ;; move TODOs from previous day here
-      (when (and org-journal-carryover-items
+      (when (and (not (string-blank-p org-journal-carryover-items))
                  (string= entry-path (org-journal-get-entry-path (current-time))))
         (org-journal-carryover))
 
