@@ -659,6 +659,8 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
 'weekly, 'monthly and 'yearly journal files."
   (let (date)
     (setq date (org-entry-get (point) "CREATED"))
+    (unless date
+      (error "Entry at \"%s:%d\" doesn't have a \"CREATED\" property." (buffer-file-name) (point)))
     (string-match "\\([0-9]\\{4\\}\\)\\([0-9]\\{2\\}\\)\\([0-9]\\{2\\}\\)" date)
     (list (string-to-number (match-string 2 date))
           (string-to-number (match-string 3 date))
