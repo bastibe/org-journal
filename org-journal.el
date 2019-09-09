@@ -808,11 +808,11 @@ If no next/PREVious entry was found print MSG."
   (expand-file-name "org-journal.cache" user-emacs-directory)
   "Cache file for `org-journal-dates' and `org-journal-journals' hash maps.")
 
-(defvar org-journal-journals nil
+(defvar org-journal-journals (make-hash-table :test 'equal)
   "Hash map for journal file modification time. The key is the journal
 file and the value the modification time.")
 
-(defvar org-journal-dates nil
+(defvar org-journal-dates (make-hash-table :test 'equal)
   "Hash map for journal dates. The key is the journal file and the
 value the journal file dates.")
 
@@ -820,8 +820,8 @@ value the journal file dates.")
   "Reset `org-journal-journals', `org-journal-dates' and remove the
 file `org-journal-cache-file'."
   (interactive)
-  (setq org-journal-journals nil
-        org-journal-dates nil)
+  (setq org-journal-journals (make-hash-table :test 'equal)
+        org-journal-dates (make-hash-table :test 'equal))
   (when (file-exists-p org-journal-cache-file)
     (delete-file org-journal-cache-file)))
 
@@ -860,20 +860,18 @@ file `org-journal-cache-file'."
         (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol))))))))
 
 (defun org-journal-flatten-dates (dates)
-  (when (and (consp dates) (consp (cdr dates)))
+  (when (consp dates)
     (cl-concatenate 'list (car dates) (org-journal-flatten-dates (cdr dates)))))
 
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
 it into a list of calendar date elements."
   (let ((files (org-journal-list-files)))
-    (unless (and org-journal-dates org-journal-journals)
+    (when (or (hash-table-empty-p org-journal-dates)
+              (hash-table-empty-p org-journal-journals))
       (org-journal-deserialize)
-      (unless (and org-journal-dates org-journal-journals)
-        (unless org-journal-dates
-          (setq org-journal-dates (make-hash-table :test 'equal)))
-        (unless org-journal-journals
-          (setq org-journal-journals (make-hash-table :test 'equal)))
+      (when (or (hash-table-empty-p org-journal-dates)
+                (hash-table-empty-p org-journal-journals))
         (dolist (file files)
           (org-journal-journals-puthash file)
           (org-journal-dates-puthash file))
