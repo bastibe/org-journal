@@ -16,6 +16,8 @@
   "Create temporary directory."
   (when (file-exists-p org-journal-dir-test)
     (delete-directory org-journal-dir-test t))
+  (when (file-exists-p org-journal-cache-file)
+    (delete-file org-journal-cache-file))
   (make-directory org-journal-dir-test))
 
 (defun org-journal-file-pattern-test ()
@@ -30,6 +32,10 @@
           (auto-mode-alist `(,(cons org-journal-file-pattern 'org-journal-mode) ,@auto-mode-alist))
           (org-journal-file-type 'daily)
           (org-journal-carryover-items "TODO=\"TODO\"")
+          (org-journal-cache-file "/tmp/org-journal.cache")
+          (org-journal-flatten-dates nil)
+          (org-journal-dates (make-hash-table :test 'equal))
+          (org-journal-journals (make-hash-table :test 'equal))
           (org-journal-encrypt-journal nil)
           (org-journal-enable-encryption nil)
           (org-journal-date-format "Test header")
@@ -69,7 +75,7 @@
 
 
 (ert-deftest org-journal-carryover-items-test ()
-  "Org journal new enty test."
+  "Org journal new entry test."
   (org-journal-test-macro
    (with-temp-buffer
      (insert "* Tuesday, 01/01/19\n")
@@ -96,7 +102,7 @@
                             new-entry "\n")))))
 
 (ert-deftest org-journal-carryover-keep-parents-test ()
-  "Org journal new enty test for daily files."
+  "Org journal new entry test for daily files."
   (org-journal-test-macro
    (with-temp-buffer
      (insert "* Wednesday, 01/02/19\n")
