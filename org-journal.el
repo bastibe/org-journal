@@ -799,13 +799,9 @@ If no next/PREVious entry was found print MSG."
                               (not (string-match-p "\.gpg$" (file-truename file-path))))))))
     (seq-filter predicate file-list)))
 
-(defvar org-journal-cache-journals-file
-  (expand-file-name "org-journal-journals.cache" user-emacs-directory)
-  "Cache file for `org-journal-journals'.")
-
-(defvar org-journal-cache-dates-file
-  (expand-file-name "org-journal-dates.cache" user-emacs-directory)
-  "Cache file for `org-journal-dates'.")
+(defvar org-journal-cache-file
+  (expand-file-name "org-journal.cache" user-emacs-directory)
+  "Cache file for `org-journal-dates' and `org-journal-journals' hash maps.")
 
 (defvar org-journal-journals nil
   "Hash map for journal file modification time. The key is the journal
@@ -835,26 +831,24 @@ value the journal file dates.")
 
 (defun org-journal-serialize ()
   "Write hashmap to file."
-  (let ((writer (lambda (file data)
-                  (when (file-writable-p file)
-                    (with-temp-file file
-                      (insert (let (print-length) (prin1-to-string data))))))))
-    (funcall writer org-journal-cache-dates-file org-journal-dates)
-    (funcall writer org-journal-cache-journals-file org-journal-journals))
-  (setq org-journal-flatten-dates
-            (org-journal-flatten-dates (hash-table-values org-journal-dates))))
+  (when (file-writable-p org-journal-cache-file)
+    (with-temp-file org-journal-cache-file
+      (let (print-length)
+        (insert (prin1-to-string org-journal-dates)
+                "\n"
+                (prin1-to-string org-journal-journals)))))
+  (setq org-journal-flatten-dates (org-journal-flatten-dates (hash-table-values org-journal-dates))))
 
 (defun org-journal-deserialize ()
   "Read hashmap from file."
-  (let ((reader (lambda (file)
-                  (with-demoted-errors
-                      "Error during file deserialization: %S"
-                    (when (file-exists-p file)
-                      (with-temp-buffer
-                        (insert-file-contents file)
-                        (read (buffer-string))))))))
-    (setq org-journal-dates (funcall reader org-journal-cache-dates-file))
-    (setq org-journal-journals (funcall reader org-journal-cache-journals-file))))
+  (with-demoted-errors
+      "Error during file deserialization: %S"
+    (when (file-exists-p org-journal-cache-file)
+      (with-temp-buffer
+        (insert-file-contents org-journal-cache-file)
+        (setq org-journal-dates (read (buffer-substring (point-at-bol) (point-at-eol))))
+        (forward-line)
+        (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol))))))))
 
 (defun org-journal-puthash (file)
   (org-journal-journals-puthash file)
