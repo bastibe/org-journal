@@ -108,7 +108,7 @@ org-journal. Use `org-journal-file-format' instead.")
   :group 'applications)
 
 (defface org-journal-highlight
-  '((t (:foreground "#ff1493")))
+    '((t (:foreground "#ff1493")))
   "Face for highlighting org-journal buffers.")
 
 (defun org-journal-highlight (str)
@@ -118,7 +118,7 @@ org-journal. Use `org-journal-file-format' instead.")
     (put-text-property (match-beginning 0) (match-end 0) 'font-lock-face 'org-journal-highlight)))
 
 (defface org-journal-calendar-entry-face
-  '((t (:foreground "#aa0000" :slant italic)))
+    '((t (:foreground "#aa0000" :slant italic)))
   "Face for highlighting org-journal entries in M-x calendar.")
 
 (defface org-journal-calendar-scheduled-face
@@ -292,7 +292,11 @@ search works with regexps."
   "Journal"
   "Mode for writing or viewing entries written in the journal."
   (turn-on-visual-line-mode)
+  ;; Call to `org-journal-serialize' needs to be after the call to `org-journal-journals-puthash'
+  (add-hook 'after-save-hook 'org-journal-serialize nil t)
   (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
+  (add-hook 'after-save-hook 'org-journal-journals-puthash nil t)
+  (add-hook 'before-save-hook 'org-journal-dates-puthash nil t)
   (when (or org-journal-tag-alist org-journal-tag-persistent-alist)
     (org-journal-set-current-tag-alist))
   (run-mode-hooks))
@@ -795,30 +799,94 @@ If no next/PREVious entry was found print MSG."
                               (not (string-match-p "\.gpg$" (file-truename file-path))))))))
     (seq-filter predicate file-list)))
 
+(defvar org-journal-cache-journals-file
+  (expand-file-name "org-journal-journals.cache" user-emacs-directory)
+  "Cache file for `org-journal-journals'.")
+
+(defvar org-journal-cache-dates-file
+  (expand-file-name "org-journal-dates.cache" user-emacs-directory)
+  "Cache file for `org-journal-dates'.")
+
+(defvar org-journal-journals nil
+  "Hash map for journal file modification time. The key is the journal
+file and the value the modification time.")
+
+(defvar org-journal-dates nil
+  "Hash map for journal dates. The key is the journal file and the
+value the journal file dates.")
+
+(defvar org-journal-flatten-dates nil
+  "Flatten list of all journal dates.")
+
+(defun org-journal-file-modification-time (file)
+  (file-attribute-modification-time (file-attributes file)))
+
+(defun org-journal-journals-puthash (&optional file)
+  (or file (setq file (buffer-file-name)))
+  (puthash file (org-journal-file-modification-time file) org-journal-journals))
+
+(defun org-journal-dates-puthash (&optional file)
+  (or file (setq file (buffer-file-name)))
+  (let ((dates (nreverse
+                (if (org-journal-daily-p)
+                    (org-journal-file-name->calendar-date file)
+                  (org-journal-file->calendar-dates file)))))
+    (puthash file dates org-journal-dates)))
+
+(defun org-journal-serialize ()
+  "Write hashmap to file."
+  (let ((writer (lambda (file data)
+                  (when (file-writable-p file)
+                    (with-temp-file file
+                      (insert (let (print-length) (prin1-to-string data))))))))
+    (funcall writer org-journal-cache-dates-file org-journal-dates)
+    (funcall writer org-journal-cache-journals-file org-journal-journals))
+  (setq org-journal-flatten-dates
+            (org-journal-flatten-dates (hash-table-values org-journal-dates))))
+
+(defun org-journal-deserialize ()
+  "Read hashmap from file."
+  (let ((reader (lambda (file)
+                  (with-demoted-errors
+                      "Error during file deserialization: %S"
+                    (when (file-exists-p file)
+                      (with-temp-buffer
+                        (insert-file-contents file)
+                        (read (buffer-string))))))))
+    (setq org-journal-dates (funcall reader org-journal-cache-dates-file))
+    (setq org-journal-journals (funcall reader org-journal-cache-journals-file))))
+
+(defun org-journal-puthash (file)
+  (org-journal-journals-puthash file)
+  (org-journal-dates-puthash file))
+
+(defun org-journal-flatten-dates (dates)
+  (when (consp dates)
+    (concatenate 'list (car dates) (org-journal-flatten-dates (cdr dates)))))
+
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
 it into a list of calendar date elements."
-  (let ((dates (mapcar (if (org-journal-daily-p)
-                           'org-journal-file-name->calendar-date
-                         'org-journal-file->calendar-dates)
-                       (org-journal-list-files))))
-    ;; Need to flatten the list and bring dates in correct order.
-    (unless (org-journal-daily-p)
-      (let ((flattened-date-l '())
-            flattened-date-reverse-l file-dates)
-        (while dates
-          (setq file-dates (car dates))
-          (setq flattened-date-reverse-l '())
-          (while file-dates
-            (push (car file-dates) flattened-date-reverse-l)
-            (setq file-dates (cdr file-dates)))
-          ;; Correct order of journal entries from file by pushing it to a new list.
-          (mapc (lambda (p)
-                  (push p flattened-date-l))
-                flattened-date-reverse-l)
-          (setq dates (cdr dates)))
-        (setq dates (reverse flattened-date-l))))
-    dates))
+  (let ((files (org-journal-list-files))
+        dirty)
+    (unless (and org-journal-dates org-journal-journals)
+      (org-journal-deserialize)
+      (unless (and org-journal-dates org-journal-journals)
+        (unless org-journal-dates
+          (setq org-journal-dates (make-hash-table :test 'equal)))
+        (unless org-journal-journals
+          (setq org-journal-journals (make-hash-table :test 'equal)))
+        (dolist (file files) (org-journal-puthash file))
+        (setq dirty t)))
+    ;; Verify modification time is unchanged, otherwise parse journal dates.
+    (dolist (file files)
+      (unless (equal (gethash file org-journal-journals)
+                     (org-journal-file-modification-time file))
+        (org-journal-puthash file)
+        (setq dirty t)))
+    (when (or dirty (not org-journal-flatten-dates))
+      (org-journal-serialize))
+    org-journal-flatten-dates))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
