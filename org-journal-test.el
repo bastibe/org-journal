@@ -1,4 +1,4 @@
-;; org-journal-test.el ---
+;; org-journal-test.el --- Test file for org-journal
 ;;
 ;; Author: Christian Schwarzgruber (c.schwarzgruber.cs@gmail.com)
 ;;

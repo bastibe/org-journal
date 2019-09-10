@@ -1,8 +1,10 @@
 ;;; org-journal.el --- a simple org-mode based journaling mode -*- lexical-binding: t; -*-
 
 ;; Author: Bastian Bechtold
+;;         Christian Schwarzgruber
+
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.15.1
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
