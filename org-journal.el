@@ -1271,18 +1271,17 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
         (push file result)))
     result))
 
-
-
 (defun org-journal-search-do-search (str files)
   "Search for a string within a list of files, return match pairs (PATH . LINENUM)."
   (let (results result)
     (dolist (fname (reverse files))
       (setq result (org-journal-with-journal
                     fname
-                    (goto-char (point-min))
                     (when org-journal-enable-encryption
-                      ;; FIXME(cschwarzgruber): need to iterate over all entries for weekly/monthly/yearly
-                      (org-decrypt-entry))
+                      (goto-char (point-min))
+                      (while (search-forward ":crypt:" nil t)
+                        (org-decrypt-entry)))
+                    (goto-char (point-min))
                     (while (funcall org-journal-search-forward-fn str nil t)
                       (push
                        (list
