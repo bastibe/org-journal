@@ -61,7 +61,6 @@
 
 ;;; Code:
 (require 'cal-iso)
-(require 'cl-lib)
 (require 'org)
 (require 'org-crypt nil 'noerror)
 (require 'seq)
@@ -846,7 +845,10 @@ file `org-journal-cache-file'."
       (let (print-length)
         (insert (prin1-to-string org-journal-dates)
                 "\n"
-                (prin1-to-string org-journal-journals))))))
+                (prin1-to-string org-journal-journals)))))
+  (unless (org-journal-daily-p)
+    (setq org-journal-flatten-dates
+          (org-journal-flatten-dates (hash-table-values org-journal-dates)))))
 
 (defun org-journal-deserialize ()
   "Read hashmap from file."
@@ -859,9 +861,13 @@ file `org-journal-cache-file'."
         (forward-line)
         (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol))))))))
 
+(defvar org-journal-flatten-dates nil
+  "Holds a list of all journal dates.
+It's used only when `org-journal-file-type' is not 'daily.")
+
 (defun org-journal-flatten-dates (dates)
   (when (consp dates)
-    (cl-concatenate 'list (car dates) (org-journal-flatten-dates (cdr dates)))))
+    (append (car dates) (org-journal-flatten-dates (cdr dates)))))
 
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
@@ -877,19 +883,23 @@ it into a list of calendar date elements."
           (org-journal-dates-puthash file))
         (org-journal-serialize)))
     ;; Verify modification time is unchanged, otherwise parse journal dates.
-    (dolist (file files)
-      (if (file-exists-p file)
-          (unless (equal (gethash file org-journal-journals)
-                         (org-journal-file-modification-time file))
-            (org-journal-journals-puthash file)
-            (org-journal-dates-puthash file)
-            (org-journal-serialize))
-        (remhash file org-journal-dates)
-        (remhash file org-journal-journals)
+    (let ((keys (hash-table-keys org-journal-dates)))
+      (dolist (file files)
+        (unless (equal (gethash file org-journal-journals)
+                       (org-journal-file-modification-time file))
+          (org-journal-journals-puthash file)
+          (org-journal-dates-puthash file)
+          (org-journal-serialize))
+        (when (member file keys)
+          (setq keys (delete file keys))))
+      (when keys
+        (dolist (key keys)
+          (remhash key org-journal-dates)
+          (remhash key org-journal-journals))
         (org-journal-serialize)))
     (if (org-journal-daily-p)
         (hash-table-values org-journal-dates)
-      (org-journal-flatten-dates (hash-table-values org-journal-dates)))))
+      org-journal-flatten-dates)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
