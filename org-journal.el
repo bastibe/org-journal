@@ -1008,7 +1008,7 @@ is nil or avoid switching when NOSELECT is non-nil."
 
 ;;;###autoload
 (defun org-journal-search (str &optional period-name)
-  "Search for a string in the journal within a given interval.
+  "Search for a string in the journal files.
 
 See `org-read-date' for information on ways to specify dates.
 If a prefix argument is given, search all dates."
@@ -1016,6 +1016,10 @@ If a prefix argument is given, search all dates."
   (let* ((period-pair (org-journal-read-period (if current-prefix-arg 'forever period-name)))
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair))))
+    ;; Including period-start in search
+    (setcar (cdr start) (1- (cadr start)))
+    ;; Including period-end in search
+    (setcar (cdr end) (1+ (cadr end)))
     (org-journal-search-by-string str start end)))
 
 (defvar org-journal-search-history nil)
