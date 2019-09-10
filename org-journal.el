@@ -782,9 +782,8 @@ If no next/PREVious entry was found print MSG."
   (interactive)
   (org-journal-open-entry "No previous journal entry before this one" t no-select))
 
-;;
-;; Functions to browse existing journal entries using the calendar
-;;
+
+;;; Functions to browse existing journal entries using the calendar
 
 ;;;###autoload
 (defun org-journal-list-files ()
@@ -815,6 +814,7 @@ file and the value the modification time.")
   "Hash map for journal dates. The key is the journal file and the
 value the journal file dates.")
 
+;;;###autoload
 (defun org-journal-invalidate-cache ()
   "Reset `org-journal-journals', `org-journal-dates' and remove the
 file `org-journal-cache-file'."
