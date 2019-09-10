@@ -1004,7 +1004,6 @@ is nil or avoid switching when NOSELECT is non-nil."
       (calendar-goto-date (car dates)))))
 
 ;;; Journal search facilities
-;;
 
 ;;;###autoload
 (defun org-journal-search (str &optional period-name)
@@ -1012,7 +1011,8 @@ is nil or avoid switching when NOSELECT is non-nil."
 
 See `org-read-date' for information on ways to specify dates.
 If a prefix argument is given, search all dates."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (let* ((period-pair (org-journal-read-period (if current-prefix-arg 'forever period-name)))
          (start (org-journal-calendar-date->time (car period-pair)))
          (end (org-journal-calendar-date->time (cdr period-pair))))
@@ -1026,27 +1026,37 @@ If a prefix argument is given, search all dates."
 
 (defun org-journal-search-calendar-week (str)
   "Search for a string within a current calendar-mode week entries."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list
+    (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'week))
 
 (defun org-journal-search-calendar-month (str)
   "Search for a string within a current calendar-mode month entries."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list
+    (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'month))
 
 (defun org-journal-search-calendar-year (str)
   "Search for a string within a current calendar-mode year entries."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list
+    (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'year))
 
 (defun org-journal-search-forever (str)
   "Search for a string within all entries."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list
+    (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'forever))
 
 (defun org-journal-search-future (str)
   "Search for a string within all future entries."
-  (interactive (list (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
+  (interactive
+   (list
+    (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'future))
 
 (defun org-journal-search-future-scheduled ()
@@ -1087,8 +1097,9 @@ out past org-journal files."
            (let* ((future (org-journal-read-period 'future))
                   (beg (car future))
                   (end (cdr future)))
-             ;; TODO(cschwarzgruber): Needs to be adopted for weekly, monthly or yearly journal file type.
-             ;; We actually would need to limit the file scope, if we only want TODO's for today, and future.
+             ;; TODO(cschwarzgruber): Needs to be adopted for weekly, monthly or yearly
+             ;; journal file type. We actually would need to limit the file scope, if
+             ;; we only want TODO's for today, and future.
              (setcar (cdr beg) (1- (cadr beg)))
              (org-journal-search-build-file-list
               (org-journal-calendar-date->time beg)
@@ -1154,60 +1165,60 @@ If PERIOD-NAME is 'forever, set the period from the beginning of time
 to eternity. If PERIOD-NAME is a symbol equal to 'week, 'month or 'year
 then use current week, month or year from the calendar, accordingly."
   (cond
-   ;; no period-name? ask the user for input
-   ((not period-name)
-    (let* ((org-read-date-prefer-future nil)
-           (absolute-start (time-to-days (org-read-date nil t nil "Enter a period start")))
-           (absolute-end (time-to-days (org-read-date nil t nil "Enter a period end")))
-           (start (calendar-gregorian-from-absolute absolute-start))
-           (end (calendar-gregorian-from-absolute absolute-end)))
-      (cons start end)))
+    ;; no period-name? ask the user for input
+    ((not period-name)
+     (let* ((org-read-date-prefer-future nil)
+            (absolute-start (time-to-days (org-read-date nil t nil "Enter the search start")))
+            (absolute-end (time-to-days (org-read-date nil t nil "Enter the search end")))
+            (start (calendar-gregorian-from-absolute absolute-start))
+            (end (calendar-gregorian-from-absolute absolute-end)))
+       (cons start end)))
 
-   ;; eternity start/end
-   ((eq period-name 'forever)
-    (cons (list 1 1 1971)
-          (list 12 31 2030)))
+    ;; eternity start/end
+    ((eq period-name 'forever)
+     (cons (list 1 1 1971)
+           (list 12 31 2030)))
 
-   ;; future start/end
-   ((eq period-name 'future)
-    (let ((date (decode-time (current-time))))
-         (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
-               (list 12 31 2030))))
+    ;; future start/end
+    ((eq period-name 'future)
+     (let ((date (decode-time (current-time))))
+       (cons (list (nth 4 date) (nth 3 date) (nth 5 date))
+             (list 12 31 2030))))
 
-   ;; extract a year start/end using the calendar curson
-   ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
-    (calendar-cursor-to-nearest-date)
-    (let* ((date (calendar-cursor-to-date))
-           (year (calendar-extract-year date))
-           (jan-first (list 1 1 year))
-           (dec-31 (list 12 31 year)))
-      (cons jan-first
-            dec-31)))
+    ;; extract a year start/end using the calendar curson
+    ((and (eq period-name 'year) (eq major-mode 'calendar-mode))
+     (calendar-cursor-to-nearest-date)
+     (let* ((date (calendar-cursor-to-date))
+            (year (calendar-extract-year date))
+            (jan-first (list 1 1 year))
+            (dec-31 (list 12 31 year)))
+       (cons jan-first
+             dec-31)))
 
-   ;; month start/end
-   ((and (eq period-name 'month) (eq major-mode 'calendar-mode))
-    (calendar-cursor-to-nearest-date)
-    (let* ((date (calendar-cursor-to-date))
-           (year (calendar-extract-year date))
-           (month (calendar-extract-month date))
-           (last-day (calendar-last-day-of-month month year)))
-      (cons (list month 1 year)
-            (list month last-day year))))
+    ;; month start/end
+    ((and (eq period-name 'month) (eq major-mode 'calendar-mode))
+     (calendar-cursor-to-nearest-date)
+     (let* ((date (calendar-cursor-to-date))
+            (year (calendar-extract-year date))
+            (month (calendar-extract-month date))
+            (last-day (calendar-last-day-of-month month year)))
+       (cons (list month 1 year)
+             (list month last-day year))))
 
-   ;; week start/end
-   ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
-    (calendar-cursor-to-nearest-date)
-    (let* ((date (calendar-cursor-to-date))
-           (absoluteday (calendar-absolute-from-gregorian date))
-           (weekday (calendar-day-of-week date))
-           (zerobased-weekday (- weekday calendar-week-start-day))
-           (absolute-start (- absoluteday zerobased-weekday))
-           (absolute-end (+ absoluteday (- 7 zerobased-weekday)))
-           (start (calendar-gregorian-from-absolute absolute-start))
-           (end (calendar-gregorian-from-absolute absolute-end)))
-      (cons start end)))
+    ;; week start/end
+    ((and (eq period-name 'week) (eq major-mode 'calendar-mode))
+     (calendar-cursor-to-nearest-date)
+     (let* ((date (calendar-cursor-to-date))
+            (absoluteday (calendar-absolute-from-gregorian date))
+            (weekday (calendar-day-of-week date))
+            (zerobased-weekday (- weekday calendar-week-start-day))
+            (absolute-start (- absoluteday zerobased-weekday))
+            (absolute-end (+ absoluteday (- 7 zerobased-weekday)))
+            (start (calendar-gregorian-from-absolute absolute-start))
+            (end (calendar-gregorian-from-absolute absolute-end)))
+       (cons start end)))
 
-   (t (error "Wrong period-name given or not in the calendar mode"))))
+    (t (error "Wrong period-name given or not in the calendar mode"))))
 
 (defun org-journal-search-by-string (str &optional period-start period-end)
   "Search for a string within a given time interval.
@@ -1359,10 +1370,10 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
             fullstr (nth 2 res)
             label (and time (org-journal-format-date time)))
       ;; Filter out entries not within period-start/end for weekly/monthly/yearly journal files.
-      (when (or(org-journal-daily-p)
-               (and time
-                    (time-less-p period-start time)
-                    (time-less-p time period-end)))
+      (when (or (org-journal-daily-p)
+                (and time
+                     (time-less-p period-start time)
+                     (time-less-p time period-end)))
         (insert-text-button label
                             'action 'org-journal-search-follow-link-action
                             'org-journal-link (cons point time))
