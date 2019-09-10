@@ -29,6 +29,10 @@ the journal entry can be encrypted, so can the file, see
 =org-journal-enable-encryption= and =org-journal-encrypt-journal=,
 respectively.
 
+Every journal entry must have a *CREATED* property when using yearly, monthly
+and weekly journal files. This property is added by =org-journal-new-entry=
+automatically.
+
 An example of a daily file (it will actually look a lot nicer, depending on
 your org-mode
 settings):
@@ -340,6 +344,15 @@ as in the following example:
   (setq org-capture-templates '(("j" "Journal entry" entry (function org-journal-find-location)
                                  "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")))
 #+END_SRC
+
+*** Caching of journal dates
+Since version 2.0.0 a cache has been added to speed up calendar
+operations. This should drastically improve the performance when using
+encrypted journal files, see =org-journal-encrypt-journal=.
+
+The caching functionality can be enabled by settings
+=org-journal-enable-cache= to =t=. The cache can be reset by calling
+=org-journal-invalidate-cache=.
 
 ** FAQ
 

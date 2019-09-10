@@ -108,3 +108,11 @@
   - Fixes issue with encryption, byte-compilation (Thank you, Christian Schwarzgruber!)
   - Improves documentation (Thank you, EFLS!)
   - Fixes initialization error (Thank you, Christian Schwarzgruber!)
+
+## 2019-10-30 V2.0.0
+  - Adds support for weekly, monthly and yearly journal files
+  - Adds cache to speed up calendar operations
+  - Adds support for persistent tags (Thank you, Tina Russell!)
+  - Improves search result buffer
+  - Include start/end date in search result
+  - Adds `org-journal-follow-mode` to follow journal entries when moving between entries in calendar
