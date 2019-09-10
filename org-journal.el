@@ -846,9 +846,7 @@ file `org-journal-cache-file'."
         (insert (prin1-to-string org-journal-dates)
                 "\n"
                 (prin1-to-string org-journal-journals)))))
-  (unless (org-journal-daily-p)
-    (setq org-journal-flatten-dates
-          (org-journal-flatten-dates (hash-table-values org-journal-dates)))))
+  (org-journal-flatten-dates))
 
 (defun org-journal-deserialize ()
   "Read hashmap from file."
@@ -859,15 +857,23 @@ file `org-journal-cache-file'."
         (insert-file-contents org-journal-cache-file)
         (setq org-journal-dates (read (buffer-substring (point-at-bol) (point-at-eol))))
         (forward-line)
-        (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol))))))))
+        (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol)))))))
+  (org-journal-flatten-dates))
 
 (defvar org-journal-flatten-dates nil
   "Holds a list of all journal dates.
 It's used only when `org-journal-file-type' is not 'daily.")
 
-(defun org-journal-flatten-dates (dates)
+(defun org-journal-flatten-dates-recursive (dates)
+  "Recursively flatten dates into a single list."
   (when (consp dates)
-    (append (car dates) (org-journal-flatten-dates (cdr dates)))))
+    (append (car dates) (org-journal-flatten-dates-recursive (cdr dates)))))
+
+(defun org-journal-flatten-dates ()
+  "Flatten dates if `org-journal-file-type' is not `'daily'."
+  (unless (org-journal-daily-p)
+    (setq org-journal-flatten-dates
+          (org-journal-flatten-dates-recursive (hash-table-values org-journal-dates)))))
 
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
