@@ -91,15 +91,15 @@
        (write-file (expand-file-name "20181231" org-journal-dir-test))
        (kill-buffer "20181231"))
      (org-journal-new-entry nil)
-     (write-file (org-journal-get-entry-path)))
-   (kill-buffer)
-   (should (string= (with-temp-buffer
-                      (insert-file-contents (org-journal-get-entry-path))
-                      (buffer-substring-no-properties (point-min) (point-max)))
-                    (concat "* Test header\n  :PROPERTIES:\n  :CREATED:  "
-                            (format-time-string "%Y%m%d")
-                            "\n  :END:\n** TODO First\n** TODO Second\n"
-                            new-entry "\n")))))
+     (write-file (org-journal-get-entry-path))
+     (kill-buffer)
+     (should (string= (with-temp-buffer
+                        (insert-file-contents (org-journal-get-entry-path))
+                        (buffer-substring-no-properties (point-min) (point-max)))
+                      (concat "* Test header\n  :PROPERTIES:\n  :CREATED:  "
+                              (format-time-string "%Y%m%d")
+                              "\n  :END:\n** TODO First\n** TODO Second\n"
+                              new-entry "\n"))))))
 
 (ert-deftest org-journal-carryover-keep-parents-test ()
   "Org journal new entry test for daily files."
