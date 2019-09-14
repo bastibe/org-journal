@@ -715,17 +715,13 @@ arguments (C-u C-u) are given. In that case insert just the heading."
       (save-excursion
         (insert "\n<" scheduled-time ">")))))
 
-(defsubst org-journal-goto-journal-heading ()
-  "Goto to journal heading."
-  (while (org-up-heading-safe)))
-
 (defun org-journal-open-entry (msg &optional prev no-select)
   "Open journal entry.
 
 If no next/PREVious entry was found print MSG."
   (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (file-truename (buffer-file-name)))
-                         (org-journal-goto-journal-heading)
+                         (while (org-up-heading-safe))
                          (org-journal-entry-date->calendar-date)))
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
@@ -1091,8 +1087,8 @@ existed before)."
        result)))
 
 (defun org-journal-update-org-agenda-files ()
-  "Adds the current and future journal files to `org-agenda-files', and cleans
-out past org-journal files."
+  "Adds the current and future journal files to `org-agenda-files' containing TODOs,
+and cleans out past org-journal files."
   (when org-journal-enable-agenda-integration
     (let ((not-org-journal-agenda-files
            (seq-filter
@@ -1103,9 +1099,6 @@ out past org-journal files."
            (let* ((future (org-journal-read-period 'future))
                   (beg (car future))
                   (end (cdr future)))
-             ;; TODO(cschwarzgruber): Needs to be adopted for weekly, monthly or yearly
-             ;; journal file type. We actually would need to limit the file scope, if
-             ;; we only want TODO's for today, and future.
              (setcar (cdr beg) (1- (cadr beg)))
              (org-journal-search-build-file-list
               (org-journal-calendar-date->time beg)
