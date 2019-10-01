@@ -294,6 +294,10 @@ You can, for example, set it to `search-forward-regexp` so the
 search works with regexps."
   :type 'function)
 
+(defcustom org-journal-follow-mode nil
+  "If `t', follow journal entry in calendar."
+  :type 'boolean)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -1010,7 +1014,9 @@ is nil or avoid switching when NOSELECT is non-nil."
                             (list (calendar-cursor-to-date)) dates)))
       (setq dates (cdr dates)))
     (when dates
-      (calendar-goto-date (car dates)))))
+      (calendar-goto-date (car dates))
+      (when org-journal-follow-mode
+        (org-journal-display-entry nil)))))
 
 ;;;###autoload
 (defun org-journal-previous-entry ()
@@ -1021,7 +1027,9 @@ is nil or avoid switching when NOSELECT is non-nil."
                 (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
     (when dates
-      (calendar-goto-date (car dates)))))
+      (calendar-goto-date (car dates))
+      (when org-journal-follow-mode
+        (org-journal-display-entry nil)))))
 
 ;;; Journal search facilities
 
