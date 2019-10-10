@@ -843,7 +843,7 @@ file `org-journal-cache-file'."
     (delete-file org-journal-cache-file)))
 
 (defun org-journal-file-modification-time (file)
-  (file-attribute-modification-time (file-attributes file)))
+  (nth 5 (file-attributes file)))
 
 (defun org-journal-journals-puthash (&optional file)
   (or file (setq file (buffer-file-name)))
