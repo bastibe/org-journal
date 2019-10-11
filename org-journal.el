@@ -858,6 +858,8 @@ file `org-journal-cache-file'."
 
 (defun org-journal-serialize ()
   "Write hashmap to file."
+  (unless (file-directory-p (file-name-directory org-journal-cache-file))
+    (make-directory (file-name-directory org-journal-cache-file) t))
   (when (file-writable-p org-journal-cache-file)
     (with-temp-file org-journal-cache-file
       (let (print-length)
