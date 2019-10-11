@@ -858,12 +858,15 @@ file `org-journal-cache-file'."
 
 (defun org-journal-serialize ()
   "Write hashmap to file."
-  (when (file-writable-p org-journal-cache-file)
-    (with-temp-file org-journal-cache-file
-      (let (print-length)
-        (insert (prin1-to-string org-journal-dates)
-                "\n"
-                (prin1-to-string org-journal-journals)))))
+  (unless (file-directory-p (file-name-directory org-journal-cache-file))
+    (make-directory (file-name-directory org-journal-cache-file) t))
+  (if (file-writable-p org-journal-cache-file)
+      (with-temp-file org-journal-cache-file
+        (let (print-length)
+          (insert (prin1-to-string org-journal-dates)
+                  "\n"
+                  (prin1-to-string org-journal-journals))))
+    (error "%s is not writable" org-journal-cache-file))
   (org-journal-flatten-dates))
 
 (defun org-journal-deserialize ()
