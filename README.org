@@ -269,13 +269,14 @@ Search is also available through the Emacs Calendar as described in "Basic Usage
 
 *** Carry Over
 
-By default, =org-journal= will try to /carry over/ previous day TODO-marked items whenever
-a new journal file is created. The older journal entry will be /moved/ (i.e., deleted and
-reinserted) to the current day's file.
+By default, =org-journal= will try to /carry over/ previous day TODO-marked
+items whenever a new journal file is created. The older journal entry will be
+/moved/ (i.e., deleted and reinserted) to the current day's file.
 
-This feature is controlled through the =org-journal-carryover-items= variable. Set this to
-=nil= to disable this feature, or to any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]] for a set of
-matching tags, properties, and todo states. By default, this is ~TODO=”TODO”~, which will
+This feature is controlled through the =org-journal-carryover-items=
+variable. To disable this feature set =org-journal-carryover-items= to an
+empty string =""=. Any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]], tags, properties, and
+todo states are allowed. By default this is ~TODO=”TODO”~. Which will
 match TODO items.
 
 *** Encryption

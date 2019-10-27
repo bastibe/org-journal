@@ -536,7 +536,8 @@ hook is run."
       (org-journal-decrypt)
 
       ;; move TODOs from previous day here
-      (when (and (not (string-blank-p org-journal-carryover-items))
+      (when (and org-journal-carryover-items
+                 (not (string-blank-p org-journal-carryover-items))
                  (string= entry-path (org-journal-get-entry-path (current-time))))
         (org-journal-carryover))
 
