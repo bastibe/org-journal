@@ -298,6 +298,10 @@ search works with regexps."
   "If `t', follow journal entry in calendar."
   :type 'boolean)
 
+(defcustom org-journal-enable-cache nil
+  "If `t', journal entry dates will be cashed for faster calendar operations."
+  :type 'boolean)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -900,34 +904,56 @@ It's used only when `org-journal-file-type' is not 'daily.")
 (defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
 it into a list of calendar date elements."
-  (let ((files (org-journal-list-files)))
-    (when (or (hash-table-empty-p org-journal-dates)
-              (hash-table-empty-p org-journal-journals))
-      (org-journal-deserialize)
-      (when (or (hash-table-empty-p org-journal-dates)
-                (hash-table-empty-p org-journal-journals))
-        (dolist (file files)
-          (org-journal-journals-puthash file)
-          (org-journal-dates-puthash file))
-        (org-journal-serialize)))
-    ;; Verify modification time is unchanged, otherwise parse journal dates.
-    (let ((keys (hash-table-keys org-journal-dates)))
-      (dolist (file files)
-        (unless (equal (gethash file org-journal-journals)
-                       (org-journal-file-modification-time file))
-          (org-journal-journals-puthash file)
-          (org-journal-dates-puthash file)
-          (org-journal-serialize))
-        (when (member file keys)
-          (setq keys (delete file keys))))
-      (when keys
-        (dolist (key keys)
-          (remhash key org-journal-dates)
-          (remhash key org-journal-journals))
-        (org-journal-serialize)))
-    (if (org-journal-daily-p)
-        (hash-table-values org-journal-dates)
-      org-journal-flatten-dates)))
+  (if org-journal-enable-cache
+      (let ((files (org-journal-list-files)))
+        (when (or (hash-table-empty-p org-journal-dates)
+                  (hash-table-empty-p org-journal-journals))
+          (org-journal-deserialize)
+          (when (or (hash-table-empty-p org-journal-dates)
+                    (hash-table-empty-p org-journal-journals))
+            (dolist (file files)
+              (org-journal-journals-puthash file)
+              (org-journal-dates-puthash file))
+            (org-journal-serialize)))
+        ;; Verify modification time is unchanged, otherwise parse journal dates.
+        (let ((keys (hash-table-keys org-journal-dates)))
+          (dolist (file files)
+            (unless (equal (gethash file org-journal-journals)
+                           (org-journal-file-modification-time file))
+              (org-journal-journals-puthash file)
+              (org-journal-dates-puthash file)
+              (org-journal-serialize))
+            (when (member file keys)
+              (setq keys (delete file keys))))
+          (when keys
+            (dolist (key keys)
+              (remhash key org-journal-dates)
+              (remhash key org-journal-journals))
+            (org-journal-serialize)))
+        (if (org-journal-daily-p)
+            (hash-table-values org-journal-dates)
+          org-journal-flatten-dates))
+    (let ((dates (mapcar (if (org-journal-daily-p)
+                             'org-journal-file-name->calendar-date
+                           'org-journal-file->calendar-dates)
+                         (org-journal-list-files))))
+      ;; Need to flatten the list and bring dates in correct order.
+      (unless (org-journal-daily-p)
+        (let ((flattened-date-l '())
+              flattened-date-reverse-l file-dates)
+          (while dates
+            (setq file-dates (car dates))
+            (setq flattened-date-reverse-l '())
+            (while file-dates
+              (push (car file-dates) flattened-date-reverse-l)
+              (setq file-dates (cdr file-dates)))
+            ;; Correct order of journal entries from file by pushing it to a new list.
+            (mapc (lambda (p)
+                    (push p flattened-date-l))
+                  flattened-date-reverse-l)
+            (setq dates (cdr dates)))
+          (setq dates (reverse flattened-date-l))))
+      dates)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
