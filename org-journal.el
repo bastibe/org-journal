@@ -198,6 +198,13 @@ appropriate way to format days in your language. If you define it as
 a function, it is evaluated and inserted."
   :type 'string)
 
+(defcustom org-journal-search-result-date-format "%A, %x"
+  "Date format string for search result.
+
+By default \"WEEKDAY, DATE\", where DATE is what Emacs thinks is an
+appropriate way to format days in your language."
+  :type 'string)
+
 (defcustom org-journal-date-prefix "* "
   "String that is put before every date at the top of a journal file.
 
@@ -1380,9 +1387,9 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
       ((eql org-journal-search-results-order-by :desc) results)
       (t (reverse results)))))
 
-(defun org-journal-format-date (time)
-  "Format TIME according to `org-journal-date-format'."
-  (format-time-string "%A, %x" time))
+(defun org-journal-search-format-date (time)
+  "Format TIME according to `org-journal-search-result-date-format'."
+  (format-time-string org-journal-search-result-date-format time))
 
 (defun org-journal-search-next ()
   (interactive)
@@ -1418,8 +1425,8 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 
 (defun org-journal-search-print-results (str results period-start period-end)
   "Print search results using text buttons."
-  (let ((label-start (org-journal-format-date period-start))
-        (label-end (org-journal-format-date period-end)))
+  (let ((label-start (org-journal-search-format-date period-start))
+        (label-end (org-journal-search-format-date period-end)))
     (insert (concat "Search results for \"" str "\" between "
                     label-start " and " label-end
                     ": \n\n")))
@@ -1428,7 +1435,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
       (setq time (nth 0 res)
             point (nth 1 res)
             fullstr (nth 2 res)
-            label (and time (org-journal-format-date time)))
+            label (and time (org-journal-search-format-date time)))
       ;; Filter out entries not within period-start/end for weekly/monthly/yearly journal files.
       (when (or (org-journal-daily-p)
                 (and time
