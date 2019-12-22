@@ -1042,13 +1042,17 @@ is nil or avoid switching when NOSELECT is non-nil."
           buf)
       (message "No journal entry for this date."))))
 
-;;;###autoload
-(defun org-journal-next-entry ()
-  "Go to the next date with a journal entry."
-  (interactive)
-  (let ((dates (org-journal-list-dates)))
-    (while (and dates (not (calendar-date-compare
-                            (list (calendar-cursor-to-date)) dates)))
+(defun org-journal--next-entry (&optional prev)
+  "Go to next entry.
+
+If prev is non-nil open previous entry instead of next."
+  (let ((dates (if prev
+                   (reverse (org-journal-list-dates))
+                 (org-journal-list-dates))))
+    (while (and dates
+                (not (if prev
+                         (calendar-date-compare dates (list (calendar-cursor-to-date)))
+                       (calendar-date-compare (list (calendar-cursor-to-date)) dates))))
       (setq dates (cdr dates)))
     (when dates
       (calendar-goto-date (car dates))
@@ -1056,17 +1060,16 @@ is nil or avoid switching when NOSELECT is non-nil."
         (org-journal-display-entry nil)))))
 
 ;;;###autoload
+(defun org-journal-next-entry ()
+  "Go to the next date with a journal entry."
+  (interactive)
+  (org-journal--next-entry))
+
+;;;###autoload
 (defun org-journal-previous-entry ()
   "Go to the previous date with a journal entry."
   (interactive)
-  (let ((dates (reverse (org-journal-list-dates))))
-    (while (and dates
-                (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
-      (setq dates (cdr dates)))
-    (when dates
-      (calendar-goto-date (car dates))
-      (when org-journal-follow-mode
-        (org-journal-display-entry nil)))))
+  (org-journal--next-entry t))
 
 ;;; Journal search facilities
 
