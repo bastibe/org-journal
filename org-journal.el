@@ -163,7 +163,7 @@ to be done manually by calling `org-journal-invalidate-cache'."
 Setting this will update the internal `org-journal-file-pattern' to a regex
 that matches the directory, using `org-journal-dir-and-format->regex', and
 update `auto-mode-alist' using `org-journal-update-auto-mode-alist'."
-  :type 'string
+  :type 'directory
   :set (lambda (symbol value)
          (set-default symbol value)
          ;; if org-journal-file-format is not yet bound, we’ll need a default value
