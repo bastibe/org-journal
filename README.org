@@ -383,12 +383,12 @@ Yes you can!
 
 *** Some key-bindings in org-journal conflict with org-mode key bindings
 
-Minor modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter, and to not overwrite major mode bindings. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-mode overwrites the following org-journal key bindings:
+Minor modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter, and to not overwrite major mode bindings. With org-mode already using most interesting keys, collisions are inevitable. Currently, when working in an org-mode buffer the following org-journal key bindings are overwritten:
 - =C-c C-s= (=org-journal-search=) with =org-schedule=
 - =C-c C-f= (=org-journal-open-next-entry=) with =org-forward-heading-same-level=
 - =C-c C-b= (=org-journal-open-previous-entry=) with =org-backward-heading-same-level=
 - =C-c C-j= (=org-journal-new-entry=) with =org-goto=
-To workaround this, use user bindings of the form =C-c ?=, where =?= can be any letter. However, this is Emacs, and if you don't like a key binding, change it!
+To workaround this, you can use user bindings of the form =C-c ?=, where =?= can be any letter, to call the org-journal functions. This allows you to have a set of keybindings that work the same in org-mode and org-journal buffers. However, this is Emacs, and if you don't like a key binding, change it!
 
 *** Opening journal entries from the calendar are not editable
 
