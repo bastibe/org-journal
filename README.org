@@ -381,14 +381,14 @@ Yes you can!
 - If you use Spacemacs from the =develop= branch you can enable =org-journal= by
   setting =org-enable-org-journal-support= to =t=, see [[https://github.com/syl20bnr/spacemacs/tree/develop/layers/+emacs/org#org-journal-support][Spacemacs org-journal support]].
 
-*** Some key-bindings in org-journal overwrite org-mode key bindings
+*** Some key-bindings in org-journal conflict with org-mode key bindings
 
-Major modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-journal overwrites
-- =C-c C-s= (=org-schedule=) with =org-journal-search=
-- =C-c C-f= (=org-forward-heading-same-level=) with =org-journal-open-next-entry=
-- =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry=
-- =C-c C-j= (=org-goto=) with =org-journal-new-entry=
-However, this is Emacs, and if you don't like a key binding, change it!
+Minor modes are supposed to only use key bindings of the form =C-c C-?=, where =?= can be any letter, and to not overwrite major mode bindings. With org-mode already using most interesting keys, collisions are inevitable. Currently, org-mode overwrites the following org-journal key bindings:
+- =C-c C-s= (=org-journal-search=) with =org-schedule=
+- =C-c C-f= (=org-journal-open-next-entry=) with =org-forward-heading-same-level=
+- =C-c C-b= (=org-journal-open-previous-entry=) with =org-backward-heading-same-level=
+- =C-c C-j= (=org-journal-new-entry=) with =org-goto=
+To workaround this, use user bindings of the form =C-c ?=, where =?= can be any letter. However, this is Emacs, and if you don't like a key binding, change it!
 
 *** Opening journal entries from the calendar are not editable
 
