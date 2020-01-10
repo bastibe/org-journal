@@ -217,6 +217,8 @@ Customization options related to the journal file contents:
 
 - =org-journal-time-prefix= - a string that will prefix every entry within a daily journal file.
 
+- org-journal-file-header - a string that will be inserted at the top of every new journal file.
+
 *** An example setup
 
 A very basic example of customization.

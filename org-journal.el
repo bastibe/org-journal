@@ -311,6 +311,11 @@ search works with regexps."
   "If `t', journal entry dates will be cashed for faster calendar operations."
   :type 'boolean)
 
+(defcustom org-journal-file-header nil
+  "If non-nil, contents will be inserted at the top of new journal files.
+If you define it as a function, it is evaluated and inserted."
+  :type 'string)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -507,6 +512,11 @@ hook is run."
       ;; Open journal file
       (unless (string= entry-path (buffer-file-name))
         (funcall org-journal-find-file entry-path))
+
+      (if (and org-journal-file-header (= (buffer-size) 0))
+          (if (functionp org-journal-file-header)
+              (funcall org-journal-file-header)
+            (insert org-journal-file-header)))
 
       ;; Create new journal entry if there isn't one.
       (let ((entry-header
