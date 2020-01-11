@@ -37,7 +37,7 @@ An example of a daily file (it will actually look a lot nicer, depending on
 your org-mode
 settings):
 
-#+BEGIN_SRC org
+#+BEGIN_EXAMPLE org
   * Tuesday, 06/04/13
   ** 10:28 Company meeting
   Endless discussions about projects. Not much progress
@@ -65,12 +65,12 @@ settings):
   I uploaded my journal mode to marmalade and Github! Awesome!
 
   ** TODO teach org-journal how to brew coffee
-#+END_SRC
+#+END_EXAMPLE
 
 An example of a weekly/monthly/yearly journal file, see also
 =org-journal-file-type=.
 
-#+BEGIN_SRC
+#+BEGIN_EXAMPLE org
   * Tuesday, 06/04/13
     :PROPERTIES:
     :CREATED:  20130604
@@ -98,7 +98,7 @@ An example of a weekly/monthly/yearly journal file, see also
   ...
 
   ** TODO teach org-journal how to brew coffee
-#+END_SRC
+#+END_EXAMPLE
 
 ** Installation
 
@@ -189,26 +189,7 @@ Customization options related to journal directory and files:
 Customization options related to the journal file contents:
 
 - =org-journal-date-format= - date format =org-journal= uses when showing a date within a journal
-  and search results page. If set to a function, it is evaluated and inserted. This can be used to
-  insert, e.g. some text on a newly created journal file.
-
-  #+BEGIN_SRC emacs-lisp
-  (defun org-journal-date-format-func (time)
-    "Custom function to insert journal date header.
-
-    When buffer is empty prepend a header in front the entry header."
-    (concat (when (= (buffer-size) 0)
-              (concat
-               (pcase org-journal-file-type
-                 (`daily "#+TITLE: Daily Journal")
-                 (`weekly "#+TITLE: Weekly Journal")
-                 (`monthly "#+TITLE: Monthly Journal")
-                 (`yearly "#+TITLE: Yearly Journal"))))
-            org-journal-date-prefix
-            (format-time-string "%A, %x" time)))
-
-  (setq org-journal-date-format 'org-journal-date-format-func)
-  #+END_SRC
+  and search results page. It can also be a function, which return value will than be inserted.
 
 - =org-journal-date-prefix= - this string will prefix the date at the top of a journal file.
 
@@ -217,28 +198,42 @@ Customization options related to the journal file contents:
 
 - =org-journal-time-prefix= - a string that will prefix every entry within a daily journal file.
 
-- org-journal-file-header - a string that will be inserted at the top of every new journal file.
+- =org-journal-file-header= - a string that will be inserted at the top of every new journal
+  file. It can also be a function, which return value will than be inserted.
+
+  #+BEGIN_EXAMPLE emacs-lisp
+  (defun org-journal-file-header-func ()
+    "Custom function to create journal header."
+    (concat
+      (pcase org-journal-file-type
+        (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything")
+        (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
+        (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
+        (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+
+  (setq org-journal-file-header 'org-journal-file-header-func)
+  #+END_EXAMPLE
 
 *** An example setup
 
 A very basic example of customization.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_EXAMPLE emacs-lisp
 (customize-set-variable 'org-journal-dir "~/org/journal/")
 (customize-set-variable 'org-journal-date-format "%A, %d %B %Y")
 (require 'org-journal)
-#+END_SRC
+#+END_EXAMPLE
 
 For users of =use-package=, this setup could look like the following:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_EXAMPLE emacs-lisp
 (use-package org-journal
   :ensure t
   :defer t
   :custom
   (org-journal-dir "~/org/journal/")
   (org-journal-date-format "%A, %d %B %Y"))
-#+END_SRC
+#+END_EXAMPLE
 
 ** Advanced Usage
 *** Searching the Journal
@@ -251,11 +246,11 @@ To use the agenda search, you can add all journal entries to your org-agenda by 
 =org-journal-dir= to =org-agenda-files= and setting =org-agenda-file-regexp= to include
 files matching your =org-journal-file-pattern=.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_EXAMPLE emacs-lisp
   ;; When =org-journal-file-pattern= has the default value, this would be the regex.
   (setq org-agenda-file-regexp "\\`\\\([^.].*\\.org\\\|[0-9]\\\{8\\\}\\\(\\.gpg\\\)?\\\)\\'")
   (add-to-list 'org-agenda-files org-journal-dir)
-#+END_SRC
+#+END_EXAMPLE
 
 However, this can become /very/ slow if you have many journal entries. As a compromize,
 you can set =org-journal-enable-agenda-integration= to =t=, which automatically adds the
@@ -334,7 +329,7 @@ With this done, you can export your agenda, including your scheduled entries, wi
 You can configure a capture template in order to integrate =org-journal= with =org-capture=,
 as in the following example:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_EXAMPLE emacs-lisp
   (defun org-journal-find-location ()
     ;; Open today's journal, but specify a non-nil prefix argument in order to
     ;; inhibit inserting the heading; org-capture will insert the heading.
@@ -345,7 +340,7 @@ as in the following example:
 
   (setq org-capture-templates '(("j" "Journal entry" entry (function org-journal-find-location)
                                  "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")))
-#+END_SRC
+#+END_EXAMPLE
 
 *** Caching of journal dates
 Since version 2.0.0 a cache has been added to speed up calendar

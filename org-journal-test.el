@@ -41,6 +41,7 @@
           (org-journal-date-format "Test header")
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R")
+          (org-journal-file-header "")
           (new-entry (concat "** " (format-time-string org-journal-time-format))))
      (org-journal-dir-test-setup)
      ,@body))
@@ -73,6 +74,16 @@
     (should (equal (org-journal-convert-time-to-file-type-time time)
                    (encode-time 0 0 0 1 1 2019)))))
 
+(ert-deftest org-journal-insert-header ()
+  "Test insertion of header"
+  (org-journal-test-macro
+   (let ((org-journal-file-header "#+TITLE: Some header\n#+STARTUP: folded"))
+     (org-journal-new-entry t)
+     (write-file (org-journal-get-entry-path))
+     (should (string= (with-temp-buffer
+                        (insert-file-contents (org-journal-get-entry-path))
+                        (buffer-substring-no-properties (point-min) (point-max)))
+                      (concat org-journal-file-header "\n* Test header\n"))))))
 
 (ert-deftest org-journal-carryover-items-test ()
   "Org journal new entry test."
@@ -90,7 +101,7 @@
        (insert "** 14:00 Some journal entry 2\n")
        (write-file (expand-file-name "20181231" org-journal-dir-test))
        (kill-buffer "20181231"))
-     (org-journal-new-entry nil)
+     (org-journal-new-entry t)
      (write-file (org-journal-get-entry-path))
      (kill-buffer)
      (should (string= (with-temp-buffer
@@ -98,8 +109,7 @@
                         (buffer-substring-no-properties (point-min) (point-max)))
                       (concat "* Test header\n  :PROPERTIES:\n  :CREATED:  "
                               (format-time-string "%Y%m%d")
-                              "\n  :END:\n** TODO First\n** TODO Second\n"
-                              new-entry "\n"))))))
+                              "\n  :END:\n** TODO First\n** TODO Second\n"))))))
 
 (ert-deftest org-journal-carryover-keep-parents-test ()
   "Org journal new entry test for daily files."

@@ -4,7 +4,7 @@
 ;;         Christian Schwarzgruber
 
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;;; Commentary:
@@ -121,11 +121,12 @@ org-journal. Use `org-journal-file-format' instead.")
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format)))
    "\\(\\.gpg\\)?\\'"))
 
-; Customizable variables
+;;; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
   :version "1.15.1"
-  :group 'applications)
+  :group 'org
+  :group 'org-journal)
 
 (defface org-journal-highlight
     '((t (:foreground "#ff1493")))
@@ -196,9 +197,13 @@ This pattern must include `%Y', `%m' and `%d'. Setting this will update the inte
   "Format string for date entries.
 
 By default \"WEEKDAY, DATE\", where DATE is what Emacs thinks is an
-appropriate way to format days in your language. If you define it as
-a function, it is evaluated and inserted."
-  :type 'string)
+appropriate way to format days in your language.
+
+If the value is a function, the function will be evaluated and the return
+value will be inserted."
+  :type '(choice
+          (string :tag "String")
+          (function :tag "Function")))
 
 (defcustom org-journal-search-result-date-format "%A, %x"
   "Date format string for search result.
@@ -280,6 +285,7 @@ See agenda tags view match description for the format of this."
 
 (defcustom org-journal-tag-alist nil
   "Default tags for use in Org-Journal mode.
+
 This is analogous to `org-tag-alist', and uses the same format.
 If nil, the default, then `org-tag-alist' is used instead.
 This can also be overridden on a file-local level by using a “#+TAGS:”
@@ -288,6 +294,7 @@ keyword."
 
 (defcustom org-journal-tag-persistent-alist nil
   "Persistent tags for use in Org-Journal mode.
+
 This is analogous to `org-tag-persistent-alist', and uses the same
 format. If nil, the default, then `org-tag-persistent-alist' is used
 instead. These tags cannot be overridden with a “#+TAGS:” keyword, but
@@ -296,8 +303,8 @@ anywhere in your file."
   :type (get 'org-tag-persistent-alist 'custom-type))
 
 (defcustom org-journal-search-forward-fn 'search-forward
-  "The function used by `org-journal-search` to look for the string
-forward in a buffer.
+  "The function used by `org-journal-search` to look for the string forward in a buffer.
+
 Defaults to search-forward.
 You can, for example, set it to `search-forward-regexp` so the
 search works with regexps."
@@ -311,10 +318,14 @@ search works with regexps."
   "If `t', journal entry dates will be cashed for faster calendar operations."
   :type 'boolean)
 
-(defcustom org-journal-file-header nil
-  "If non-nil, contents will be inserted at the top of new journal files.
-If you define it as a function, it is evaluated and inserted."
-  :type 'string)
+(defcustom org-journal-file-header ""
+  "A string which should be inserted at the top of a new journal file.
+
+The value can also be a function, in that case the function will be evaluated
+and the return value will be inserted."
+  :type '(choice
+          (string :tag "String")
+          (function :tag "Function")))
 
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
@@ -513,15 +524,20 @@ hook is run."
       (unless (string= entry-path (buffer-file-name))
         (funcall org-journal-find-file entry-path))
 
-      (if (and org-journal-file-header (= (buffer-size) 0))
-          (if (functionp org-journal-file-header)
-              (funcall org-journal-file-header)
-            (insert org-journal-file-header)))
+      (if (and (or (functionp org-journal-file-header)
+                   (and (stringp org-journal-file-header)
+                        (not (string-empty-p org-journal-file-header))))
+               (= (buffer-size) 0))
+          (insert (if (functionp org-journal-file-header)
+                      (funcall org-journal-file-header)
+                    org-journal-file-header)))
 
       ;; Create new journal entry if there isn't one.
       (let ((entry-header
              (if (functionp org-journal-date-format)
                  (funcall org-journal-date-format time)
+               (when (string-empty-p org-journal-date-format)
+                 (error "org-journal-date-format is empty, this won't work"))
                (concat org-journal-date-prefix
                        (format-time-string org-journal-date-format time)))))
         (goto-char (point-min))
