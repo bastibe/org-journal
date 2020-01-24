@@ -182,7 +182,9 @@ Customization options related to journal directory and files:
   will go into the previous day's journal.
 
 - =org-journal-file-type= - the journal file type either 'daily (default),
-  'weekly, 'monthly or 'yearly.
+  'weekly, 'monthly or 'yearly.  Also see the customizable variables
+  =org-journal-start-on-weekday= and =org-journal-use-agenda-start-on-weekday=
+  for changing the start of the week for weekly journals (defaults to Monday).
 
 *** Journal File Content
 

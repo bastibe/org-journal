@@ -79,14 +79,14 @@
 From branch \"emacs-26\", added for compatibility.
 "
     (cond
-      ((null alist2) alist1)
-      ((null alist1) alist2)
-      (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
-               to-add)
-           (dolist (i alist1)
-             (unless (member (car-safe i) alist2-cars)
-               (push i to-add)))
-           (append to-add alist2)))))
+     ((null alist2) alist1)
+     ((null alist1) alist2)
+     (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
+              to-add)
+          (dolist (i alist1)
+            (unless (member (car-safe i) alist2-cars)
+              (push i to-add)))
+          (append to-add alist2)))))
   (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist))
 
 (defvar org-journal-file-pattern
@@ -157,6 +157,31 @@ to be done manually by calling `org-journal-invalidate-cache'."
           (const :tag "Weekly" weekly)
           (const :tag "Monthly" monthly)
           (const :tag "Yearly" yearly)))
+
+(defcustom org-journal-start-on-weekday 1
+  "What day of the week to start a weekly journal.
+
+When org-journal-file-type is set to 'weekly, start the week on
+this day.  Defaults to Monday.
+
+Not that when org-journal-use-agenda-start-on-weekday is non-NIL,
+the value from org-agenda-start-on-weekday is used instead."
+  :type '(choice
+	  (const :tag "Sunday" 0)
+	  (const :tag "Monday" 1)
+	  (const :tag "Tuesday" 2)
+	  (const :tag "Wednesday" 3)
+	  (const :tag "Thursday" 4)
+	  (const :tag "Friday" 5)
+	  (const :tag "Saturday" 6)))
+
+(defcustom org-journal-use-agenda-start-on-weekday nil
+  "When not NIL, weekly journals should start on the same day as the agenda.
+
+When org-journal-file-type is set to 'weekly, use the value of
+org-agenda-start-on-weekday as the first day of the week for
+journal files."
+  :type 'boolean)
 
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
@@ -432,11 +457,24 @@ the first date of the year."
     (`daily time)
     ;; Round to the monday of the current week, e.g. 20181231 is the first week of 2019
     (`weekly
-     (let ((date
-            (calendar-gregorian-from-absolute
-             (calendar-iso-to-absolute
-              (mapcar 'string-to-number
-                      (split-string (format-time-string "%V 1 %G" time) " "))))))
+     (let* ((absolute-monday
+	     (calendar-iso-to-absolute
+	      (mapcar 'string-to-number
+		      (split-string (format-time-string "%V 1 %G" time) " "))))
+	    (absolute-now
+	     (calendar-absolute-from-gregorian
+	      (mapcar 'string-to-number
+		      (split-string (format-time-string "%m %d %Y" time) " "))))
+	    (target-date
+	     (+ absolute-monday
+		(if org-journal-use-agenda-start-on-weekday
+		    (- org-agenda-start-on-weekday 1)
+		  (- org-journal-start-on-weekday 1))))
+	    (date
+             (calendar-gregorian-from-absolute
+              (if (> target-date absolute-now)
+		  (- target-date 7)
+		target-date))))
        (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))))
     ;; Round to the first day of the month, e.g. 20190301
     (`monthly
