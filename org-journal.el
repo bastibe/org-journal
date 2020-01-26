@@ -79,14 +79,14 @@
 From branch \"emacs-26\", added for compatibility.
 "
     (cond
-     ((null alist2) alist1)
-     ((null alist1) alist2)
-     (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
-              to-add)
-          (dolist (i alist1)
-            (unless (member (car-safe i) alist2-cars)
-              (push i to-add)))
-          (append to-add alist2)))))
+      ((null alist2) alist1)
+      ((null alist1) alist2)
+      (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
+               to-add)
+           (dolist (i alist1)
+             (unless (member (car-safe i) alist2-cars)
+               (push i to-add)))
+           (append to-add alist2)))))
   (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist))
 
 (defvar org-journal-file-pattern
