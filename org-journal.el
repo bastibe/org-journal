@@ -162,10 +162,7 @@ to be done manually by calling `org-journal-invalidate-cache'."
   "What day of the week to start a weekly journal.
 
 When org-journal-file-type is set to 'weekly, start the week on
-this day.  Defaults to Monday.
-
-Not that when org-journal-use-agenda-start-on-weekday is non-NIL,
-the value from org-agenda-start-on-weekday is used instead."
+this day.  Defaults to Monday."
   :type '(choice
 	  (const :tag "Sunday" 0)
 	  (const :tag "Monday" 1)
@@ -174,14 +171,6 @@ the value from org-agenda-start-on-weekday is used instead."
 	  (const :tag "Thursday" 4)
 	  (const :tag "Friday" 5)
 	  (const :tag "Saturday" 6)))
-
-(defcustom org-journal-use-agenda-start-on-weekday nil
-  "When not NIL, weekly journals should start on the same day as the agenda.
-
-When org-journal-file-type is set to 'weekly, use the value of
-org-agenda-start-on-weekday as the first day of the week for
-journal files."
-  :type 'boolean)
 
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
@@ -467,9 +456,7 @@ the first date of the year."
 		      (split-string (format-time-string "%m %d %Y" time) " "))))
 	    (target-date
 	     (+ absolute-monday
-		(if org-journal-use-agenda-start-on-weekday
-		    (- org-agenda-start-on-weekday 1)
-		  (- org-journal-start-on-weekday 1))))
+		(- org-journal-start-on-weekday 1)))
 	    (date
              (calendar-gregorian-from-absolute
               (if (> target-date absolute-now)
