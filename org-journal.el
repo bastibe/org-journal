@@ -639,6 +639,34 @@ hook is run."
   "Will be set to the `t' if `org-journal-open-entry' is visiting a
 buffer not open already, otherwise `nil'.")
 
+(defun org-journal-carryover-items (items-with-parents items-non-parents prev-buffer)
+  (when items-with-parents
+    (when (org-journal-org-heading-p)
+      (outline-end-of-subtree))
+
+    (unless (eq (current-column) 0) (insert "\n"))
+
+    (mapc (lambda (x) (insert (cddr x))) items-with-parents)
+
+    ;; Delete carryover items
+    (with-current-buffer prev-buffer
+      (mapc (lambda (x)
+              (kill-region (car x) (cadr x)))
+            items-non-parents)
+      ;; Delete parent heading if it has no content
+      (let ((parent-heading-start (caar items-with-parents))
+            (parent-heading-end (cadar items-with-parents))
+            subtree-length)
+        (save-excursion
+          (goto-char parent-heading-start)
+          (outline-end-of-subtree)
+          (setq subtree-length (- (point) parent-heading-start)))
+        (when (eq subtree-length (- parent-heading-end parent-heading-start))
+          (kill-region parent-heading-start parent-heading-end)))
+      (save-buffer)
+      (when org-journal--kill-buffer
+        (kill-buffer)))))
+
 (defun org-journal-carryover ()
   "Moves all items matching `org-journal-carryover-items' from the
 previous day's file to the current file."
@@ -651,14 +679,12 @@ previous day's file to the current file."
                      ;; in the search
                      (setq org-map-continue-from (point))
                      headings)))
-         carryover-items-with-parents
-         carryover-items-non-parents
-         prev-entry-buffer)
+         items-with-parents items-non-parents prev-buffer)
     (save-excursion
       (save-restriction
         (when (let ((inhibit-message t))
                 (org-journal-open-previous-entry 'no-select))
-          (setq prev-entry-buffer (current-buffer))
+          (setq prev-buffer (current-buffer))
           (unless (org-journal-daily-p) ;; (org-journal-org-heading-p) should work to
             (org-narrow-to-subtree))
           ;; Create a sorted list with duplicates removed from the value returned
@@ -666,29 +692,16 @@ previous day's file to the current file."
           ;; is a list where each element is list containing points, which are representing
           ;; the headers to carryover -- cddr contains the text.
           (mapc (lambda (carryover-path)
-                  (push (car carryover-path) carryover-items-non-parents)
+                  (push (car carryover-path) items-non-parents)
                   (mapc (lambda (heading)
-                          (unless (member heading carryover-items-with-parents)
-                            (push heading carryover-items-with-parents)))
+                          (unless (member heading items-with-parents)
+                            (push heading items-with-parents)))
                         carryover-path))
                 (org-map-entries mapper org-journal-carryover-items))
-          (setq carryover-items-with-parents (sort carryover-items-with-parents
-                                                   (lambda (x y)
-                                                     (< (car x) (car y))))))))
-    (when carryover-items-with-parents
-      (when (org-journal-org-heading-p)
-        (outline-end-of-subtree))
-      (unless (eq (current-column) 0) (insert "\n"))
-      (mapc (lambda (x) (insert (cddr x)))
-            carryover-items-with-parents)
-      ;; Delete carryover items
-      (with-current-buffer prev-entry-buffer
-        (mapc (lambda (x)
-                (kill-region (car x) (cadr x)))
-              carryover-items-non-parents)
-        (save-buffer)
-        (when org-journal--kill-buffer
-          (kill-buffer))))))
+          (setq items-with-parents (sort items-with-parents
+                                         (lambda (x y)
+                                           (< (car x) (car y))))))))
+    (org-journal-carryover-items items-with-parents items-non-parents prev-buffer)))
 
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
