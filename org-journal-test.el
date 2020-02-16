@@ -34,6 +34,7 @@
           (org-journal-carryover-items "TODO=\"TODO\"")
           (org-journal-cache-file "/tmp/org-journal.cache")
           (org-journal-flatten-dates nil)
+          (org-journal-carryover-delete-empty-journal 'never)
           (org-journal-dates (make-hash-table :test 'equal))
           (org-journal-journals (make-hash-table :test 'equal))
           (org-journal-encrypt-journal nil)

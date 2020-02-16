@@ -754,10 +754,11 @@ previous day's file to the current file."
                         carryover-path))
                 (org-map-entries mapper org-journal-carryover-items))
           (setq entries (sort entries (lambda (x y) (< (car x) (car y))))))))
-    (org-journal-carryover-items entries prev-buffer)
-    (org-journal-carryover-delete-empty-journal prev-buffer)
-    (when org-journal--kill-buffer
-      (kill-buffer prev-buffer))))
+    (when prev-buffer
+      (org-journal-carryover-items entries prev-buffer)
+      (org-journal-carryover-delete-empty-journal prev-buffer)
+      (when org-journal--kill-buffer
+        (kill-buffer prev-buffer)))))
 
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
