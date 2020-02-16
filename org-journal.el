@@ -293,6 +293,16 @@ Set this to `find-file' if you don't want org-journal to split your window."
 See agenda tags view match description for the format of this."
   :type 'string)
 
+(defcustom org-journal-carryover-delete-empty-journal 'never
+  "Delete empty journal entry/file after carryover.
+
+Default is to `never' delete an empty journal entry/file. Other options are `always',
+i.e. don't prompt, just delete or `ask'"
+  :type '(choice
+          (const :tag "never" never)
+          (const :tag "always" always)
+          (const :tag "ask" ask)))
+
 (defcustom org-journal-search-results-order-by :asc
   "When :desc, make search results ordered by date descending, otherwise date ascending."
   :type 'symbol)
@@ -639,23 +649,72 @@ hook is run."
   "Will be set to the `t' if `org-journal-open-entry' is visiting a
 buffer not open already, otherwise `nil'.")
 
-(defun org-journal-carryover-items (items-with-parents items-non-parents prev-buffer)
-  (when items-with-parents
+
+(defun org-journal-carryover-delete-empty-journal (prev-buffer)
+  "Check if the previous entry/file is empty after we carried over the
+items, and delete or not delete the empty entry/file based on
+`org-journal-carryover-delete-empty-journal'."
+  (save-excursion
+    (save-restriction
+      (let (empty entry)
+        (with-current-buffer prev-buffer
+          (setq entry (org-get-entry)))
+        (with-temp-buffer
+          (insert entry)
+          (goto-char (point-min))
+          (let (start end)
+            ;; Delete scheduled time stamps
+            (while (re-search-forward (concat " *\\(CLOSED\\|DEADLINE\\|SCHEDULED\\): *" org-ts-regexp-both) nil t)
+              (kill-region (match-beginning 0) (match-end 0)))
+
+            ;; Delete drawers
+            (while (re-search-forward org-drawer-regexp nil t)
+              (setq start (match-beginning 0))
+              (re-search-forward org-drawer-regexp nil t)
+              (setq end (match-end 0))
+              (kill-region start end)))
+          (setq empty (string-empty-p (org-trim (buffer-string)))))
+
+        (when (and empty (or (and (eq org-journal-carryover-delete-empty-journal 'ask)
+                                  (y-or-n-p "Delete empty journal entry/file?"))
+                             (eq org-journal-carryover-delete-empty-journal 'always)))
+
+          ;; Check if the file doesn't contain any other entry
+          (let ((inhibit-message t)
+                (prev-count 2))
+            (when (and (save-excursion
+                         (while (> prev-count 0)
+                           (org-journal-open-previous-entry 'no-select)
+                           (setq prev-count (1- prev-count)))
+                         (not (eq (current-buffer) prev-buffer))
+                         (kill-buffer (current-buffer)))
+                       (not (eq (current-buffer) prev-buffer)))
+              (delete-file (buffer-file-name prev-buffer))
+              (kill-buffer prev-buffer)
+              ;; Update the cache
+              (when org-journal-enable-cache (org-journal-list-dates)))))))))
+
+(defun org-journal-carryover-items (entries prev-buffer)
+  "Carryover items.
+
+Will insert `entries', and delete the inserted entries from `prev-buffer'.
+If the parent heading has no more content delete it is well."
+  (when entries
     (when (org-journal-org-heading-p)
       (outline-end-of-subtree))
 
     (unless (eq (current-column) 0) (insert "\n"))
 
-    (mapc (lambda (x) (insert (cddr x))) items-with-parents)
+    (mapc (lambda (x) (insert (cddr x))) entries)
 
     ;; Delete carryover items
     (with-current-buffer prev-buffer
       (mapc (lambda (x)
               (kill-region (car x) (cadr x)))
-            items-non-parents)
+            (reverse (cdr entries)))
       ;; Delete parent heading if it has no content
-      (let ((parent-heading-start (caar items-with-parents))
-            (parent-heading-end (cadar items-with-parents))
+      (let ((parent-heading-start (caar entries))
+            (parent-heading-end (cadar entries))
             subtree-length)
         (save-excursion
           (goto-char parent-heading-start)
@@ -663,9 +722,7 @@ buffer not open already, otherwise `nil'.")
           (setq subtree-length (- (point) parent-heading-start)))
         (when (eq subtree-length (- parent-heading-end parent-heading-start))
           (kill-region parent-heading-start parent-heading-end)))
-      (save-buffer)
-      (when org-journal--kill-buffer
-        (kill-buffer)))))
+      (save-buffer))))
 
 (defun org-journal-carryover ()
   "Moves all items matching `org-journal-carryover-items' from the
@@ -679,7 +736,7 @@ previous day's file to the current file."
                      ;; in the search
                      (setq org-map-continue-from (point))
                      headings)))
-         items-with-parents items-non-parents prev-buffer)
+         entries prev-buffer)
     (save-excursion
       (save-restriction
         (when (let ((inhibit-message t))
@@ -692,16 +749,15 @@ previous day's file to the current file."
           ;; is a list where each element is list containing points, which are representing
           ;; the headers to carryover -- cddr contains the text.
           (mapc (lambda (carryover-path)
-                  (push (car carryover-path) items-non-parents)
                   (mapc (lambda (heading)
-                          (unless (member heading items-with-parents)
-                            (push heading items-with-parents)))
+                          (unless (member heading entries) (push heading entries)))
                         carryover-path))
                 (org-map-entries mapper org-journal-carryover-items))
-          (setq items-with-parents (sort items-with-parents
-                                         (lambda (x y)
-                                           (< (car x) (car y))))))))
-    (org-journal-carryover-items items-with-parents items-non-parents prev-buffer)))
+          (setq entries (sort entries (lambda (x y) (< (car x) (car y))))))))
+    (org-journal-carryover-items entries prev-buffer)
+    (org-journal-carryover-delete-empty-journal prev-buffer)
+    (when org-journal--kill-buffer
+      (kill-buffer prev-buffer))))
 
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
