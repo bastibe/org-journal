@@ -679,9 +679,10 @@ items, and delete or not delete the empty entry/file based on
                                   (y-or-n-p "Delete empty journal entry/file?"))
                              (eq org-journal-carryover-delete-empty-journal 'always)))
 
-          ;; Check if the file doesn't contain any other entry
           (let ((inhibit-message t)
                 (prev-count 2))
+            ;; Check if the file doesn't contain any other entry, by comparing the
+            ;; new filename with the previous entry filename and the next entry filename.
             (when (and (save-excursion
                          (while (> prev-count 0)
                            (org-journal-open-previous-entry 'no-select)
