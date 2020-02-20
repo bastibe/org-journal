@@ -177,7 +177,10 @@ this day.  Default is Monday."
 
 Setting this will update the internal `org-journal-file-pattern' to a regex
 that matches the directory, using `org-journal-dir-and-format->regex', and
-update `auto-mode-alist' using `org-journal-update-auto-mode-alist'."
+update `auto-mode-alist' using `org-journal-update-auto-mode-alist'.
+
+This variable needs to be set using the customize interface,
+`customize-set-variable' or before loading `org-journal'."
   :type 'directory
   :set (lambda (symbol value)
          (set-default symbol value)
@@ -192,10 +195,17 @@ update `auto-mode-alist' using `org-journal-update-auto-mode-alist'."
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names (Default \"YYYYMMDD\").
 
-This pattern must include `%Y', `%m' and `%d'. Setting this will update the internal
-`org-journal-file-pattern' to a regex that matches the format string, using
-`org-journal-dir-and-format->regex', and update `auto-mode-alist' using
-`org-journal-update-auto-mode-alist'."
+This pattern MUST include `%Y', `%m' and `%d' when `org-journal-file-type' is
+`daily' or `weekly'. When `org-journal-file-type' is `monthly' this pattern
+MUST at least include `%Y' and `%m', and at least `%Y' when
+`org-journalf-file-type' is `yearly'.
+
+Setting this will update the internal `org-journal-file-pattern' to a regex
+that matches the directory, using `org-journal-dir-and-format->regex', and
+update `auto-mode-alist' using `org-journal-update-auto-mode-alist'.
+
+This variable needs to be set using the customize interface,
+`customize-set-variable' or before loading `org-journal'."
   :type 'string
   :set (lambda (symbol value)
          (set-default symbol value)
