@@ -809,23 +809,14 @@ Return nil when it's impossible to figure out the level."
 (defun org-journal-file-name->calendar-date (file-name)
   "Convert an org-journal file name to a calendar date.
 
-If `org-journal-file-pattern' does not contain capture groups,
-fall back to the old behavior of taking substrings."
-  (if (and (integerp (string-match "\(\?1:" org-journal-file-pattern))
-           (integerp (string-match "\(\?2:" org-journal-file-pattern))
-           (integerp (string-match "\(\?3:" org-journal-file-pattern)))
-      (list (string-to-number (replace-regexp-in-string
-                               org-journal-file-pattern "\\2"
-                               file-name))
-            (string-to-number (replace-regexp-in-string
-                               org-journal-file-pattern "\\3"
-                               file-name))
-            (string-to-number (replace-regexp-in-string
-                               org-journal-file-pattern "\\1"
-                               file-name)))
-    (list (string-to-number (substring file-name 4 6))
-          (string-to-number (substring file-name 6 8))
-          (string-to-number (substring file-name 0 4)))))
+Month and Day capture group default to 1."
+  (let ((day 1) (month 1) year)
+    (setq year (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\1" file-name)))
+    (when (integerp (string-match "\(\?2:" org-journal-file-pattern))
+      (setq month (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\2" file-name))))
+    (when (integerp (string-match "\(\?3:" org-journal-file-pattern))
+      (setq day (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\3" file-name))))
+    (list month day year)))
 
 (defun org-journal-entry-date->calendar-date ()
   "Return journal calendar-date from current buffer.
