@@ -712,7 +712,7 @@ If the parent heading has no more content delete it is well."
     (with-current-buffer prev-buffer
       (mapc (lambda (x)
               (kill-region (car x) (cadr x)))
-            (reverse (cdr entries)))
+            (reverse entries))
       ;; Delete parent heading if it has no content
       (let ((parent-heading-start (caar entries))
             (parent-heading-end (cadar entries))
