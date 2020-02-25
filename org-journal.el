@@ -668,7 +668,9 @@ items, and delete or not delete the empty entry/file based on
     (save-restriction
       (let (empty entry)
         (with-current-buffer prev-buffer
-          (setq entry (org-get-entry)))
+          (save-excursion
+            (org-journal-open-previous-entry)
+            (setq entry (org-get-entry))))
         (with-temp-buffer
           (insert entry)
           (goto-char (point-min))
@@ -701,10 +703,11 @@ items, and delete or not delete the empty entry/file based on
                      (not (eq (current-buffer) prev-buffer)))
                 (progn
                   (delete-file (buffer-file-name prev-buffer))
-                  (kill-buffer prev-buffer))
+                  (kill-buffer prev-buffer)
+                  (when org-journal-enable-cache (org-journal-list-dates)))
               (org-journal-open-previous-entry)
-              (kill-region (point) (progn (org-forward-heading-same-level 1) (point))))
-            (when org-journal-enable-cache (org-journal-list-dates))))))))
+              (kill-region (point) (progn (org-forward-heading-same-level 1) (point)))
+              (save-buffer))))))))
 
 (defun org-journal-carryover-items (entries prev-buffer)
   "Carryover items.
