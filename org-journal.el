@@ -770,15 +770,23 @@ previous day's file to the current file."
              if carryover-paths
              do (cl-loop
                    for path in carryover-paths
-                   with match
-                   until match
                    if (and (> (length path) 1)
                            (eq (caar path) (caar carryover-path))
                            (eq (cadar path) (cadar carryover-path)))
-                   do (progn
-                        (setcdr (last path) (last carryover-path))
-                        (setq match t))
-                   finally (unless match (push carryover-path carryover-paths)))
+                   do (cl-loop
+                         for sub-path in (cdr path)
+                         for sub-carryover-path in (cdr carryover-path)
+                         with counter = 1
+                         with break
+                         until break
+                         if (and (cddr path)
+                                 (eq (car sub-path) (car sub-carryover-path))
+                                 (eq (cadr sub-path) (cadr sub-carryover-path)))
+                         do (setq counter (1+ counter))
+                         else do (progn
+                                   (setcdr (last path) (nthcdr counter carryover-path))
+                                   (setq break t)))
+                   else do (push carryover-path carryover-paths))
              else do (push carryover-path carryover-paths)))))
 
     (when prev-buffer
