@@ -665,7 +665,8 @@ buffer not open already, otherwise `nil'.")
 items, and delete or not delete the empty entry/file based on
 `org-journal-carryover-delete-empty-journal'."
   (let (empty entry)
-    (save-current-buffer
+    (with-current-buffer prev-buffer (save-buffer))
+    (save-excursion
       (org-journal-open-previous-entry 'no-select)
       (setq entry (org-get-entry)))
     (with-temp-buffer
@@ -702,44 +703,35 @@ items, and delete or not delete the empty entry/file based on
               (delete-file (buffer-file-name prev-buffer))
               (kill-buffer prev-buffer)
               (when org-journal-enable-cache (org-journal-list-dates)))
-          (save-current-buffer
+          (save-excursion
+            (org-journal-open-previous-entry 'no-select)
             (kill-region (point) (progn (org-forward-heading-same-level 1) (point)))
             (save-buffer)))))))
 
-(defun org-journal-carryover-items (entries prev-buffer)
+(defun org-journal-carryover-items (text entries prev-buffer)
   "Carryover items.
 
 Will insert `entries', and delete the inserted entries from `prev-buffer'.
 If the parent heading has no more content delete it is well."
   (when entries
     (while (org-up-heading-safe))
-    (outline-next-heading)
+    (outline-end-of-subtree)
 
     (unless (eq (current-column) 0) (insert "\n"))
 
-    (mapc (lambda (x) (insert (cddr x))) entries)
+    (insert text)
 
-    (let ((has-parent (> (length entries) 1)))
-      ;; Delete carryover items
-      (with-current-buffer prev-buffer
-        (mapc (lambda (x)
-                (kill-region (car x) (cadr x)))
-              (reverse (if has-parent (cdr entries) entries)))
+    ;; Delete carried over items
+    (with-current-buffer prev-buffer
+      (mapc (lambda (x)
+              (unless (save-excursion
+                        (goto-char (1- (cadr x)))
+                        (org-goto-first-child))
+                (kill-region (car x) (cadr x))))
+            (reverse entries)))
 
-        ;; Delete parent heading if it has no content
-        (when has-parent
-          (let ((parent-heading-start (caar entries))
-                (parent-heading-end (cadar entries))
-                subtree-length)
-            (save-excursion
-              (goto-char parent-heading-start)
-              (save-restriction
-                (unless (org-journal-daily-p)
-                  (org-narrow-to-subtree))
-                (outline-end-of-subtree)
-                (setq subtree-length (- (point) parent-heading-start))))
-            (when (eq subtree-length (- parent-heading-end parent-heading-start))
-              (kill-region parent-heading-start parent-heading-end))))))))
+    (while (org-up-heading-safe))
+    (outline-end-of-subtree)))
 
 (defun org-journal-carryover ()
   "Moves all items matching `org-journal-carryover-items' from the
@@ -755,47 +747,43 @@ previous day's file to the current file."
                      headings)))
          carryover-paths prev-buffer)
 
+    ;; Get carryover paths
     (save-excursion
       (save-restriction
-        (when (let ((inhibit-message t))
-                (org-journal-open-previous-entry 'no-select))
+        (when (let ((inhibit-message t)) (org-journal-open-previous-entry 'no-select))
           (setq prev-buffer (current-buffer))
           (unless (org-journal-daily-p)
             (org-narrow-to-subtree))
-          (cl-loop
-             for carryover-path in (org-map-entries mapper org-journal-carryover-items)
-             if carryover-paths
-             do (cl-loop
-                   for path in carryover-paths
-                   if (and (> (length path) 1)
-                           (eq (caar path) (caar carryover-path))
-                           (eq (cadar path) (cadar carryover-path)))
-                   do (cl-loop
-                         for sub-path in (cdr path)
-                         for sub-carryover-path in (cdr carryover-path)
-                         with counter = 1
-                         with break
-                         until break
-                         if (and (cddr path)
-                                 (eq (car sub-path) (car sub-carryover-path))
-                                 (eq (cadr sub-path) (cadr sub-carryover-path)))
-                         do (setq counter (1+ counter))
-                         else do (progn
-                                   (setcdr (last path) (nthcdr counter carryover-path))
-                                   (setq break t)))
-                   else do (push carryover-path carryover-paths))
-             else do (push carryover-path carryover-paths)))))
+          (setq carryover-paths (org-map-entries mapper org-journal-carryover-items)))))
 
-    (when prev-buffer
-      (dolist (path carryover-paths)
-        (org-journal-carryover-items path prev-buffer))
-      (while (org-up-heading-safe))
-      (outline-end-of-subtree)
-      (with-current-buffer prev-buffer
-        (save-buffer))
+    (when (and prev-buffer carryover-paths)
+      (let (cleared-carryover-paths text)
+        ;; Construct the text to carryover, and remove any duplicate elements from carryover-paths
+        (with-temp-buffer
+          (cl-loop
+             for paths in carryover-paths
+             with prev-paths
+             do (cl-loop
+                   for path in paths
+                   with cleared-paths
+                   with counter = 0
+                   do (progn
+                        (when (or (not (and prev-paths (nth counter prev-paths)))
+                                  (> (car path) (car (nth counter prev-paths))))
+                          (insert (cddr path))
+                          (if cleared-paths
+                              (setcdr (last cleared-paths) (list path))
+                            (setq cleared-paths (list path))))
+                        (setq counter (1+ counter)))
+                   finally (progn
+                             (if cleared-carryover-paths
+                                 (setcdr (last cleared-carryover-paths) cleared-paths)
+                               (setq cleared-carryover-paths cleared-paths))
+                             (setq prev-paths paths)))
+             finally (setq text (buffer-string))))
+        (org-journal-carryover-items text cleared-carryover-paths prev-buffer))
       (org-journal-carryover-delete-empty-journal prev-buffer)
-      (when org-journal--kill-buffer
-        (kill-buffer prev-buffer)))))
+      (when org-journal--kill-buffer (kill-buffer prev-buffer)))))
 
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
