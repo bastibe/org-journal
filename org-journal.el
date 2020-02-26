@@ -1182,7 +1182,7 @@ is nil or avoid switching when NOSELECT is non-nil."
               (setq view-exit-action 'kill-buffer))
             (set (make-local-variable 'org-hide-emphasis-markers) t)
             (if (org-journal-daily-p)
-                (progn
+                (when (org-journal-org-heading-p)
                   (goto-char (point-min))
                   (re-search-forward (format-time-string org-journal-date-format time)))
               (goto-char point))
