@@ -664,50 +664,47 @@ buffer not open already, otherwise `nil'.")
   "Check if the previous entry/file is empty after we carried over the
 items, and delete or not delete the empty entry/file based on
 `org-journal-carryover-delete-empty-journal'."
-  (save-excursion
-    (save-restriction
-      (let (empty entry)
-        (with-current-buffer prev-buffer
-          (save-excursion
-            (org-journal-open-previous-entry)
-            (setq entry (org-get-entry))))
-        (with-temp-buffer
-          (insert entry)
-          (goto-char (point-min))
-          (let (start end)
-            ;; Delete scheduled time stamps
-            (while (re-search-forward (concat " *\\(CLOSED\\|DEADLINE\\|SCHEDULED\\): *" org-ts-regexp-both) nil t)
-              (kill-region (match-beginning 0) (match-end 0)))
+  (let (empty entry)
+    (save-current-buffer
+      (org-journal-open-previous-entry 'no-select)
+      (setq entry (org-get-entry)))
+    (with-temp-buffer
+      (insert entry)
+      (goto-char (point-min))
+      (let (start end)
+        ;; Delete scheduled time stamps
+        (while (re-search-forward (concat " *\\(CLOSED\\|DEADLINE\\|SCHEDULED\\): *" org-ts-regexp-both) nil t)
+          (kill-region (match-beginning 0) (match-end 0)))
 
-            ;; Delete drawers
-            (while (re-search-forward org-drawer-regexp nil t)
-              (setq start (match-beginning 0))
-              (re-search-forward org-drawer-regexp nil t)
-              (setq end (match-end 0))
-              (kill-region start end)))
-          (setq empty (string-empty-p (org-trim (buffer-string)))))
+        ;; Delete drawers
+        (while (re-search-forward org-drawer-regexp nil t)
+          (setq start (match-beginning 0))
+          (re-search-forward org-drawer-regexp nil t)
+          (setq end (match-end 0))
+          (kill-region start end)))
+      (setq empty (string-empty-p (org-trim (buffer-string)))))
 
-        (when (and empty (or (and (eq org-journal-carryover-delete-empty-journal 'ask)
-                                  (y-or-n-p "Delete empty journal entry/file?"))
-                             (eq org-journal-carryover-delete-empty-journal 'always)))
+    (when (and empty (or (and (eq org-journal-carryover-delete-empty-journal 'ask)
+                              (y-or-n-p "Delete empty journal entry/file?"))
+                         (eq org-journal-carryover-delete-empty-journal 'always)))
 
-          (let ((inhibit-message t)
-                (prev-count 2))
-            ;; Check if the file doesn't contain any other entry, by comparing the
-            ;; new filename with the previous entry filename and the next entry filename.
-            (if (and (save-excursion
-                       (while (> prev-count 0)
-                         (org-journal-open-previous-entry 'no-select)
-                         (setq prev-count (1- prev-count)))
-                       (not (eq (current-buffer) prev-buffer)))
-                     (not (eq (current-buffer) prev-buffer)))
-                (progn
-                  (delete-file (buffer-file-name prev-buffer))
-                  (kill-buffer prev-buffer)
-                  (when org-journal-enable-cache (org-journal-list-dates)))
-              (org-journal-open-previous-entry)
-              (kill-region (point) (progn (org-forward-heading-same-level 1) (point)))
-              (save-buffer))))))))
+      (let ((inhibit-message t)
+            (prev-count 2))
+        ;; Check if the file doesn't contain any other entry, by comparing the
+        ;; new filename with the previous entry filename and the next entry filename.
+        (if (and (save-excursion
+                   (while (> prev-count 0)
+                     (org-journal-open-previous-entry 'no-select)
+                     (setq prev-count (1- prev-count)))
+                   (not (eq (current-buffer) prev-buffer)))
+                 (not (eq (current-buffer) prev-buffer)))
+            (progn
+              (delete-file (buffer-file-name prev-buffer))
+              (kill-buffer prev-buffer)
+              (when org-journal-enable-cache (org-journal-list-dates)))
+          (save-current-buffer
+            (kill-region (point) (progn (org-forward-heading-same-level 1) (point)))
+            (save-buffer)))))))
 
 (defun org-journal-carryover-items (entries prev-buffer)
   "Carryover items.
