@@ -780,8 +780,11 @@ previous day's file to the current file."
                              (setq cleared-carryover-paths cleared-paths))
                            (setq prev-paths paths))))
         (org-journal-carryover-items text cleared-carryover-paths prev-buffer))
-      (org-journal-carryover-delete-empty-journal prev-buffer)
-      (when org-journal--kill-buffer (kill-buffer prev-buffer)))))
+      (org-journal-carryover-delete-empty-journal prev-buffer))
+
+    (when org-journal--kill-buffer
+      (mapc 'kill-buffer org-journal--kill-buffer)
+      (setq org-journal--kill-buffer nil))))
 
 (defun org-journal-carryover-item-with-parents ()
   "Return carryover item inclusive the parents.
@@ -925,9 +928,10 @@ If no next/PREVious entry was found print MSG."
                     (set-buffer (get-file-buffer filename))
                   (switch-to-buffer (get-file-buffer filename)))
                 (setq org-journal--kill-buffer nil))
-            (setq org-journal--kill-buffer (if (eq 'no-select no-select)
-                                               (set-buffer (find-file-noselect filename))
-                                             (find-file filename))))
+            (push (if (eq 'no-select no-select)
+                      (set-buffer (find-file-noselect filename))
+                    (find-file filename))
+                  org-journal--kill-buffer))
           (goto-char (point-min))
           (if (org-journal-daily-p)
               (outline-next-visible-heading 1)
