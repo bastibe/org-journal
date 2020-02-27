@@ -349,7 +349,7 @@ search works with regexps."
   :type 'boolean)
 
 (defcustom org-journal-enable-cache nil
-  "If `t', journal entry dates will be cashed for faster calendar operations."
+  "If `t', journal entry dates will be cached for faster calendar operations."
   :type 'boolean)
 
 (defcustom org-journal-file-header ""
