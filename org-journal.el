@@ -759,28 +759,26 @@ previous day's file to the current file."
     (when (and prev-buffer carryover-paths)
       (let (cleared-carryover-paths text)
         ;; Construct the text to carryover, and remove any duplicate elements from carryover-paths
-        (with-temp-buffer
-          (cl-loop
-             for paths in carryover-paths
-             with prev-paths
-             do (cl-loop
-                   for path in paths
-                   with cleared-paths
-                   with counter = 0
-                   do (progn
-                        (when (or (not (and prev-paths (nth counter prev-paths)))
-                                  (> (car path) (car (nth counter prev-paths))))
-                          (insert (cddr path))
-                          (if cleared-paths
-                              (setcdr (last cleared-paths) (list path))
-                            (setq cleared-paths (list path))))
-                        (setq counter (1+ counter)))
-                   finally (progn
-                             (if cleared-carryover-paths
-                                 (setcdr (last cleared-carryover-paths) cleared-paths)
-                               (setq cleared-carryover-paths cleared-paths))
-                             (setq prev-paths paths)))
-             finally (setq text (buffer-string))))
+        (cl-loop
+           for paths in carryover-paths
+           with prev-paths
+           do (cl-loop
+                 for path in paths
+                 with cleared-paths
+                 with counter = 0
+                 do (progn
+                      (when (or (not (and prev-paths (nth counter prev-paths)))
+                                (> (car path) (car (nth counter prev-paths))))
+                        (setq text (concat text (cddr path)))
+                        (if cleared-paths
+                            (setcdr (last cleared-paths) (list path))
+                          (setq cleared-paths (list path))))
+                      (setq counter (1+ counter)))
+                 finally (progn
+                           (if cleared-carryover-paths
+                               (setcdr (last cleared-carryover-paths) cleared-paths)
+                             (setq cleared-carryover-paths cleared-paths))
+                           (setq prev-paths paths))))
         (org-journal-carryover-items text cleared-carryover-paths prev-buffer))
       (org-journal-carryover-delete-empty-journal prev-buffer)
       (when org-journal--kill-buffer (kill-buffer prev-buffer)))))
