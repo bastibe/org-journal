@@ -668,7 +668,9 @@ items, and delete or not delete the empty entry/file based on
     (with-current-buffer prev-buffer (save-buffer))
     (save-excursion
       (org-journal-open-previous-entry 'no-select)
-      (setq entry (org-get-entry)))
+      (setq entry (if (org-journal-org-heading-p)
+                      (org-get-entry)
+                    (buffer-substring-no-properties (point) (point-max)))))
     (with-temp-buffer
       (insert entry)
       (goto-char (point-min))
