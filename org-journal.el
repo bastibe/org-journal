@@ -714,8 +714,11 @@ items, and delete or not delete the empty entry/file based on
 Will insert `entries', and delete the inserted entries from `prev-buffer'.
 If the parent heading has no more content delete it is well."
   (when entries
-    (while (org-up-heading-safe))
-    (outline-end-of-subtree)
+    (if (org-journal-org-heading-p)
+        (progn
+          (while (org-up-heading-safe))
+          (outline-end-of-subtree))
+      (goto-char (point-max)))
 
     (unless (eq (current-column) 0) (insert "\n"))
 
