@@ -64,7 +64,7 @@
 ;;; Code:
 (require 'cal-iso)
 (require 'org)
-(require 'org-crypt nil 'noerror)
+(require 'org-crypt)
 (require 'seq)
 (require 'subr-x)
 
@@ -1609,7 +1609,8 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
     (set-window-point (get-buffer-window buf) point)))
 
 (defun org-journal-decrypt ()
-  (when (fboundp 'org-decrypt-entries)
+  "Decrypt journal entry at point."
+  (when org-journal-enable-encryption
     (let ((buffer-read-only nil))
       (org-decrypt-entries))))
 
