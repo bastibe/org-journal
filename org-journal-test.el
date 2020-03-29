@@ -32,7 +32,7 @@
           (auto-mode-alist `(,(cons org-journal-file-pattern 'org-journal-mode) ,@auto-mode-alist))
           (org-journal-file-type 'daily)
           (org-journal-carryover-items "TODO=\"TODO\"")
-          (org-journal-cache-file "/tmp/org-journal.cache")
+          (org-journal-enable-cache nil)
           (org-journal-flatten-dates nil)
           (org-journal-carryover-delete-empty-journal 'never)
           (org-journal-dates (make-hash-table :test 'equal))
@@ -43,6 +43,7 @@
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R")
           (org-journal-file-header "")
+          (org-journal-created-property-format-type 'ymd)
           (new-entry (concat "** " (format-time-string org-journal-time-format))))
      (org-journal-dir-test-setup)
      ,@body))
@@ -80,7 +81,8 @@
   (org-journal-test-macro
    (let ((org-journal-file-header "#+TITLE: Some header\n#+STARTUP: folded"))
      (org-journal-new-entry t)
-     (write-file (org-journal-get-entry-path))
+     (save-buffer)
+     (kill-buffer)
      (should (string= (with-temp-buffer
                         (insert-file-contents (org-journal-get-entry-path))
                         (buffer-substring-no-properties (point-min) (point-max)))
@@ -89,99 +91,152 @@
 (ert-deftest org-journal-carryover-items-test ()
   "Org journal new entry test."
   (org-journal-test-macro
-   (let ((org-journal-file-type 'weekly))
+   (let ((org-journal-file-type 'weekly)
+         ;; Always use english as time locale.
+         (system-time-locale "C")
+         (buffer "20181231"))
      (with-temp-buffer
        (insert "* Tuesday, 01/01/19\n")
        (org-set-property "CREATED" "20190101")
        (insert "** 13:00 Some journal entry\n")
        (insert "* Wednesday, 01/02/19\n")
-       (org-set-property "CREATED" "20190102")
+       (org-set-property "CREATED" "[2019-01-02 Wed]")
        (insert "** TODO First\n")
        (insert "** 13:00 Some journal entry 1\n")
        (insert "** TODO Second\n")
        (insert "** 14:00 Some journal entry 2\n")
-       (write-file (expand-file-name "20181231" org-journal-dir-test))
-       (kill-buffer "20181231"))
+       (write-file (expand-file-name buffer org-journal-dir-test))
+       (kill-buffer buffer))
+     (find-file (expand-file-name buffer org-journal-dir-test))
+     ;; (message "%333" format-args)
+     (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 1 1 2019)))))
+     (kill-buffer buffer)
+     (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019)))))
+     (kill-buffer buffer)
      (org-journal-new-entry t)
-     (write-file (org-journal-get-entry-path))
+     (save-buffer)
+     (kill-buffer) ;; Kills new journal file buffer
+     (kill-buffer buffer)
+     (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 1 1 2019)))))
      (kill-buffer)
+     (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019)))))
+     (kill-buffer)
+
      (should (string= (with-temp-buffer
+                        (org-journal-mode)
                         (insert-file-contents (org-journal-get-entry-path))
-                        (buffer-substring-no-properties (point-min) (point-max)))
-                      (concat "* Test header\n  :PROPERTIES:\n  :CREATED:  "
-                              (format-time-string "%Y%m%d")
-                              "\n  :END:\n** TODO First\n** TODO Second\n"))))))
+                        (replace-regexp-in-string
+                         "^[ ]*" ""
+                         (buffer-substring-no-properties (point-min) (point-max))))
+                      (concat "* Test header\n:PROPERTIES:\n:CREATED:  "
+                              (format-time-string (org-journal-created-property-format))
+                              "\n:END:\n** TODO First\n** TODO Second\n"))))))
 
 (ert-deftest org-journal-carryover-keep-parents-test ()
   "Org journal new entry test for daily files."
   (org-journal-test-macro
-   (with-temp-buffer
-     (insert "* Wednesday, 01/02/19\n")
-     (insert "** a\n")
-     (insert "** TODO a\n")
-     (insert "** b1\n")
-     (insert "*** TODO b1\n")
-     (insert "*** DONE b1\n")
-     (insert "*** b1 note\n")
-     (insert "*** b2\n")
-     (insert "**** TODO b2\n")
-     (insert "**** b3\n")
-     (insert "***** TODO b3\n")
-     (insert "***** DONE b3\n")
-     (insert "** TODO b\n")
-     (insert "** 14:00 Some journal entry 2\n")
-     (write-file (expand-file-name "20181231" org-journal-dir-test))
-     (kill-buffer "20181231"))
-   (org-journal-new-entry nil)
-   (write-file (org-journal-get-entry-path))
-   (kill-buffer)
-   (should (string= (with-temp-buffer
-                      (insert-file-contents (org-journal-get-entry-path))
-                      (buffer-substring-no-properties (point-min) (point-max)))
-                    (concat "* Test header\n** TODO a\n** b1\n*** TODO b1\n*** b2\n**** TODO b2\n**** b3\n***** TODO b3\n** TODO b\n" new-entry "\n")))))
+   (let ((buffer "20181231"))
+     (with-temp-buffer
+       (insert "* Wednesday, 01/02/19\n")
+       (insert "** a\n")
+       (insert "** TODO a\n")
+       (insert "** b1\n")
+       (insert "*** TODO b1\n")
+       (insert "*** DONE b1\n")
+       (insert "*** b1 note\n")
+       (insert "*** b2\n")
+       (insert "**** TODO b2\n")
+       (insert "**** b3\n")
+       (insert "***** TODO b3\n")
+       (insert "***** DONE b3\n")
+       (insert "** TODO b\n")
+       (insert "** 14:00 Some journal entry 2\n")
+       (write-file (expand-file-name buffer org-journal-dir-test))
+       (kill-buffer buffer))
+     (org-journal-new-entry nil)
+     (save-buffer)
+     (kill-buffer)
+     (kill-buffer buffer)
+     (should (string= (with-temp-buffer
+                        (insert-file-contents (org-journal-get-entry-path))
+                        (buffer-substring-no-properties (point-min) (point-max)))
+                      (concat "* Test header\n** TODO a\n** b1\n*** TODO b1\n*** b2\n**** TODO b2\n**** b3\n***** TODO b3\n** TODO b\n" new-entry "\n"))))))
 
-
-(ert-deftest org-journal-search-build-file-list-test ()
-  "Test for `org-journal-search-build-file-list'."
+(ert-deftest org-journal-carryover-delete-empty-journal ()
+  "Org journal delete empty journal test"
   (org-journal-test-macro
-   (let ((test-file-daily '("20170104" "20170312" "20190201"))
-         (test-file-yearly '("20170101" "20180101" "20190101"))
-         (test-file-weekly '("20170102" "20180430" "20181231"))
-         (test-file-monthly '("20170101" "20180401" "20190301"))
-         (create-files (lambda (test-files)
-                         (org-journal-dir-test-setup)
-                         (dolist (file test-files)
-                           (with-temp-buffer
-                             (write-file (expand-file-name file org-journal-dir-test))))))
-         period-start
-         period-end)
-     (message "Running daily org-journal-search-build-file-list-test")
-     ;; Daily build file boundary check
-     (setq period-start (encode-time 0 0 0 4 1 2017)
-           period-end (encode-time 0 0 0 1 2 2019))
-     (funcall create-files test-file-daily)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+   (let ((buffer "20181231")
+         (org-journal-carryover-delete-empty-journal 'always))
+     (with-temp-buffer
+       (insert "* Wednesday, 01/02/19\n")
+       (org-set-property "CREATED" "20190102")
+       (insert "** TODO a\n")
+       (write-file (expand-file-name buffer org-journal-dir-test))
+       (kill-buffer buffer))
+     (org-journal-new-entry nil)
+     (save-buffer)
+     (kill-buffer)
+     (should (not (file-exists-p (org-journal-get-entry-path (encode-time 0 0 0 31 12 2018)))))
 
-     (message "Running weekly org-journal-search-build-file-list-test")
-     (setq period-start (encode-time 0 0 0 8 1 2017)
-           period-end (encode-time 0 0 0 31 12 2018))
-     ;; Weekly build file boundary check
-     (setq org-journal-file-type 'weekly)
-     (funcall create-files test-file-weekly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
-
-     (message "Running monthly org-journal-search-build-file-list-test")
-     (setq period-start (encode-time 0 0 0 31 1 2017)
-           period-end (encode-time 0 0 0 1 3 2019))
-     ;; Monthly build file boundary check
-     (setq org-journal-file-type 'monthly)
-     (funcall create-files test-file-monthly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
-
-     (message "Running yearly org-journal-search-build-file-list-test")
-     (setq period-start (encode-time 0 0 0 31 12 2017)
-           period-end (encode-time 0 0 0 1 1 2019))
-     ;; Yearly build file boundary check
+     ;; Test even single entry gets deleted, relevant for weekly, monthly and yearly journal files.
+     (org-journal-dir-test-setup)
      (setq org-journal-file-type 'yearly)
-     (funcall create-files test-file-yearly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1)))))
+     (with-temp-buffer
+       (insert "* Wednesday, 01/01/19\n")
+       (org-set-property "CREATED" "20190101")
+       (insert "** TODO a\n")
+       (insert "* Wednesday, 01/02/19\n")
+       (org-set-property "CREATED" "20190102")
+       (insert "** TODO a\n")
+       (write-file (expand-file-name "20190101" org-journal-dir-test))
+       (kill-buffer "20190101"))
+     (org-journal-new-entry nil)
+     (save-buffer)
+     (kill-buffer)
+     (let ((inhibit-message t))
+       (should
+        (string= "No journal entry for this date."
+                 (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect))))
+     (kill-buffer "20190101"))))
+
+  (ert-deftest org-journal-search-build-file-list-test ()
+    "Test for `org-journal-search-build-file-list'."
+    (org-journal-test-macro
+     (let ((test-file-daily '("20170104" "20170312" "20190201"))
+           (test-file-yearly '("20170101" "20180101" "20190101"))
+           (test-file-weekly '("20170102" "20180430" "20181231"))
+           (test-file-monthly '("20170101" "20180401" "20190301"))
+           (create-files (lambda (test-files)
+                           (org-journal-dir-test-setup)
+                           (dolist (file test-files)
+                             (find-file (expand-file-name file org-journal-dir-test))
+                             (save-buffer)
+                             (kill-buffer))))
+           period-start
+           period-end)
+       ;; Daily build file boundary check
+       (setq period-start (encode-time 0 0 0 4 1 2017)
+             period-end (encode-time 0 0 0 1 2 2019))
+       (funcall create-files test-file-daily)
+       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+       (setq period-start (encode-time 0 0 0 8 1 2017)
+             period-end (encode-time 0 0 0 31 12 2018))
+       ;; Weekly build file boundary check
+       (setq org-journal-file-type 'weekly)
+       (funcall create-files test-file-weekly)
+       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+       (setq period-start (encode-time 0 0 0 31 1 2017)
+             period-end (encode-time 0 0 0 1 3 2019))
+       ;; Monthly build file boundary check
+       (setq org-journal-file-type 'monthly)
+       (funcall create-files test-file-monthly)
+       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+
+       (setq period-start (encode-time 0 0 0 31 12 2017)
+             period-end (encode-time 0 0 0 1 1 2019))
+       ;; Yearly build file boundary check
+       (setq org-journal-file-type 'yearly)
+       (funcall create-files test-file-yearly)
+       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1)))))
