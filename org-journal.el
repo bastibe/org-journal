@@ -620,6 +620,7 @@ hook is run."
       (unless (string= entry-path (buffer-file-name))
         (funcall org-journal-find-file entry-path))
 
+      ;; Insert org-journal-file-header
       (if (and (or (functionp org-journal-file-header)
                    (and (stringp org-journal-file-header)
                         (not (string-empty-p org-journal-file-header))))
@@ -673,7 +674,7 @@ hook is run."
               (org-set-tags org-crypt-tag-matcher)))))
       (org-journal-decrypt)
 
-      ;; move TODOs from previous day here
+      ;; Move TODOs from previous day to new entry
       (when (and org-journal-carryover-items
                  (not (string-blank-p org-journal-carryover-items))
                  (string= entry-path (org-journal-get-entry-path (current-time))))
@@ -683,7 +684,7 @@ hook is run."
           (outline-end-of-subtree)
         (goto-char (point-max)))
 
-      ;; insert the header of the entry
+      ;; Insert the header of the entry
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
         (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
@@ -1198,9 +1199,6 @@ it into a list of calendar date elements."
                 (calendar-cursor-to-date t event))))
     (org-journal-read-or-display-entry time t)))
 
-;; silence compiler warning.
-(defvar view-exit-action)
-
 (defun org-journal-finalize-view ()
   "Finalize visability of entry."
   (org-journal-decrypt)
@@ -1221,7 +1219,7 @@ is nil or avoid switching when NOSELECT is non-nil."
          buf point)
     (if (and (when (file-exists-p org-journal-file)
                (setq buf (find-file-noselect org-journal-file)))
-             ;; If daily continue than clause of if condition
+             ;; If daily continue with than clause of if condition
              (or (org-journal-daily-p)
                  ;; Search for journal entry
                  (with-current-buffer buf
