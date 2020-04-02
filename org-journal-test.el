@@ -51,31 +51,29 @@
 
 (ert-deftest org-journal-calendar-date-from-file ()
   "Should return a list with day/month/year"
-  (org-journal-dir-test-setup)
-  (let* ((org-journal-dir org-journal-dir-test)
-         (org-journal-file-pattern (org-journal-file-pattern-test)))
-    (should (equal (org-journal-file-name->calendar-date
-                    (expand-file-name "20190103" org-journal-dir))
-                   '(1 03 2019)))))
+  (org-journal-test-macro
+   (should (equal (org-journal-file-name->calendar-date
+                   (expand-file-name "20190103" org-journal-dir))
+                  '(1 03 2019)))))
 
 (ert-deftest org-journal-convert-time-to-file-type-time-test ()
   "Testing"
-  (let ((time (current-time))
-        (org-journal-file-type 'daily))
-    (should (equal (org-journal-convert-time-to-file-type-time time)
-                   time))
-    (setq time (encode-time 0 0 0 3 1 2019)
-          org-journal-file-type 'weekly)
-    (should (equal (org-journal-convert-time-to-file-type-time time)
-                   (encode-time 0 0 0 31 12 2018)))
-    (setq time (encode-time 0 0 0 15 4 2019)
-          org-journal-file-type 'monthly)
-    (should (equal (org-journal-convert-time-to-file-type-time time)
-                   (encode-time 0 0 0 1 4 2019)))
-    (setq time (encode-time 0 0 0 3 2 2019)
-          org-journal-file-type 'yearly)
-    (should (equal (org-journal-convert-time-to-file-type-time time)
-                   (encode-time 0 0 0 1 1 2019)))))
+  (org-journal-test-macro
+   (let ((time (current-time)))
+     (should (equal (org-journal-convert-time-to-file-type-time time)
+                    time))
+     (setq time (encode-time 0 0 0 3 1 2019)
+           org-journal-file-type 'weekly)
+     (should (equal (org-journal-convert-time-to-file-type-time time)
+                    (encode-time 0 0 0 31 12 2018)))
+     (setq time (encode-time 0 0 0 15 4 2019)
+           org-journal-file-type 'monthly)
+     (should (equal (org-journal-convert-time-to-file-type-time time)
+                    (encode-time 0 0 0 1 4 2019)))
+     (setq time (encode-time 0 0 0 3 2 2019)
+           org-journal-file-type 'yearly)
+     (should (equal (org-journal-convert-time-to-file-type-time time)
+                    (encode-time 0 0 0 1 1 2019))))))
 
 (ert-deftest org-journal-insert-header ()
   "Test insertion of header"
