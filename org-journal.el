@@ -482,18 +482,20 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
   (if (org-journal-daily-p)
       (message "Nothing to do, org-journal-file-type is 'daily")
     (dolist (file (org-journal-list-files))
-      (let* ((buffer (get-buffer (file-name-nondirectory file)))
+      (let* ((inhibit-read-only)
+             (buffer (get-buffer (file-name-nondirectory file)))
              (buffer-modefied (when buffer (buffer-modified-p buffer))))
         (with-current-buffer (if buffer buffer (find-file-noselect file))
           (goto-char (point-min))
-          (dolist (date (reverse (let ((org-journal-created-property-timestamp-format old-format))
-                                   (org-journal-file->calendar-dates file))))
-            (unless (let ((org-journal-created-property-timestamp-format old-format))
-                      (org-journal-search-forward-created date nil t))
-              (error "Did not find journal entry in file (%s), date was (%s) " file date))
-            (org-set-property "CREATED" (format-time-string
-                                         org-journal-created-property-timestamp-format
-                                         (org-journal-calendar-date->time date))))
+          (ignore-errors
+            (dolist (date (reverse (let ((org-journal-created-property-timestamp-format old-format))
+                                     (org-journal-file->calendar-dates file))))
+              (unless (let ((org-journal-created-property-timestamp-format old-format))
+                        (org-journal-search-forward-created date nil t))
+                (error "Did not find journal entry in file (%s), date was (%s) " file date))
+              (org-set-property "CREATED" (format-time-string
+                                           org-journal-created-property-timestamp-format
+                                           (org-journal-calendar-date->time date)))))
           (unless buffer-modefied (save-buffer))
           (unless buffer (kill-buffer)))))))
 
