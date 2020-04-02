@@ -484,7 +484,7 @@ DATE should be a calendar date list (MONTH DAY YEAR)."
   "Convert CREATED property timestamps to `org-journal-created-property-format'."
   (interactive)
   (if (org-journal-daily-p)
-      (message "Nothing to do, org-journal file type is daily")
+      (message "Nothing to do, org-journal-file-type is 'daily")
     (dolist (file (org-journal-list-files))
       (let* ((buffer (get-buffer (file-name-nondirectory file)))
              (buffer-modefied (when buffer (buffer-modified-p buffer))))
@@ -497,9 +497,8 @@ DATE should be a calendar date list (MONTH DAY YEAR)."
                               (format-time-string
                                (org-journal-created-property-format)
                                (encode-time 0 0 0 (cadr date) (car date) (nth 2 date)))))
-          (message "current-buffer=%s" (current-buffer))
-          (unless buffer-modefied
-            (save-buffer)))))))
+          (unless buffer-modefied (save-buffer))
+          (unless buffer (kill-buffer)))))))
 
 (defun org-journal-convert-time-to-file-type-time (&optional time)
   "Converts TIME to the file type format date.
