@@ -30,6 +30,7 @@
           (comment-start-skip "^\\s-*#\\(?: \\|$\\)")
           (org-journal-file-pattern (org-journal-file-pattern-test))
           (auto-mode-alist `(,(cons org-journal-file-pattern 'org-journal-mode) ,@auto-mode-alist))
+          (org-journal-cache-file (expand-file-name  "org-journal.cache" org-journal-dir-test))
           (org-journal-file-type 'daily)
           (org-journal-carryover-items "TODO=\"TODO\"")
           (org-journal-enable-cache nil)
@@ -108,7 +109,6 @@
        (write-file (expand-file-name buffer org-journal-dir-test))
        (kill-buffer buffer))
      (find-file (expand-file-name buffer org-journal-dir-test))
-     ;; (message "%333" format-args)
      (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 1 1 2019)))))
      (kill-buffer buffer)
      (should (not (stringp (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019)))))
@@ -167,6 +167,7 @@
   (org-journal-test-macro
    (let ((buffer "20181231")
          (org-journal-carryover-delete-empty-journal 'always))
+     ;; Test that journal file gets dumped, after carryover
      (with-temp-buffer
        (insert "* Wednesday, 01/02/19\n")
        (org-set-property "CREATED" "20190102")
