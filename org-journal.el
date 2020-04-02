@@ -68,6 +68,9 @@
 (require 'seq)
 (require 'subr-x)
 
+;; Silent byte-compiler
+(defvar view-exit-action)
+
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
@@ -98,7 +101,6 @@ org-journal. Use `org-journal-file-format' instead.")
 
 ;; use this function to update auto-mode-alist whenever
 ;; org-journal-dir or org-journal-file-pattern change.
-;;;###autoload
 (defun org-journal-update-auto-mode-alist ()
   "Update `auto-mode-alist' to open journal files in `org-journal-mode'."
   (add-to-list 'auto-mode-alist
@@ -108,18 +110,23 @@ org-journal. Use `org-journal-file-format' instead.")
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 (add-hook 'org-agenda-mode-hook 'org-journal-update-org-agenda-files)
 
-;;;###autoload
 (defun org-journal-dir-and-format->regex (dir format)
   "Update `org-journal-file-pattern' with the current `org-journal-file-format'."
   (concat
    (file-truename (expand-file-name (file-name-as-directory dir)))
+   (org-journal-format->regex format)
+   "\\(\\.gpg\\)?\\'"))
+
+(defun org-journal-format->regex (format)
+  (replace-regexp-in-string
+   "%[aA]" "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)"
    (replace-regexp-in-string
     "%d" "\\\\(?3:[0-9][0-9]\\\\)"
     (replace-regexp-in-string
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
-      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format)))
-   "\\(\\.gpg\\)?\\'"))
+      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)"
+      (regexp-quote format))))))
 
 ;;; Customizable variables
 (defgroup org-journal nil
@@ -361,22 +368,22 @@ and the return value will be inserted."
           (string :tag "String")
           (function :tag "Function")))
 
-(defcustom org-journal-created-property-format-type 'ymd
-  "The created property format.
+(defcustom org-journal-created-property-timestamp-format "%F"
+  "The created property timestamp format-string.
 
-  Valid values are:
-  - ymd -> \"%Y%m%d\"
-  - inactive -> \"[%Y-%m-%d %a]\"
+We must be able to reconstruct the timestamp from year,
+month and day.
 
-You can call `org-journal-convert-created-timestamps', if you want all
-CREATED property timstamps to be converted to the new format."
-  :type `(choice
-          (const :tag "Year Month Day" 'ymd)
-          (const :tag "Org inactive timstamp" 'inactive)))
+Currently supported placeholders are:
 
-(defvar org-journal-created-property-formats
-  `("%Y%m%d" . ,(concat "[" (substring (car org-time-stamp-formats) 1 -1) "]"))
-  "Formats for the created property.")
+%Y is the year.
+%m is the numeric month.
+%d is the day of the month, zero-padded.
+%a is the locale’s abbreviated name of the day of week, %A the full name.
+
+You must call `org-journal-convert-created-property-timestamps' afterwards,
+if you have existing journal entries."
+  :type 'string)
 
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
@@ -448,22 +455,16 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
        (kill-buffer buf))
      result))
 
-(defvar org-journal-created-re (concat " *:CREATED: *\\("
-                                       org-ts-regexp-inactive
-                                       "\\|[0-9]\\{8\\}\\)")
-  "Regex to find created property.")
+(defvar org-journal-created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
 
-(defsubst org-journal-search-forward-created (date &optional bound noerror count)
-  "Search for CREATED tag with date.
-
-DATE should be a calendar date list (MONTH DAY YEAR)."
+(defun org-journal-search-forward-created (date &optional bound noerror count)
+  "Search for CREATED tag with date."
   (re-search-forward
-   (format-time-string (concat "[ \t]*:CREATED:[ \t]*\\(\\["
-                               (substring (cdr org-journal-created-property-formats) 1 -1)
-                               "\\]\\|"
-                               (car org-journal-created-property-formats)
-                               "\\)[ \t]*$")
-                       (encode-time 0 0 0 (cadr date) (car date) (nth 2 date)))
+   (format-time-string
+    (concat "[ \t]*:CREATED:[ \t]+"
+            (regexp-quote org-journal-created-property-timestamp-format)
+            "[ \t]*$")
+    (org-journal-calendar-date->time date))
    bound noerror count))
 
 (defsubst org-journal-daily-p ()
@@ -474,15 +475,10 @@ DATE should be a calendar date list (MONTH DAY YEAR)."
   "Returns t if `org-journal-date-prefix' starts with \"* \"."
   (string-match "^\* " org-journal-date-prefix))
 
-(defun org-journal-created-property-format ()
-  "Return  created property format."
-  (if (eq org-journal-created-property-format-type 'ymd)
-      (car org-journal-created-property-formats)
-    (cdr org-journal-created-property-formats)))
-
-(defun org-journal-convert-created-timestamps ()
-  "Convert CREATED property timestamps to `org-journal-created-property-format'."
-  (interactive)
+;;;###autoload
+(defun org-journal-convert-created-property-timestamps (old-format)
+  "Convert CREATED property timestamps to `org-journal-created-property-timestamp-format'."
+  (interactive "sEnter old format: ")
   (if (org-journal-daily-p)
       (message "Nothing to do, org-journal-file-type is 'daily")
     (dolist (file (org-journal-list-files))
@@ -490,26 +486,27 @@ DATE should be a calendar date list (MONTH DAY YEAR)."
              (buffer-modefied (when buffer (buffer-modified-p buffer))))
         (with-current-buffer (if buffer buffer (find-file-noselect file))
           (goto-char (point-min))
-          (dolist (date (reverse (org-journal-file->calendar-dates file)))
-            (unless (org-journal-search-forward-created date nil t)
+          (dolist (date (reverse (let ((org-journal-created-property-timestamp-format old-format))
+                                   (org-journal-file->calendar-dates file))))
+            (unless (let ((org-journal-created-property-timestamp-format old-format))
+                      (org-journal-search-forward-created date nil t))
               (error "Did not find journal entry in file (%s), date was (%s) " file date))
-            (org-set-property "CREATED"
-                              (format-time-string
-                               (org-journal-created-property-format)
-                               (encode-time 0 0 0 (cadr date) (car date) (nth 2 date)))))
+            (org-set-property "CREATED" (format-time-string
+                                         org-journal-created-property-timestamp-format
+                                         (org-journal-calendar-date->time date))))
           (unless buffer-modefied (save-buffer))
           (unless buffer (kill-buffer)))))))
 
 (defun org-journal-convert-time-to-file-type-time (&optional time)
   "Converts TIME to the file type format date.
 
-If `org-journal-file-type' is 'weekly the TIME will be rounded to
+If `org-journal-file-type' is 'weekly, the TIME will be rounded to
 the first date of the week.
 
-If `org-journal-file-type' is 'monthly the TIME will be rounded to
+If `org-journal-file-type' is 'monthly, the TIME will be rounded to
 the first date of the month.
 
-If `org-journal-file-type' is 'yearly the TIME will be rounded to
+If `org-journal-file-type' is 'yearly, the TIME will be rounded to
 the first date of the year."
   (or time (setq time (current-time)))
   (pcase org-journal-file-type
@@ -533,17 +530,15 @@ the first date of the year."
               (if (> target-date absolute-now)
 		  (- target-date 7)
 		target-date))))
-       (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))))
+       (org-journal-calendar-date->time date)))
     ;; Round to the first day of the month, e.g. 20190301
     (`monthly
-     (apply 'encode-time
-            `(0 0 0 ,@(mapcar 'string-to-number
-                              (split-string (format-time-string "1 %m %Y" time) " ")))))
+     (org-journal-calendar-date->time
+      (mapcar 'string-to-number (split-string (format-time-string "%m 1 %Y" time) " "))))
     ;; Round to the first day of the year, e.g. 20190101
     (`yearly
-     (apply 'encode-time
-            `(0 0 0 ,@(mapcar 'string-to-number
-                              (split-string (format-time-string "1 1 %Y" time) " ")))))))
+     (org-journal-calendar-date->time
+      (mapcar 'string-to-number (split-string (format-time-string "1 1 %Y" time) " "))))))
 
 (defun org-journal-get-entry-path (&optional time)
   "Return the path to an entry matching TIME, if no TIME is given, uses the current time."
@@ -666,8 +661,7 @@ hook is run."
           (unless (org-journal-daily-p)
             (org-set-property "CREATED"
                               (format-time-string
-                               (org-journal-created-property-format)
-                               time)))
+                               org-journal-created-property-timestamp-format time)))
           (when org-journal-enable-encryption
             (unless (member org-crypt-tag-matcher (org-get-tags))
               (org-set-tags org-crypt-tag-matcher)))))
@@ -872,23 +866,25 @@ Return nil when it's impossible to figure out the level."
   (when (string-match "\\(^\*+\\)" org-journal-time-prefix)
     (length (match-string 1 org-journal-time-prefix))))
 
-(defun org-journal-calendar-date->time (calendar-date)
-  "Convert a date as returned from the calendar to a time."
-  (encode-time 0 0 0                   ; second, minute, hour
-               (nth 1 calendar-date)   ; day
-               (nth 0 calendar-date)   ; month
-               (nth 2 calendar-date))) ; year
+(defun org-journal-calendar-date->time (date)
+  "Convert a date as returned from the calendar (MONTH DAY YEAR) to a time."
+  (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
 
 (defun org-journal-file-name->calendar-date (file-name)
   "Convert an org-journal file name to a calendar date.
 
 Month and Day capture group default to 1."
   (let ((day 1) (month 1) year)
-    (setq year (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\1" file-name)))
+    (setq year (string-to-number
+                (replace-regexp-in-string org-journal-file-pattern "\\1" file-name)))
+
     (when (integerp (string-match "\(\?2:" org-journal-file-pattern))
-      (setq month (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\2" file-name))))
+      (setq month (string-to-number
+                   (replace-regexp-in-string org-journal-file-pattern "\\2" file-name))))
+
     (when (integerp (string-match "\(\?3:" org-journal-file-pattern))
-      (setq day (string-to-number (replace-regexp-in-string org-journal-file-pattern "\\3" file-name))))
+      (setq day (string-to-number
+                 (replace-regexp-in-string org-journal-file-pattern "\\3" file-name))))
     (list month day year)))
 
 (defun org-journal-entry-date->calendar-date ()
@@ -896,20 +892,15 @@ Month and Day capture group default to 1."
 
 This is the counterpart of `org-journal-file-name->calendar-date' for
 'weekly, 'monthly and 'yearly journal files."
-  (let (date)
+  (let ((re (org-journal-format->regex org-journal-created-property-timestamp-format))
+        date)
     (setq date (org-entry-get (point) "CREATED"))
     (unless date
       (error "Entry at \"%s:%d\" doesn't have a \"CREATED\" property." (buffer-file-name) (point)))
-    (if (string-match org-ts-regexp-inactive date)
-        (progn
-          (setq date (split-string (match-string 1 date) "[ -]"))
-          (list (string-to-number (cadr date))   ;; Month
-                (string-to-number (caddr date))  ;; Day
-                (string-to-number (car date))))  ;; Year
-      (string-match "\\([0-9]\\{4\\}\\)\\([0-9]\\{2\\}\\)\\([0-9]\\{2\\}\\)" date)
-      (list (string-to-number (match-string 2 date)) ;; Month
-            (string-to-number (match-string 3 date)) ;; Day
-            (string-to-number (match-string 1 date)))))) ;; Year
+    (string-match re date)
+    (list (string-to-number (match-string 2 date))   ;; Month
+          (string-to-number (match-string 3 date))  ;; Day
+          (string-to-number (match-string 1 date))))) ;; Year
 
 (defun org-journal-file->calendar-dates (file)
   "Return journal dates from FILE."
@@ -1552,16 +1543,17 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                        (setq month 0)
                        (setq year (1+ year)))
                      (setq month (1+ month)))
-                   (encode-time 0 0 0 day month year)))
+                   (org-journal-calendar-date->time (list month day year))))
                 ;; For monthly, end of month is period-start boundary.
                 (`monthly
                  (let* ((time (decode-time filetime))
                         (month (nth 4 time))
-                        (year (nth 5 time)))
-                   (encode-time 0 0 0 (calendar-last-day-of-month month year) month year)))
+                        (year (nth 5 time))
+                        (day (calendar-last-day-of-month month year)))
+                   (org-journal-calendar-date->time (list month day year))))
                 ;; For yearly, end of year is period-start boundary.
                 (`yearly
-                 (encode-time 0 0 0 31 12 (nth 5 (decode-time filetime))))))
+                 (org-journal-calendar-date->time (list 12 31 (nth 5 (decode-time filetime)))))))
              (time-less-p filetime period-end))
         (push file result)))
     result))

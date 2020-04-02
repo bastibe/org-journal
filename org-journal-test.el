@@ -44,7 +44,7 @@
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R")
           (org-journal-file-header "")
-          (org-journal-created-property-format-type 'ymd))
+          (org-journal-created-property-timestamp-format "%Y%m%d"))
      (org-journal-dir-test-setup)
      ,@body))
 
@@ -98,7 +98,7 @@
        (org-set-property "CREATED" "20190101")
        (insert "** 13:00 Some journal entry\n")
        (insert "* Wednesday, 01/02/19\n")
-       (org-set-property "CREATED" "[2019-01-02 Wed]")
+       (org-set-property "CREATED" "20190102")
        (insert "** TODO First\n")
        (insert "** 13:00 Some journal entry 1\n")
        (insert "** TODO Second\n")
@@ -126,7 +126,7 @@
                          "^[ ]*" ""
                          (buffer-substring-no-properties (point-min) (point-max))))
                       (concat "* Test header\n:PROPERTIES:\n:CREATED:  "
-                              (format-time-string (org-journal-created-property-format))
+                              (format-time-string org-journal-created-property-timestamp-format)
                               "\n:END:\n** TODO First\n** TODO Second\n"))))))
 
 (ert-deftest org-journal-carryover-keep-parents-test ()
