@@ -1,4 +1,4 @@
-;; org-journal-test.el --- Test file for org-journal
+;; org-journal-test.el --- Test file for org-journal -*- lexical-binding: t; -*-
 ;;
 ;; Author: Christian Schwarzgruber (c.schwarzgruber.cs@gmail.com)
 ;;
@@ -44,8 +44,7 @@
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R")
           (org-journal-file-header "")
-          (org-journal-created-property-format-type 'ymd)
-          (new-entry (concat "** " (format-time-string org-journal-time-format))))
+          (org-journal-created-property-format-type 'ymd))
      (org-journal-dir-test-setup)
      ,@body))
 
@@ -133,7 +132,8 @@
 (ert-deftest org-journal-carryover-keep-parents-test ()
   "Org journal new entry test for daily files."
   (org-journal-test-macro
-   (let ((buffer "20181231"))
+   (let ((buffer "20181231")
+         (new-entry (concat "** " (format-time-string org-journal-time-format))))
      (with-temp-buffer
        (insert "* Wednesday, 01/02/19\n")
        (insert "** a\n")
