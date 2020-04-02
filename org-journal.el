@@ -713,11 +713,7 @@ hook is run."
   "Will be set to the `t' if `org-journal-open-entry' is visiting a
 buffer not open already, otherwise `nil'.")
 
-
-(defun org-journal-carryover-delete-empty-journal (prev-buffer)
-  "Check if the previous entry/file is empty after we carried over the
-items, and delete or not delete the empty entry/file based on
-`org-journal-carryover-delete-empty-journal'."
+(defun org-journal-empty-journal-p (prev-buffer)
   (let (empty entry)
     (with-current-buffer prev-buffer (save-buffer))
     (save-excursion
@@ -729,7 +725,7 @@ items, and delete or not delete the empty entry/file based on
       (insert entry)
       (goto-char (point-min))
       (let (start end)
-        ;; Delete scheduled time stamps
+        ;; Delete scheduled timestamps
         (while (re-search-forward (concat " *\\(CLOSED\\|DEADLINE\\|SCHEDULED\\): *" org-ts-regexp-both) nil t)
           (kill-region (match-beginning 0) (match-end 0)))
 
@@ -740,27 +736,33 @@ items, and delete or not delete the empty entry/file based on
           (setq end (match-end 0))
           (kill-region start end)))
       (setq empty (string-empty-p (org-trim (buffer-string)))))
+    empty))
 
-    (when (and empty (or (and (eq org-journal-carryover-delete-empty-journal 'ask)
-                              (y-or-n-p "Delete empty journal entry/file?"))
-                         (eq org-journal-carryover-delete-empty-journal 'always)))
+(defun org-journal-carryover-delete-empty-journal (prev-buffer)
+  "Check if the previous entry/file is empty after we carried over the
+items, and delete or not delete the empty entry/file based on
+`org-journal-carryover-delete-empty-journal'."
+  (when (and (org-journal-empty-journal-p prev-buffer)
+             (or (and (eq org-journal-carryover-delete-empty-journal 'ask)
+                      (y-or-n-p "Delete empty journal entry/file?"))
+                 (eq org-journal-carryover-delete-empty-journal 'always)))
 
-      (let ((inhibit-message t))
-        ;; Check if the file doesn't contain any other entry, by comparing the
-        ;; new filename with the previous entry filename and the next entry filename.
-        (if (and (save-excursion
-                   (org-journal-open-previous-entry 'no-select)
-                   (or (not (org-journal-open-previous-entry 'no-select))
-                       (not (eq (current-buffer) prev-buffer))))
-                 (not (eq (current-buffer) prev-buffer)))
-            (progn
-              (delete-file (buffer-file-name prev-buffer))
-              (kill-buffer prev-buffer)
-              (when org-journal-enable-cache (org-journal-list-dates)))
-          (save-excursion
-            (org-journal-open-previous-entry 'no-select)
-            (kill-region (point) (progn (outline-end-of-subtree) (point)))
-            (save-buffer)))))))
+    (let ((inhibit-message t))
+      ;; Check if the file doesn't contain any other entry, by comparing the
+      ;; new filename with the previous entry filename and the next entry filename.
+      (if (and (save-excursion
+                 (org-journal-open-previous-entry 'no-select)
+                 (or (not (org-journal-open-previous-entry 'no-select))
+                     (not (eq (current-buffer) prev-buffer))))
+               (not (eq (current-buffer) prev-buffer)))
+          (progn
+            (delete-file (buffer-file-name prev-buffer))
+            (kill-buffer prev-buffer)
+            (when org-journal-enable-cache (org-journal-list-dates)))
+        (save-excursion
+          (org-journal-open-previous-entry 'no-select)
+          (kill-region (point) (progn (outline-end-of-subtree) (point)))
+          (save-buffer))))))
 
 (defun org-journal-carryover-items (text entries prev-buffer)
   "Carryover items.
