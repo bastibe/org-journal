@@ -1,4 +1,4 @@
-all: compile test
+all: clean compile test
 
 test:
 	emacs -batch -L . -l org-journal-test -f ert-run-tests-batch-and-exit

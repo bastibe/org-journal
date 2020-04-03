@@ -710,7 +710,7 @@ hook is run."
 buffer not open already, otherwise `nil'.")
 
 (defun org-journal-empty-journal-p (prev-buffer)
-  (let (empty entry)
+  (let (entry)
     (with-current-buffer prev-buffer (save-buffer))
     (save-excursion
       (org-journal-open-previous-entry 'no-select)
@@ -731,8 +731,7 @@ buffer not open already, otherwise `nil'.")
           (re-search-forward org-drawer-regexp nil t)
           (setq end (match-end 0))
           (kill-region start end)))
-      (setq empty (string-empty-p (org-trim (buffer-string)))))
-    empty))
+      (string-empty-p (org-trim (buffer-string))))))
 
 (defun org-journal-carryover-delete-empty-journal (prev-buffer)
   "Check if the previous entry/file is empty after we carried over the
