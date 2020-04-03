@@ -368,7 +368,7 @@ and the return value will be inserted."
           (string :tag "String")
           (function :tag "Function")))
 
-(defcustom org-journal-created-property-timestamp-format "%F"
+(defcustom org-journal-created-property-timestamp-format "%Y%m%d"
   "The created property timestamp format-string.
 
 We must be able to reconstruct the timestamp from year,
