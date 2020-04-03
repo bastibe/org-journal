@@ -1,4 +1,4 @@
-[[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
+[[https://travis-ci.org/bastibe/org-journal][file:https://travis-ci.org/bastibe/org-journal.svg?branch=master]] [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
 
 #+CAPTION: The org-journal logo
 [[./org-journal.svg]]

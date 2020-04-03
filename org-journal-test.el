@@ -10,7 +10,7 @@
 (require 'ert)
 (require 'org-journal)
 
-(defvar org-journal-dir-test "/tmp/org-journal")
+(defvar org-journal-dir-test (make-temp-file "org-journal-" t))
 
 (defun org-journal-dir-test-setup ()
   "Create temporary directory."
@@ -198,44 +198,44 @@
                  (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect))))
      (kill-buffer "20190101"))))
 
-  (ert-deftest org-journal-search-build-file-list-test ()
-    "Test for `org-journal-search-build-file-list'."
-    (org-journal-test-macro
-     (let ((test-file-daily '("20170104" "20170312" "20190201"))
-           (test-file-yearly '("20170101" "20180101" "20190101"))
-           (test-file-weekly '("20170102" "20180430" "20181231"))
-           (test-file-monthly '("20170101" "20180401" "20190301"))
-           (create-files (lambda (test-files)
-                           (org-journal-dir-test-setup)
-                           (dolist (file test-files)
-                             (find-file (expand-file-name file org-journal-dir-test))
-                             (save-buffer)
-                             (kill-buffer))))
-           period-start
-           period-end)
-       ;; Daily build file boundary check
-       (setq period-start (encode-time 0 0 0 4 1 2017)
-             period-end (encode-time 0 0 0 1 2 2019))
-       (funcall create-files test-file-daily)
-       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+(ert-deftest org-journal-search-build-file-list-test ()
+  "Test for `org-journal-search-build-file-list'."
+  (org-journal-test-macro
+   (let ((test-file-daily '("20170104" "20170312" "20190201"))
+         (test-file-yearly '("20170101" "20180101" "20190101"))
+         (test-file-weekly '("20170102" "20180430" "20181231"))
+         (test-file-monthly '("20170101" "20180401" "20190301"))
+         (create-files (lambda (test-files)
+                         (org-journal-dir-test-setup)
+                         (dolist (file test-files)
+                           (find-file (expand-file-name file org-journal-dir-test))
+                           (save-buffer)
+                           (kill-buffer))))
+         period-start
+         period-end)
+     ;; Daily build file boundary check
+     (setq period-start (encode-time 0 0 0 4 1 2017)
+           period-end (encode-time 0 0 0 1 2 2019))
+     (funcall create-files test-file-daily)
+     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
 
-       (setq period-start (encode-time 0 0 0 8 1 2017)
-             period-end (encode-time 0 0 0 31 12 2018))
-       ;; Weekly build file boundary check
-       (setq org-journal-file-type 'weekly)
-       (funcall create-files test-file-weekly)
-       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+     (setq period-start (encode-time 0 0 0 8 1 2017)
+           period-end (encode-time 0 0 0 31 12 2018))
+     ;; Weekly build file boundary check
+     (setq org-journal-file-type 'weekly)
+     (funcall create-files test-file-weekly)
+     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
 
-       (setq period-start (encode-time 0 0 0 31 1 2017)
-             period-end (encode-time 0 0 0 1 3 2019))
-       ;; Monthly build file boundary check
-       (setq org-journal-file-type 'monthly)
-       (funcall create-files test-file-monthly)
-       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+     (setq period-start (encode-time 0 0 0 31 1 2017)
+           period-end (encode-time 0 0 0 1 3 2019))
+     ;; Monthly build file boundary check
+     (setq org-journal-file-type 'monthly)
+     (funcall create-files test-file-monthly)
+     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
 
-       (setq period-start (encode-time 0 0 0 31 12 2017)
-             period-end (encode-time 0 0 0 1 1 2019))
-       ;; Yearly build file boundary check
-       (setq org-journal-file-type 'yearly)
-       (funcall create-files test-file-yearly)
-       (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1)))))
+     (setq period-start (encode-time 0 0 0 31 12 2017)
+           period-end (encode-time 0 0 0 1 1 2019))
+     ;; Yearly build file boundary check
+     (setq org-journal-file-type 'yearly)
+     (funcall create-files test-file-yearly)
+     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1)))))
