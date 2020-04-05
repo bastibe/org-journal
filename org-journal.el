@@ -622,7 +622,7 @@ hook is run."
                         (not (string-empty-p org-journal-file-header))))
                (= (buffer-size) 0))
           (insert (if (functionp org-journal-file-header)
-                      (funcall org-journal-file-header)
+                      (funcall org-journal-file-header time)
                     org-journal-file-header)))
 
       ;; Create new journal entry if there isn't one.

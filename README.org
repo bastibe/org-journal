@@ -191,21 +191,26 @@ Customization options related to journal directory and files:
 
 Customization options related to the journal file contents:
 
-- =org-journal-date-format= - date format =org-journal= uses when showing a date within a journal
-  and search results page. It can also be a function, which return value will than be inserted.
+- =org-journal-date-format= - date format =org-journal= uses when showing a
+  date within a journal and search results page. It can also be a function,
+  which return value will than be inserted.
 
-- =org-journal-date-prefix= - this string will prefix the date at the top of a journal file.
+- =org-journal-date-prefix= - this string will prefix the date at the top of a
+  journal file.
 
-- =org-journal-time-format= - a timestamp format that will prefix every entry within a daily journal
-  file.
+- =org-journal-time-format= - a timestamp format that will prefix every entry
+  within a daily journal file.
 
-- =org-journal-time-prefix= - a string that will prefix every entry within a daily journal file.
+- =org-journal-time-prefix= - a string that will prefix every entry within a
+  daily journal file.
 
-- =org-journal-file-header= - a string that will be inserted at the top of every new journal
-  file. It can also be a function, which return value will than be inserted.
+- =org-journal-file-header= - a string that will be inserted at the top of
+  every new journal file. It can also be a function, the return value will
+  than be inserted. The time of the new journal entry will be passed to that
+  function, so you can use it the pass it `format-time-string` for example.
 
   #+BEGIN_EXAMPLE emacs-lisp
-  (defun org-journal-file-header-func ()
+  (defun org-journal-file-header-func (time)
     "Custom function to create journal header."
     (concat
       (pcase org-journal-file-type
