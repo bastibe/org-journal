@@ -390,6 +390,11 @@ if you have existing journal entries."
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
+(defvar org-journal-after-header-create-hook nil
+  "Hook called after journal header creation.
+The header is the string described by `org-journal-date-format'.
+This runs once per date, before `org-journal-after-entry-create-hook'.")
+
 (defvar org-journal-search-buffer "*Org-journal search*")
 
 
@@ -668,7 +673,8 @@ hook is run."
                                org-journal-created-property-timestamp-format time)))
           (when org-journal-enable-encryption
             (unless (member org-crypt-tag-matcher (org-get-tags))
-              (org-set-tags org-crypt-tag-matcher)))))
+              (org-set-tags org-crypt-tag-matcher)))
+          (run-hooks 'org-journal-after-header-create-hook)))
       (org-journal-decrypt)
 
       ;; Move TODOs from previous day to new entry

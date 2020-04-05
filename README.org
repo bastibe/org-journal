@@ -335,7 +335,7 @@ With this done, you can export your agenda, including your scheduled entries, wi
 *** Journal Capture Template
 
 You can configure a capture template in order to integrate =org-journal= with =org-capture=,
-as in the following example:
+as in the following example for a daily journal:
 
 #+BEGIN_EXAMPLE emacs-lisp
   (defun org-journal-find-location ()
@@ -412,6 +412,10 @@ Old entries are opened in =view-mode=, which has convenient key bindings for bro
 
 Yes, you can write a custom function and assign it =org-journal-date-format=.
 
+*** Can I do more powerful things on a newly created journal entry?
+
+Yes, there are two hooks that are run when a journal entry is created.
+Each (=org-journal-new-entry=) will call =org-journal-after-entry-create-hook=, and =org-journal-after-header-create-hook= is called each time the date (the parent headline of each entry) is generated.
 
 ** Convenient =org-journal= Snippet Extensions
 
