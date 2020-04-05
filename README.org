@@ -205,9 +205,9 @@ Customization options related to the journal file contents:
   daily journal file.
 
 - =org-journal-file-header= - a string that will be inserted at the top of
-  every new journal file. It can also be a function, the return value will
-  than be inserted. The time of the new journal entry will be passed to that
-  function, so you can use it the pass it `format-time-string` for example.
+  every new journal file. If a string, it will be passed to
+  `format-time-string` along the time value of the new journal entry.
+  It can also be a function expecting a time value.
 
   #+BEGIN_EXAMPLE emacs-lisp
   (defun org-journal-file-header-func (time)

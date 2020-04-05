@@ -362,8 +362,10 @@ search works with regexps."
 (defcustom org-journal-file-header ""
   "A string which should be inserted at the top of a new journal file.
 
-The value can also be a function, in that case the function will be evaluated
-and the return value will be inserted."
+The string will be passed to `format-time-string' along with the time
+of the new journal entry.
+
+The value can also be a function expecting a time value."
   :type '(choice
           (string :tag "String")
           (function :tag "Function")))
@@ -623,7 +625,7 @@ hook is run."
                (= (buffer-size) 0))
           (insert (if (functionp org-journal-file-header)
                       (funcall org-journal-file-header time)
-                    org-journal-file-header)))
+                    (format-time-string org-journal-file-header time))))
 
       ;; Create new journal entry if there isn't one.
       (let ((entry-header
