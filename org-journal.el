@@ -712,7 +712,7 @@ hook is run."
                             ;; “time” is on some other day, use blank timestamp
                             (t ""))))
           (insert org-journal-time-prefix timestamp))
-        (when (not (null org-journal-skip-carryover-drawers))
+        (unless (null org-journal-skip-carryover-drawers)
           (org-journal-remove-drawer))
         (run-hooks 'org-journal-after-entry-create-hook))
 
@@ -752,12 +752,17 @@ buffer not open already, otherwise `nil'.")
       (string-empty-p (org-trim (buffer-string))))))
 
 (defun org-journal-remove-drawer ()
-  "Removes the drawer configured via org-journal-skip-carryover-drawers"
+  "Removes the drawer configured via `org-journal-skip-carryover-drawers'"
   (interactive)
   (save-excursion
-    (goto-char (point-min))
-    (setq org-journal-drawer-regexp (mapcar (lambda (x) (format ".*%s:[\\n[:ascii:]]+?:END:$" x)) org-journal-skip-carryover-drawers))
-    (mapc 'delete-matching-lines org-journal-drawer-regexp)))
+    (save-restriction
+      (unless (org-journal-daily-p)
+        (while (org-up-heading-safe))
+        (org-narrow-to-subtree))
+      (goto-char (point-min))
+      (setq org-journal-drawer-regexp (mapcar (lambda (x) (format ".*%s:[\\n[:ascii:]]+?:END:$" x)) org-journal-skip-carryover-drawers))
+      (mapc 'delete-matching-lines org-journal-drawer-regexp)
+      )))
 
 (defun org-journal-carryover-delete-empty-journal (prev-buffer)
   "Check if the previous entry/file is empty after we carried over the
