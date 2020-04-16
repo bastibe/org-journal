@@ -753,7 +753,6 @@ buffer not open already, otherwise `nil'.")
 
 (defun org-journal-remove-drawer ()
   "Removes the drawer configured via `org-journal-skip-carryover-drawers'"
-  (interactive)
   (save-excursion
     (save-restriction
       (unless (org-journal-daily-p)
@@ -761,8 +760,7 @@ buffer not open already, otherwise `nil'.")
         (org-narrow-to-subtree))
       (goto-char (point-min))
       (setq org-journal-drawer-regexp (mapcar (lambda (x) (format ".*%s:[\\n[:ascii:]]+?:END:$" x)) org-journal-skip-carryover-drawers))
-      (mapc 'delete-matching-lines org-journal-drawer-regexp)
-      )))
+      (mapc 'delete-matching-lines org-journal-drawer-regexp))))
 
 (defun org-journal-carryover-delete-empty-journal (prev-buffer)
   "Check if the previous entry/file is empty after we carried over the
