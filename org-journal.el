@@ -312,6 +312,12 @@ Set this to `find-file' if you don't want org-journal to split your window."
 See agenda tags view match description for the format of this."
   :type 'string)
 
+(defcustom org-journal-skip-carryover-drawers nil
+  "By default, we carry over all the drawers associated with the items.
+
+This option can be used to skip certain drawers being carried over."
+  :type 'list)
+
 (defcustom org-journal-carryover-delete-empty-journal 'never
   "Delete empty journal entry/file after carryover.
 
@@ -706,6 +712,8 @@ hook is run."
                             ;; “time” is on some other day, use blank timestamp
                             (t ""))))
           (insert org-journal-time-prefix timestamp))
+        (unless (null org-journal-skip-carryover-drawers)
+          (org-journal-remove-drawer))
         (run-hooks 'org-journal-after-entry-create-hook))
 
       (if (and org-journal-hide-entries-p (org-journal-time-entry-level))
@@ -742,6 +750,17 @@ buffer not open already, otherwise `nil'.")
           (setq end (match-end 0))
           (kill-region start end)))
       (string-empty-p (org-trim (buffer-string))))))
+
+(defun org-journal-remove-drawer ()
+  "Removes the drawer configured via `org-journal-skip-carryover-drawers'"
+  (save-excursion
+    (save-restriction
+      (unless (org-journal-daily-p)
+        (while (org-up-heading-safe))
+        (org-narrow-to-subtree))
+      (goto-char (point-min))
+      (setq org-journal-drawer-regexp (mapcar (lambda (x) (format ".*%s:[\\n[:ascii:]]+?:END:$" x)) org-journal-skip-carryover-drawers))
+      (mapc 'delete-matching-lines org-journal-drawer-regexp))))
 
 (defun org-journal-carryover-delete-empty-journal (prev-buffer)
   "Check if the previous entry/file is empty after we carried over the

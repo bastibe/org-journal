@@ -288,6 +288,17 @@ empty string =""=. Any [[http://orgmode.org/manual/Matching-tags-and-properties.
 todo states are allowed. By default this is ~TODO=”TODO”~. Which will
 match TODO items.
 
+You can also skip carry over of [[https://orgmode.org/manual/Drawers.html][Drawers]] through the
+=org-journal-skip-carryover-drawers= variable. This is specifically
+useful when you want to skip carry over of previous days clocked
+entries when it is under the drawer =LOGBOOK=. The variable accepts a
+list of drawers names which will be skipped on carry over. Sample
+configuration for skipping =LOGBOOK= drawer:
+
+#+begin_src elisp
+(setq org-journal-skip-carryover-drawers (list "LOGBOOK"))
+#+end_src
+
 *** Encryption
 
 The journal entry can be encrypted using =org-crypt=, to enable it set
