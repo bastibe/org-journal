@@ -63,6 +63,7 @@
 
 ;;; Code:
 (require 'cal-iso)
+(require 'epa)
 (require 'org)
 (require 'org-crypt)
 (require 'seq)
@@ -1691,6 +1692,43 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
          (time (cdr target))
          (buf (org-journal-read-or-display-entry time t)))
     (set-window-point (get-buffer-window buf) point)))
+
+(defun org-journal-re-encrypt-journals (recipient)
+  "Re-encrypt journal files."
+  (interactive (list (epa-select-keys (epg-make-context epa-protocol)
+			              "Select new recipient for encryption.
+Only one recipient is supported.  ")))
+
+  (unless recipient
+    (error "You need to specify exactly one recipient."))
+
+  (unless org-journal-encrypt-journal
+    (error "org-journal encryption not enabled."))
+
+  (cl-loop
+     with buf
+     with kill-buffer
+     for journal in (org-journal-list-files)
+     do
+       (setq buf (get-file-buffer journal)
+             kill-buffer nil)
+
+       (when (and buf
+                  (buffer-modified-p buf)
+                  (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
+                                    (file-name-nondirectory journal))))
+         (save-buffer buf))
+
+       (unless buf
+         (setq kill-buffer t
+               buf (find-file-noselect journal)))
+
+       (with-current-buffer buf
+         (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
+           (set-buffer-modified-p t)
+           (save-buffer)
+           (when kill-buffer
+             (kill-buffer))))))
 
 (defun org-journal-decrypt ()
   "Decrypt journal entry at point."
