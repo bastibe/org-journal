@@ -120,16 +120,18 @@ org-journal. Use `org-journal-file-format' instead.")
    (org-journal-format->regex format)
    "\\(\\.gpg\\)?\\'"))
 
+(defvar org-journal--format-rx-alist
+  '(("%[aA]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
+    ("%d" . "\\\\(?3:[0-9][0-9]\\\\)")
+    ("%m" . "\\\\(?2:[0-9][0-9]\\\\)")
+    ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
+
 (defun org-journal-format->regex (format)
-  (replace-regexp-in-string
-   "%[aA]" "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)"
-   (replace-regexp-in-string
-    "%d" "\\\\(?3:[0-9][0-9]\\\\)"
-    (replace-regexp-in-string
-     "%m" "\\\\(?2:[0-9][0-9]\\\\)"
-     (replace-regexp-in-string
-      "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)"
-      (regexp-quote format))))))
+  (cl-loop
+     initially (setq format (regexp-quote format))
+     for x in org-journal--format-rx-alist
+     do (setq format (replace-regexp-in-string (car x) (cdr x) format))
+     finally return format))
 
 ;;; Customizable variables
 (defgroup org-journal nil
