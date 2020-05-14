@@ -946,7 +946,8 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
      (save-excursion
        (goto-char (point-min))
        (while (re-search-forward org-journal-created-re nil t)
-         (push (org-journal-entry-date->calendar-date) dates))
+         (when (= (save-excursion (org-back-to-heading) (outline-level)) 1)
+           (push (org-journal-entry-date->calendar-date) dates)))
        dates))))
 
 ;;;###autoload
@@ -1612,7 +1613,8 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                                    (org-journal-file-name->calendar-date fname)
                                  (save-excursion
                                    (when (re-search-backward org-journal-created-re nil t)
-                                     (org-journal-entry-date->calendar-date))))))
+                                     (when (= (save-excursion (org-back-to-heading) (outline-level)) 1)
+                                       (org-journal-entry-date->calendar-date)))))))
                           (when date
                             (org-journal-calendar-date->time date)))
                         (- (point) (length str))
