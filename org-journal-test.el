@@ -38,7 +38,7 @@
      (org-journal-dir-test-setup)
      ,@body))
 
-(ert-deftest org-journal-calendar-date-from-file ()
+(ert-deftest org-journal-calendar-date-from-file-test ()
   "Should return a list with day/month/year"
   (org-journal-test-macro
    (should (equal (org-journal-file-name->calendar-date
@@ -64,7 +64,7 @@
      (should (equal (org-journal-convert-time-to-file-type-time time)
                     (encode-time 0 0 0 1 1 2019))))))
 
-(ert-deftest org-journal-insert-header ()
+(ert-deftest org-journal-insert-header-test ()
   "Test insertion of header"
   (org-journal-test-macro
    (let ((org-journal-file-header "#+TITLE: Some header\n#+STARTUP: folded"))
@@ -150,7 +150,7 @@
                         (buffer-substring-no-properties (point-min) (point-max)))
                       (concat "* Test header\n** TODO a\n** b1\n*** TODO b1\n*** b2\n**** TODO b2\n**** b3\n***** TODO b3\n** TODO b\n" new-entry "\n"))))))
 
-(ert-deftest org-journal-carryover-delete-empty-journal ()
+(ert-deftest org-journal-carryover-delete-empty-journal-test ()
   "Org journal delete empty journal test"
   (org-journal-test-macro
    (let ((buffer "20181231")
@@ -158,7 +158,6 @@
      ;; Test that journal file gets dumped, after carryover
      (with-temp-buffer
        (insert "* Wednesday, 01/02/19\n")
-       (org-set-property "CREATED" "20190102")
        (insert "** TODO a\n")
        (write-file (expand-file-name buffer org-journal-dir-test))
        (kill-buffer buffer))

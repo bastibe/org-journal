@@ -930,11 +930,10 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
   (let ((re (org-journal-format->regex org-journal-created-property-timestamp-format))
         date)
     (setq date (org-entry-get (point) "CREATED"))
-    (unless date
-      (error "Entry at \"%s:%d\" doesn't have a \"CREATED\" property." (buffer-file-name) (point)))
-    (string-match re date)
-    (list (string-to-number (match-string 2 date))   ;; Month
-          (string-to-number (match-string 3 date))  ;; Day
+    (unless (ignore-errors (string-match re date))
+      (error "Created property regex (%s) doesn't match CREATED property value (%s)" re date))
+    (list (string-to-number (match-string 2 date))    ;; Month
+          (string-to-number (match-string 3 date))    ;; Day
           (string-to-number (match-string 1 date))))) ;; Year
 
 (defun org-journal-file->calendar-dates (file)
