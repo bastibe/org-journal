@@ -1036,6 +1036,14 @@ If no next/previous entry was found print MSG."
       (message msg)
       nil)))
 
+(defun org-journal-open-current-journal-file ()
+  "Open the current journal file"
+  (interactive)
+  (let ((org-journal-file (org-journal-get-entry-path)))
+    (if (file-exists-p org-journal-file)
+        (funcall org-journal-find-file org-journal-file)
+      (message "Journal file %s not found" org-journal-file))))
+
 (defun org-journal-open-next-entry (&optional no-select)
   "Open the next journal entry starting from a currently displayed one."
   (interactive)
