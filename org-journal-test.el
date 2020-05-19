@@ -184,8 +184,7 @@
      (let ((inhibit-message t))
        (should
         (string= "No journal entry for this date."
-                 (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect))))
-     (kill-buffer "20190101"))))
+                 (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)))))))
 
 (ert-deftest org-journal-search-build-file-list-test ()
   "Test for `org-journal-search-build-file-list'."
