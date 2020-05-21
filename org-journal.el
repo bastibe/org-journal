@@ -981,6 +981,15 @@ arguments (C-u C-u) are given. In that case insert just the heading."
       (save-excursion
         (insert "\n<" scheduled-time ">")))))
 
+(defun org-journal-goto-entry (date)
+  "Goto DATE entry in current journal file."
+  (widen)
+  (goto-char (point-min))
+  (if (org-journal-daily-p)
+      (outline-next-visible-heading 1)
+    (org-journal-search-forward-created date))
+  (org-journal-finalize-view))
+
 (defun org-journal-open-entry (msg &optional prev no-select)
   "Open journal entry.
 
@@ -1025,30 +1034,33 @@ If no next/previous entry was found print MSG."
                       (set-buffer (find-file-noselect filename))
                     (find-file filename))
                   org-journal--kill-buffer))
-          (widen)
-          (goto-char (point-min))
-          (if (org-journal-daily-p)
-              (outline-next-visible-heading 1)
-            (org-journal-search-forward-created date))
-          (org-journal-finalize-view)
+          (org-journal-goto-entry date)
           (view-mode (if view-mode-p 1 -1))
           t)
       (message msg)
       nil)))
 
+;;;###autoload
 (defun org-journal-open-current-journal-file ()
   "Open the current journal file"
   (interactive)
   (let ((org-journal-file (org-journal-get-entry-path)))
     (if (file-exists-p org-journal-file)
-        (funcall org-journal-find-file org-journal-file)
+        (progn
+          (funcall org-journal-find-file org-journal-file)
+          (unless (org-journal-daily-p)
+            (let ((last-entry-date (car (org-journal-file->calendar-dates org-journal-file))))
+              (when last-entry-date
+                (org-journal-goto-entry last-entry-date)))))
       (message "Journal file %s not found" org-journal-file))))
 
+;;;###autoload
 (defun org-journal-open-next-entry (&optional no-select)
   "Open the next journal entry starting from a currently displayed one."
   (interactive)
   (org-journal-open-entry "No next journal entry after this one" nil no-select))
 
+;;;###autoload
 (defun org-journal-open-previous-entry (&optional no-select)
   "Open the previous journal entry starting from a currently displayed one."
   (interactive)
