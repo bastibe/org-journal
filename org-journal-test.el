@@ -20,16 +20,10 @@
     (delete-file org-journal-cache-file))
   (make-directory org-journal-dir-test))
 
-(defun org-journal-file-pattern-test ()
-  (org-journal-dir-and-format->regex
-   org-journal-dir org-journal-file-format))
-
 (defmacro org-journal-test-macro (&rest body)
   "Wrapp a `org-journal' -- `ert'-test with default values."
   `(let* ((org-journal-dir org-journal-dir-test)
           (comment-start-skip "^\\s-*#\\(?: \\|$\\)")
-          (org-journal-file-pattern (org-journal-file-pattern-test))
-          (auto-mode-alist `(,(cons org-journal-file-pattern 'org-journal-mode) ,@auto-mode-alist))
           (org-journal-cache-file (expand-file-name  "org-journal.cache" org-journal-dir-test))
           (org-journal-file-type 'daily)
           (org-journal-date-format "Test header")

@@ -159,7 +159,6 @@ entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 ** Setup and customization
 
 The following variables can be customized through =M-x customize=, or configured programmatically in your =.init.el=.
-When configuring manually, the use of =customize-set-variable= is advised over =setq=, since =org-journal= has customization hooks that update auxiliary variables which might not be picked up if set via =setq=.
 
 See below for an example.
 
@@ -167,8 +166,7 @@ See below for an example.
 
 Customization options related to journal directory and files:
 
-- =org-journal-dir= - the journal path. Tweaking this variable will also update
-  =auto-mode-alist= to ensure journal files are opened in =org-journal-mode=.
+- =org-journal-dir= - the journal path.
 
 - =org-journal-file-format= - format string for journal file names (may contain directories relative to =org-journal-dir=).
 
@@ -227,8 +225,8 @@ Customization options related to the journal file contents:
 A very basic example of customization.
 
 #+BEGIN_EXAMPLE emacs-lisp
-(customize-set-variable 'org-journal-dir "~/org/journal/")
-(customize-set-variable 'org-journal-date-format "%A, %d %B %Y")
+(setq org-journal-dir "~/org/journal/")
+(setq org-journal-date-format "%A, %d %B %Y")
 (require 'org-journal)
 #+END_EXAMPLE
 
@@ -238,9 +236,9 @@ For users of =use-package=, this setup could look like the following:
 (use-package org-journal
   :ensure t
   :defer t
-  :custom
-  (org-journal-dir "~/org/journal/")
-  (org-journal-date-format "%A, %d %B %Y"))
+  :config
+  (setq org-journal-dir "~/org/journal/"
+        org-journal-date-format "%A, %d %B %Y"))
 #+END_EXAMPLE
 
 ** Advanced Usage

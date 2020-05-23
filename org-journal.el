@@ -93,46 +93,6 @@ From branch \"emacs-26\", added for compatibility.
            (append to-add alist2)))))
   (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist))
 
-(defvar org-journal-file-pattern
-  (expand-file-name "~/Documents/journal/\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'")
-  "This matches journal files in your journal directory.
-
-This variable is created and updated automatically by
-org-journal. Use `org-journal-file-format' instead.")
-
-;; use this function to update auto-mode-alist whenever
-;; org-journal-dir or org-journal-file-pattern change.
-;;;###autoload
-(defun org-journal-update-auto-mode-alist ()
-  "Update `auto-mode-alist' to open journal files in `org-journal-mode'."
-  (add-to-list 'auto-mode-alist
-               (cons org-journal-file-pattern 'org-journal-mode)))
-
-;;;###autoload
-(add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
-(add-hook 'org-agenda-mode-hook 'org-journal-update-org-agenda-files)
-
-;;;###autoload
-(defun org-journal-dir-and-format->regex (dir format)
-  "Update `org-journal-file-pattern' with the current `org-journal-file-format'."
-  (concat
-   (file-truename (expand-file-name (file-name-as-directory dir)))
-   (org-journal-format->regex format)
-   "\\(\\.gpg\\)?\\'"))
-
-(defvar org-journal--format-rx-alist
-  '(("%[aA]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
-    ("%d" . "\\\\(?3:[0-9][0-9]\\\\)")
-    ("%m" . "\\\\(?2:[0-9][0-9]\\\\)")
-    ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
-
-(defun org-journal-format->regex (format)
-  (cl-loop
-     initially (setq format (regexp-quote format))
-     for x in org-journal--format-rx-alist
-     do (setq format (replace-regexp-in-string (car x) (cdr x) format))
-     finally return format))
-
 ;;; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
@@ -185,24 +145,9 @@ this day.  Default is Monday."
 	  (const :tag "Saturday" 6)))
 
 (defcustom org-journal-dir "~/Documents/journal/"
-  "Directory containing journal entries.
-
-Setting this will update the internal `org-journal-file-pattern' to a regex
-that matches the directory, using `org-journal-dir-and-format->regex', and
-update `auto-mode-alist' using `org-journal-update-auto-mode-alist'.
-
-This variable needs to be set using the customize interface,
-`customize-set-variable' or before loading `org-journal'."
+  "Directory containing journal entries."
   :type 'directory
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         ;; if org-journal-file-format is not yet bound, we’ll need a default value
-         (let ((format (if (boundp 'org-journal-file-format)
-                           org-journal-file-format
-                         "%Y%m%d")))
-           (setq org-journal-file-pattern
-                 (org-journal-dir-and-format->regex value format)))
-         (org-journal-update-auto-mode-alist)))
+  :risky t)
 
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names (Default \"YYYYMMDD\").
@@ -210,31 +155,14 @@ This variable needs to be set using the customize interface,
 This pattern MUST include `%Y', `%m' and `%d' when `org-journal-file-type' is
 `daily' or `weekly'. When `org-journal-file-type' is `monthly' this pattern
 MUST at least include `%Y' and `%m', and at least `%Y' when
-`org-journalf-file-type' is `yearly'.
-
-Setting this will update the internal `org-journal-file-pattern' to a regex
-that matches the directory, using `org-journal-dir-and-format->regex', and
-update `auto-mode-alist' using `org-journal-update-auto-mode-alist'.
-
-This variable needs to be set using the customize interface,
-`customize-set-variable' or before loading `org-journal'."
-  :type 'string
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         ;; If org-journal-dir is not yet bound, we’ll need a default value
-         (let ((dir (if (boundp 'org-journal-dir)
-                        org-journal-dir
-                      "~/Documents/journal/")))
-           (setq org-journal-file-pattern
-                 (org-journal-dir-and-format->regex dir value)))
-         (org-journal-update-auto-mode-alist)))
+`org-journalf-file-type' is `yearly'."
+  :type 'string)
 
 (defcustom org-journal-date-format "%A, %x"
   "Format string for date entries.
 
 By default \"WEEKDAY, DATE\", where DATE is what Emacs thinks is an
 appropriate way to format days in your language.
-
 If the value is a function, the function will be evaluated and the return
 value will be inserted."
   :type '(choice
@@ -409,11 +337,6 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (defvar org-journal-search-buffer "*Org-journal search*")
 
 
-;; Automatically switch to journal mode when opening a journal entry file
-(setq org-journal-file-pattern
-      (org-journal-dir-and-format->regex org-journal-dir org-journal-file-format))
-(org-journal-update-auto-mode-alist)
-
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
@@ -472,6 +395,34 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
      (unless buffer-exists
        (kill-buffer buf))
      result))
+
+;;;###autoload
+(defun org-journal-is-journal ()
+  "Determine if file is a journal file."
+  (string-match (org-journal-dir-and-file-format->pattern) (buffer-file-name)))
+
+;; Open files in `org-journal-mode' if `org-journal-is-journal' returns true.
+;;;###autoload
+(add-to-list 'magic-mode-alist '(org-journal-is-journal . org-journal-mode))
+
+;;;###autoload
+(defun org-journal-dir-and-file-format->pattern ()
+  "Return the current journal file pattern"
+  (concat (expand-file-name (org-journal-format->regex org-journal-file-format) org-journal-dir)
+          "\\(\\.gpg\\)?\\'"))
+
+(defvar org-journal--format-rx-alist
+  '(("%[aA]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
+    ("%d" . "\\\\(?3:[0-9][0-9]\\\\)")
+    ("%m" . "\\\\(?2:[0-9][0-9]\\\\)")
+    ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
+
+(defun org-journal-format->regex (format)
+  (cl-loop
+     initially (setq format (regexp-quote format))
+     for x in org-journal--format-rx-alist
+     do (setq format (replace-regexp-in-string (car x) (cdr x) format))
+     finally return format))
 
 (defvar org-journal-created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
 
@@ -911,17 +862,20 @@ Return nil when it's impossible to figure out the level."
   "Convert an org-journal file name to a calendar date.
 
 Month and Day capture group default to 1."
-  (let ((day 1) (month 1) year)
+  (let ((file-pattern (org-journal-dir-and-file-format->pattern))
+        (day 1)
+        (month 1)
+        year)
     (setq year (string-to-number
-                (replace-regexp-in-string org-journal-file-pattern "\\1" file-name)))
+                (replace-regexp-in-string file-pattern "\\1" file-name)))
 
-    (when (integerp (string-match "\(\?2:" org-journal-file-pattern))
+    (when (integerp (string-match "\(\?2:" file-pattern))
       (setq month (string-to-number
-                   (replace-regexp-in-string org-journal-file-pattern "\\2" file-name))))
+                   (replace-regexp-in-string file-pattern "\\2" file-name))))
 
-    (when (integerp (string-match "\(\?3:" org-journal-file-pattern))
+    (when (integerp (string-match "\(\?3:" file-pattern))
       (setq day (string-to-number
-                 (replace-regexp-in-string org-journal-file-pattern "\\3" file-name))))
+                 (replace-regexp-in-string file-pattern "\\3" file-name))))
     (list month day year)))
 
 (defun org-journal-entry-date->calendar-date ()
@@ -1081,7 +1035,7 @@ If no next/previous entry was found print MSG."
                     (file-truename (expand-file-name
                                     (file-name-as-directory org-journal-dir))) "\.*"))
         (predicate (lambda (file-path)
-                     (and (string-match-p org-journal-file-pattern (file-truename file-path))
+                     (and (string-match-p (org-journal-dir-and-file-format->pattern) (file-truename file-path))
                           (or org-journal-encrypt-journal
                               (not (string-match-p "\.gpg$" (file-truename file-path))))))))
     (seq-filter predicate file-list)))
@@ -1422,7 +1376,7 @@ and cleans out past org-journal files."
     (let ((not-org-journal-agenda-files
            (seq-filter
             (lambda (fname)
-              (not (string-match org-journal-file-pattern fname)))
+              (not (string-match (org-journal-dir-and-file-format->pattern) fname)))
             (org-agenda-files)))
           (org-journal-agenda-files
            (let* ((future (org-journal-read-period 'future))
