@@ -962,8 +962,8 @@ If the date is in the future, create a schedule entry, unless two universal pref
 arguments (C-u C-u) are given. In that case insert just the heading."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
-  (let* ((time (org-journal-calendar-date->time
-                (calendar-cursor-to-date t event))))
+  (let* ((time (or (ignore-errors (org-journal-calendar-date->time (calendar-cursor-to-date t event)))
+                   (org-time-string-to-time (org-read-date nil nil nil "Date:")))))
     (if (time-less-p time (current-time))
         (org-journal-new-entry prefix time)
       (org-journal-new-scheduled-entry prefix (format-time-string "%Y-%m-%d" time)))))
