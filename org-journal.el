@@ -399,7 +399,8 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 ;;;###autoload
 (defun org-journal-is-journal ()
   "Determine if file is a journal file."
-  (string-match (org-journal-dir-and-file-format->pattern) (buffer-file-name)))
+  (and (buffer-file-name)
+       (string-match (org-journal-dir-and-file-format->pattern) (buffer-file-name))))
 
 ;; Open files in `org-journal-mode' if `org-journal-is-journal' returns true.
 ;;;###autoload
