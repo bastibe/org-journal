@@ -409,7 +409,10 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 ;;;###autoload
 (defun org-journal-dir-and-file-format->pattern ()
   "Return the current journal file pattern"
-  (concat (expand-file-name (org-journal-format->regex org-journal-file-format) org-journal-dir)
+  (concat (file-truename
+           (expand-file-name
+            (org-journal-format->regex org-journal-file-format)
+            org-journal-dir))
           "\\(\\.gpg\\)?\\'"))
 
 (defvar org-journal--format-rx-alist
@@ -518,7 +521,7 @@ the first date of the year."
                (expand-file-name
                 (format-time-string org-journal-file-format
                                     (org-journal-convert-time-to-file-type-time time))
-                (file-name-as-directory org-journal-dir)))))
+                org-journal-dir))))
     (when (and org-journal-encrypt-journal (not (file-exists-p file)))
       (setq file (concat file ".gpg")))
     file))
