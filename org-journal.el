@@ -903,7 +903,7 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
    file
    (let (dates)
      (save-excursion
-       (org-first-headline-recenter)
+       (goto-char (point-min))
        (while (re-search-forward org-journal-created-re nil t)
          (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
            (push (org-journal-entry-date->calendar-date) dates)))
