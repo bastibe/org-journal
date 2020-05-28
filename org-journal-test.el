@@ -16,13 +16,12 @@
   "Create temporary directory."
   (when (file-exists-p org-journal-dir-test)
     (delete-directory org-journal-dir-test t))
-  (when (file-exists-p org-journal-cache-file)
-    (delete-file org-journal-cache-file))
-  (make-directory org-journal-dir-test))
+  (make-directory org-journal-dir-test)
+  (make-symbolic-link org-journal-dir-test (concat org-journal-dir-test "-link") t))
 
 (defmacro org-journal-test-macro (&rest body)
   "Wrapp a `org-journal' -- `ert'-test with default values."
-  `(let* ((org-journal-dir org-journal-dir-test)
+  `(let* ((org-journal-dir (concat org-journal-dir-test "-link"))
           (comment-start-skip "^\\s-*#\\(?: \\|$\\)")
           (org-journal-cache-file (expand-file-name  "org-journal.cache" org-journal-dir-test))
           (org-journal-file-type 'daily)
@@ -30,13 +29,15 @@
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R"))
      (org-journal-dir-test-setup)
-     ,@body))
+     ,@body
+     (delete-directory org-journal-dir-test t)
+     (delete-file (concat org-journal-dir-test "-link"))))
 
 (ert-deftest org-journal-calendar-date-from-file-test ()
   "Should return a list with day/month/year"
   (org-journal-test-macro
    (should (equal (org-journal-file-name->calendar-date
-                   (expand-file-name "20190103" org-journal-dir))
+                   (expand-file-name "20190103" (file-truename org-journal-dir)))
                   '(1 03 2019)))))
 
 (ert-deftest org-journal-convert-time-to-file-type-time-test ()
