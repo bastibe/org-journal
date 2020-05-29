@@ -347,10 +347,8 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
   "Mode for writing or viewing entries written in the journal."
   (turn-on-visual-line-mode)
   ;; Call to `org-journal-serialize' needs to be after the call to `org-journal-journals-puthash'
-  (add-hook 'after-save-hook 'org-journal-serialize nil t)
-  (add-hook 'after-save-hook 'org-journal-update-org-agenda-files nil t)
-  (add-hook 'after-save-hook 'org-journal-journals-puthash nil t)
-  (add-hook 'before-save-hook 'org-journal-dates-puthash nil t)
+  (add-hook 'after-save-hook 'org-journal-after-save-hook nil t)
+  (add-hook 'before-save-hook 'org-journal-before-save-hook nil t)
   (when (or org-journal-tag-alist org-journal-tag-persistent-alist)
     (org-journal-set-current-tag-alist))
   (run-mode-hooks))
@@ -395,6 +393,16 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
      (unless buffer-exists
        (kill-buffer buf))
      result))
+
+(defun org-journal-after-save-hook ()
+  "Update agenda files and dates."
+  (org-journal-journals-puthash)
+  (org-journal-update-org-agenda-files)
+  (org-journal-serialize))
+
+(defun org-journal-before-save-hook ()
+  "Update dates."
+  (org-journal-dates-puthash))
 
 ;;;###autoload
 (defun org-journal-is-journal ()
