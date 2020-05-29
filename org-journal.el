@@ -1082,27 +1082,29 @@ file `org-journal-cache-file'."
 
 (defun org-journal-serialize ()
   "Write hashmap to file."
-  (unless (file-directory-p (file-name-directory org-journal-cache-file))
-    (make-directory (file-name-directory org-journal-cache-file) t))
-  (if (file-writable-p org-journal-cache-file)
-      (with-temp-file org-journal-cache-file
-        (let (print-length)
-          (insert (prin1-to-string org-journal-dates)
-                  "\n"
-                  (prin1-to-string org-journal-journals))))
-    (error "%s is not writable" org-journal-cache-file))
+  (when org-journal-enable-cache
+    (unless (file-directory-p (file-name-directory org-journal-cache-file))
+      (make-directory (file-name-directory org-journal-cache-file) t))
+    (if (file-writable-p org-journal-cache-file)
+        (with-temp-file org-journal-cache-file
+          (let (print-length)
+            (insert (prin1-to-string org-journal-dates)
+                    "\n"
+                    (prin1-to-string org-journal-journals))))
+      (error "%s is not writable" org-journal-cache-file)))
   (org-journal-flatten-dates))
 
 (defun org-journal-deserialize ()
   "Read hashmap from file."
-  (with-demoted-errors
-      "Error during file deserialization: %S"
-    (when (file-exists-p org-journal-cache-file)
-      (with-temp-buffer
-        (insert-file-contents org-journal-cache-file)
-        (setq org-journal-dates (read (buffer-substring (point-at-bol) (point-at-eol))))
-        (forward-line)
-        (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol)))))))
+  (when org-journal-enable-cache
+    (with-demoted-errors
+        "Error during file deserialization: %S"
+      (when (file-exists-p org-journal-cache-file)
+        (with-temp-buffer
+          (insert-file-contents org-journal-cache-file)
+          (setq org-journal-dates (read (buffer-substring (point-at-bol) (point-at-eol))))
+          (forward-line)
+          (setq org-journal-journals (read (buffer-substring (point-at-bol) (point-at-eol))))))))
   (org-journal-flatten-dates))
 
 (defvar org-journal-flatten-dates nil
@@ -1121,58 +1123,36 @@ It's used only when `org-journal-file-type' is not 'daily.")
           (org-journal-flatten-dates-recursive (hash-table-values org-journal-dates)))))
 
 (defun org-journal-list-dates ()
-  "Loads the list of files in the journal directory, and converts
-it into a list of calendar date elements."
-  (if org-journal-enable-cache
-      (let ((files (org-journal-list-files)))
-        (when (or (hash-table-empty-p org-journal-dates)
-                  (hash-table-empty-p org-journal-journals))
-          (org-journal-deserialize)
-          (when (or (hash-table-empty-p org-journal-dates)
-                    (hash-table-empty-p org-journal-journals))
-            (dolist (file files)
-              (org-journal-journals-puthash file)
-              (org-journal-dates-puthash file))
-            (org-journal-serialize)))
-        ;; Verify modification time is unchanged, otherwise parse journal dates.
-        (let ((keys (hash-table-keys org-journal-dates)))
-          (dolist (file files)
-            (unless (equal (gethash file org-journal-journals)
-                           (org-journal-file-modification-time file))
-              (org-journal-journals-puthash file)
-              (org-journal-dates-puthash file)
-              (org-journal-serialize))
-            (when (member file keys)
-              (setq keys (delete file keys))))
-          (when keys
-            (dolist (key keys)
-              (remhash key org-journal-dates)
-              (remhash key org-journal-journals))
-            (org-journal-serialize)))
-        (if (org-journal-daily-p)
-            (hash-table-values org-journal-dates)
-          org-journal-flatten-dates))
-    (let ((dates (mapcar (if (org-journal-daily-p)
-                             'org-journal-file-name->calendar-date
-                           'org-journal-file->calendar-dates)
-                         (org-journal-list-files))))
-      ;; Need to flatten the list and bring dates in correct order.
-      (unless (org-journal-daily-p)
-        (let ((flattened-date-l '())
-              flattened-date-reverse-l file-dates)
-          (while dates
-            (setq file-dates (car dates))
-            (setq flattened-date-reverse-l '())
-            (while file-dates
-              (push (car file-dates) flattened-date-reverse-l)
-              (setq file-dates (cdr file-dates)))
-            ;; Correct order of journal entries from file by pushing it to a new list.
-            (mapc (lambda (p)
-                    (push p flattened-date-l))
-                  flattened-date-reverse-l)
-            (setq dates (cdr dates)))
-          (setq dates (reverse flattened-date-l))))
-      dates)))
+  "Return all journal dates \(\(month day year\) ...\)."
+  (let ((files (org-journal-list-files)))
+    (when (or (hash-table-empty-p org-journal-dates)
+              (hash-table-empty-p org-journal-journals))
+      (org-journal-deserialize)
+      (when (or (hash-table-empty-p org-journal-dates)
+                (hash-table-empty-p org-journal-journals))
+        (dolist (file files)
+          (org-journal-journals-puthash file)
+          (org-journal-dates-puthash file))
+        (org-journal-serialize)))
+    ;; Verify modification time is unchanged, otherwise parse journal dates.
+    (let ((keys (hash-table-keys org-journal-dates)))
+      (dolist (file files)
+        (unless (and (equal (gethash file org-journal-journals)
+                            (org-journal-file-modification-time file))
+                     org-journal-enable-cache)
+          (org-journal-journals-puthash file)
+          (org-journal-dates-puthash file)
+          (org-journal-serialize))
+        (when (member file keys)
+          (setq keys (delete file keys))))
+      (when keys
+        (dolist (key keys)
+          (remhash key org-journal-dates)
+          (remhash key org-journal-journals))
+        (org-journal-serialize)))
+    (if (org-journal-daily-p)
+        (hash-table-values org-journal-dates)
+      org-journal-flatten-dates)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
