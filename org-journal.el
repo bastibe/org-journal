@@ -1377,7 +1377,10 @@ and cleans out past org-journal files."
            (let* ((future (org-journal-read-period 'future))
                   (beg (car future))
                   (end (cdr future)))
-             (setcar (cdr beg) (1- (cadr beg)))
+             (setcar (cdr beg) (1- (cadr beg))) ;; Include today; required for `org-journal-search-build-file-list'
+             (when (< (nth 2 (decode-time (current-time))) org-extend-today-until)
+               (setq beg (decode-time (apply #'encode-time `(0 59 -1 ,(nth 1 beg) ,(nth 0 beg) ,(nth 2 beg))))
+                     beg (list (nth 4 beg) (nth 3 beg) (nth 5 beg))))
              (org-journal-search-build-file-list
               (org-journal-calendar-date->time beg)
               (org-journal-calendar-date->time end)))))
