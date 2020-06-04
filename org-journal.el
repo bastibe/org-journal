@@ -598,13 +598,16 @@ hook is run."
         (funcall org-journal-find-file entry-path))
 
       ;; Insert org-journal-file-header
-      (if (and (or (functionp org-journal-file-header)
-                   (and (stringp org-journal-file-header)
-                        (not (string-empty-p org-journal-file-header))))
-               (= (buffer-size) 0))
-          (insert (if (functionp org-journal-file-header)
-                      (funcall org-journal-file-header time)
-                    (format-time-string org-journal-file-header time))))
+      (when (and (or (functionp org-journal-file-header)
+                     (and (stringp org-journal-file-header)
+                          (not (string-empty-p org-journal-file-header))))
+                 (= (buffer-size) 0))
+        (insert (if (functionp org-journal-file-header)
+                    (funcall org-journal-file-header time)
+                  (format-time-string org-journal-file-header time)))
+        (save-excursion
+          (when (re-search-backward "^#\\+" nil t)
+            (org-ctrl-c-ctrl-c))))
 
       ;; Create new journal entry if there isn't one.
       (let ((entry-header
