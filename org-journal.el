@@ -1173,12 +1173,13 @@ It's used only when `org-journal-file-type' is not 'daily.")
   "Mark days in the calendar for which a diary entry is present"
   (interactive)
   (when (file-exists-p org-journal-dir)
-    (dolist (journal-entry (org-journal-list-dates))
-      (if (calendar-date-is-visible-p journal-entry)
-          (if (time-less-p (org-journal-calendar-date->time journal-entry)
-                           (current-time))
-              (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
-            (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face))))))
+    (let ((current-time (current-time)))
+      (dolist (journal-entry (org-journal-list-dates))
+        (if (calendar-date-is-visible-p journal-entry)
+            (if (time-less-p (org-journal-calendar-date->time journal-entry)
+                             current-time)
+                (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
+              (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face)))))))
 
 ;;;###autoload
 (defun org-journal-read-entry (_arg &optional event)
@@ -1390,55 +1391,66 @@ and cleans out past org-journal files."
       (setq org-agenda-files (append not-org-journal-agenda-files
                                      org-journal-agenda-files)))))
 
+(defvar org-journal-schedule-buffer-name "*Org-journal schedule*")
+
 (defun org-journal-schedule-view ()
   "Opens a new window with all scheduled journal entries.
 
 Think of this as a faster, less fancy version of your `org-agenda'."
   (interactive)
-  (find-file-other-window "*Org-journal schedule*")
-  (view-mode -1)
-  (erase-buffer)
-  (org-mode)
-  (insert "#+TITLE: Org-Journal Schedule\n\n")
-  (let* ((period-pair (org-journal-read-period 'future))
-         (start (org-journal-calendar-date->time (car period-pair)))
-         (end (org-journal-calendar-date->time (cdr period-pair)))
-         (file-list (org-journal-search-build-file-list start end)))
-    (dolist (filename (sort file-list
-                            (lambda (x y)
-                              (time-less-p
-                               (org-journal-calendar-date->time
-                                (org-journal-file-name->calendar-date x))
-                               (org-journal-calendar-date->time
-                                (org-journal-file-name->calendar-date y))))))
-      (let ((time (org-journal-calendar-date->time
-                   (org-journal-file-name->calendar-date filename)))
-            (copy-mapper
-             (lambda ()
-               (let ((subtree (org-journal-carryover-item-with-parents)))
-                 ;; since the next subtree now starts at point,
-                 ;; continue mapping from before that, to include it
-                 ;; in the search
-                 (backward-char)
-                 (setq org-map-continue-from (point))
-                 subtree)))
-            (content-to-copy nil))
-        (if (functionp org-journal-date-format)
-            (insert (funcall org-journal-date-format time))
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format time)
-                  "\n"))
-        (org-journal-with-find-file
-         filename
+
+  (when (get-buffer org-journal-schedule-buffer-name)
+    (kill-buffer org-journal-schedule-buffer-name))
+
+  (with-current-buffer (get-buffer-create org-journal-schedule-buffer-name)
+    (org-mode)
+    (insert "#+TITLE: Org-Journal Schedule\n\n")
+    (goto-char (point-max)))
+
+  (cl-loop
+     with copy-mapper = (lambda ()
+                          (let ((subtree (org-journal-carryover-item-with-parents)))
+                            ;; since the next subtree now starts at point,
+                            ;; continue mapping from before that, to include it
+                            ;; in the search
+                            (backward-char)
+                            (setq org-map-continue-from (point))
+                            subtree))
+     with (content-to-copy journal-buffers)
+     with today = (current-time)
+     for date in (org-journal-list-dates)
+     always (setq date (org-journal-calendar-date->time date))
+     when (time-less-p today date)
+     do
+       (cl-pushnew (org-journal-read-or-display-entry date) journal-buffers)
+       (with-current-buffer org-journal-schedule-buffer-name
+         (if (functionp org-journal-date-format)
+             (insert (funcall org-journal-date-format date))
+           (insert org-journal-date-prefix
+                   (format-time-string org-journal-date-format date)
+                   "\n")))
+       (save-restriction
+         (org-narrow-to-subtree)
          (setq content-to-copy (org-map-entries
                                 copy-mapper
                                 "+TIMESTAMP>=\"<now>\"|+SCHEDULED>=\"<now>\"")))
-        (if content-to-copy
-            (insert (mapconcat 'identity content-to-copy "") "\n")
-          (insert "N/A\n"))))
+       (when content-to-copy
+         (with-current-buffer org-journal-schedule-buffer-name
+           (insert (mapconcat (lambda (item) (cddar item)) content-to-copy "")
+                   "\n")))
+     finally
+       (mapc (lambda (b)
+               (with-current-buffer b
+                 (when view-mode
+                   (kill-buffer))))
+             journal-buffers))
+
+  (with-current-buffer org-journal-schedule-buffer-name
     (set-buffer-modified-p nil)
     (view-mode t)
-    (goto-char (point-min))))
+    (goto-char (point-min)))
+
+  (switch-to-buffer org-journal-schedule-buffer-name))
 
 (defun org-journal-read-period (period-name)
   "Return read period.
