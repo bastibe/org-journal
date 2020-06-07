@@ -177,13 +177,14 @@ appropriate way to format days in your language."
   :type 'string)
 
 (defcustom org-journal-date-prefix "* "
-  "String that is put before every date at the top of a journal file.
+  "Prefix for `org-journal-date-format'.
 
-By default, this is a org-mode heading. Another good idea would be
-\"#+TITLE: \" for org titles.
-
-Setting `org-journal-date-prefix' to something other than \"* \"
-for weekly/monthly/yearly journal files won't work correctly."
+The default prefix creates an `org-mode' heading.  This default
+should not be changed for weekly, monthly or yearly journal
+files.  An alternative for daily journal files could be
+\"#+title: \" creating a title rather than a heading.  To create
+a \"#+title: \" for weekly, monthly or yearly (but also daily)
+journal files, customize `org-journal-file-header' instead."
   :type 'string)
 
 (defcustom org-journal-time-format "%R "
