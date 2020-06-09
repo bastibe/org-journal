@@ -418,10 +418,8 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 ;;;###autoload
 (defun org-journal-dir-and-file-format->pattern ()
   "Return the current journal file pattern"
-  (concat (file-truename
-           (expand-file-name
-            (org-journal-format->regex org-journal-file-format)
-            org-journal-dir))
+  (concat (file-name-as-directory (file-truename org-journal-dir))
+          (org-journal-format->regex org-journal-file-format)
           "\\(\\.gpg\\)?\\'"))
 
 (defvar org-journal--format-rx-alist
