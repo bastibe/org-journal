@@ -784,7 +784,13 @@ If the parent heading has no more content delete it is well."
 
     (unless (eq (current-column) 0) (insert "\n"))
 
-    (insert text)
+    (insert (replace-regexp-in-string
+             org-ts-regexp
+             (format-time-string "<%Y-%m-%d %a>" (org-journal-calendar-date->time
+                                                  (if (org-journal-daily-p)
+                                                      (org-journal-file-name->calendar-date (buffer-file-name))
+                                                    (org-journal-entry-date->calendar-date))))
+             text))
 
     ;; Delete carried over items
     (with-current-buffer prev-buffer
