@@ -155,7 +155,15 @@ this day.  Default is Monday."
 This pattern MUST include `%Y', `%m' and `%d' when `org-journal-file-type' is
 `daily' or `weekly'. When `org-journal-file-type' is `monthly' this pattern
 MUST at least include `%Y' and `%m', and at least `%Y' when
-`org-journalf-file-type' is `yearly'."
+`org-journalf-file-type' is `yearly'.
+
+Currently supported placeholders are:
+
+%Y is the year.
+%m is the numeric month.
+%d is the day of the month, zero-padded.
+%a is the locale’s abbreviated name of the day of week, %A the full name.
+%F is the ISO 8601 date format (like \"%+4Y-%m-%d\")."
   :type 'string)
 
 (defcustom org-journal-date-format "%A, %x"
@@ -322,6 +330,7 @@ Currently supported placeholders are:
 %m is the numeric month.
 %d is the day of the month, zero-padded.
 %a is the locale’s abbreviated name of the day of week, %A the full name.
+%F is the ISO 8601 date format (like \"%+4Y-%m-%d\").
 
 You must call `org-journal-convert-created-property-timestamps' afterwards,
 if you have existing journal entries."
@@ -429,6 +438,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
     ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
 
 (defun org-journal-format->regex (format)
+  (setq format (replace-regexp-in-string "%F" "%Y-%m-%d" format))
   (cl-loop
      initially (setq format (regexp-quote format))
      for x in org-journal--format-rx-alist
