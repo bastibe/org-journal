@@ -789,17 +789,19 @@ If the parent heading has no more content delete it is well."
     (while (org-up-heading-safe))
 
     (save-excursion
-      (while (and (re-search-forward org-ts-regexp nil t)
-                  (not (looking-back "(SCHEDULED|DEADLINE):" (point-at-bol))))
-        (replace-match
-         (format-time-string "<%Y-%m-%d %a>"
-                             (org-journal-calendar-date->time
-                              (if (org-journal-daily-p)
-                                  (org-journal-file-name->calendar-date (buffer-file-name))
-                                (save-match-data
-                                  (save-excursion
-                                    (while (org-up-heading-safe))
-                                    (org-journal-entry-date->calendar-date)))))))))
+      (while (re-search-forward org-ts-regexp nil t)
+        (unless (save-excursion
+                  (goto-char (point-at-bol))
+                  (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
+          (replace-match
+           (format-time-string "<%Y-%m-%d %a>"
+                               (org-journal-calendar-date->time
+                                (if (org-journal-daily-p)
+                                    (org-journal-file-name->calendar-date (buffer-file-name))
+                                  (save-match-data
+                                    (save-excursion
+                                      (while (org-up-heading-safe))
+                                      (org-journal-entry-date->calendar-date))))))))))
 
     (outline-end-of-subtree)
 
