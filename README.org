@@ -236,9 +236,9 @@ For users of =use-package=, this setup could look like the following:
 (use-package org-journal
   :ensure t
   :defer t
-  :config
-  (setq org-journal-dir "~/org/journal/"
-        org-journal-date-format "%A, %d %B %Y"))
+  :custom
+  (org-journal-dir "~/org/journal/")
+  (org-journal-date-format "%A, %d %B %Y"))
 #+END_EXAMPLE
 
 ** Advanced Usage
