@@ -1075,9 +1075,9 @@ If no next/previous entry was found print MSG."
                     (file-truename (expand-file-name
                                     (file-name-as-directory org-journal-dir))) "\.*"))
         (predicate (lambda (file-path)
-                     (and (string-match-p (org-journal-dir-and-file-format->pattern) (file-truename file-path))
+                     (and (string-match-p (org-journal-dir-and-file-format->pattern) file-path)
                           (or org-journal-encrypt-journal
-                              (not (string-match-p "\.gpg$" (file-truename file-path))))))))
+                              (not (string-match-p "\.gpg$" file-path)))))))
     (seq-filter predicate file-list)))
 
 (defvar org-journal-cache-file
