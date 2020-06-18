@@ -796,9 +796,9 @@ If the parent heading has no more content delete it is well."
           (replace-match
            (format-time-string "<%Y-%m-%d %a>"
                                (org-journal-calendar-date->time
-                                (if (org-journal-daily-p)
-                                    (org-journal-file-name->calendar-date (buffer-file-name))
-                                  (save-match-data
+                                (save-match-data
+                                  (if (org-journal-daily-p)
+                                      (org-journal-file-name->calendar-date (buffer-file-name))
                                     (save-excursion
                                       (while (org-up-heading-safe))
                                       (org-journal-entry-date->calendar-date))))))))))
