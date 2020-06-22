@@ -163,6 +163,7 @@ Currently supported placeholders are:
 %m is the numeric month.
 %d is the day of the month, zero-padded.
 %a is the locale’s abbreviated name of the day of week, %A the full name.
+%b is the locale's abbreviated name of the month, %B the full name.
 %F is the ISO 8601 date format (like \"%+4Y-%m-%d\")."
   :type 'string)
 
@@ -330,6 +331,7 @@ Currently supported placeholders are:
 %m is the numeric month.
 %d is the day of the month, zero-padded.
 %a is the locale’s abbreviated name of the day of week, %A the full name.
+%b is the locale's abbreviated name of the month, %B the full name.
 %F is the ISO 8601 date format (like \"%+4Y-%m-%d\").
 
 You must call `org-journal-convert-created-property-timestamps' afterwards,
@@ -432,7 +434,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
           "\\(\\.gpg\\)?\\'"))
 
 (defvar org-journal--format-rx-alist
-  '(("%[aA]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
+  '(("%[aAbB]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
     ("%d" . "\\\\(?3:[0-9][0-9]\\\\)")
     ("%m" . "\\\\(?2:[0-9][0-9]\\\\)")
     ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
