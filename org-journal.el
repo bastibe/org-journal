@@ -349,7 +349,9 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (defvar org-journal-search-buffer "*Org-journal search*")
 
 
+;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
+;;;###autoload
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
 
 ;; Journal mode definition
@@ -416,17 +418,14 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
   "Update dates."
   (org-journal-dates-puthash))
 
-;;;###autoload
 (defun org-journal-is-journal ()
   "Determine if file is a journal file."
   (and (buffer-file-name)
        (string-match (org-journal-dir-and-file-format->pattern) (buffer-file-name))))
 
 ;; Open files in `org-journal-mode' if `org-journal-is-journal' returns true.
-;;;###autoload
 (add-to-list 'magic-mode-alist '(org-journal-is-journal . org-journal-mode))
 
-;;;###autoload
 (defun org-journal-dir-and-file-format->pattern ()
   "Return the current journal file pattern"
   (concat (file-name-as-directory (file-truename org-journal-dir))
@@ -936,7 +935,6 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
 
 (defun org-journal-file->calendar-dates (file)
   "Return journal dates from FILE."
-  (interactive "P")
   (org-journal-with-journal
    file
    (let (dates)
@@ -1065,7 +1063,6 @@ If no next/previous entry was found print MSG."
 
 ;;; Functions to browse existing journal entries using the calendar
 
-;;;###autoload
 (defun org-journal-list-files ()
   "Returns a list of all files in the journal directory."
   (org-journal-dir-check-or-create)
@@ -1370,6 +1367,7 @@ If a prefix argument is given, search all dates."
     (read-string "Enter a string to search for: " nil 'org-journal-search-history)))
   (org-journal-search str 'future))
 
+;;;###autoload
 (defun org-journal-search-future-scheduled ()
   "Search for TODOs within all future entries."
   (interactive)
