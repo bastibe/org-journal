@@ -612,6 +612,9 @@ hook is run."
       (unless (string= entry-path (buffer-file-name))
         (funcall org-journal-find-file entry-path))
 
+      ;; Insure `view-mode' is not active
+      (view-mode -1)
+
       ;; Insert org-journal-file-header
       (when (and (or (functionp org-journal-file-header)
                      (and (stringp org-journal-file-header)
@@ -787,6 +790,9 @@ If the parent heading has no more content delete it is well."
           (while (org-up-heading-safe))
           (outline-end-of-subtree))
       (goto-char (point-max)))
+
+    ;; Insure `view-mode' is not active
+    (view-mode -1)
 
     (unless (eq (current-column) 0) (insert "\n"))
 
