@@ -367,9 +367,14 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
     (org-journal-set-current-tag-alist))
   (run-mode-hooks))
 
+;;;###autoload
+(define-obsolete-function-alias 'org-journal-open-next-entry 'org-journal-next-entry)
+;;;###autoload
+(define-obsolete-function-alias 'org-journal-open-previous-entry 'org-journal-previous-entry)
+
 ;; Key bindings
-(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-open-next-entry)
-(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-open-previous-entry)
+(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-next-entry)
+(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-previous-entry)
 (define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
 (define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
 
@@ -712,7 +717,7 @@ buffer not open already, otherwise `nil'.")
   (let (entry)
     (with-current-buffer prev-buffer (save-buffer))
     (save-excursion
-      (org-journal-open-previous-entry 'no-select)
+      (org-journal-open-entry t t)
       (setq entry (if (org-journal-org-heading-p)
                       (org-get-entry)
                     (buffer-substring-no-properties (point) (point-max)))))
@@ -758,8 +763,8 @@ items, and delete or not delete the empty entry/file based on
       ;; Check if the file doesn't contain any other entry, by comparing the
       ;; new filename with the previous entry filename and the next entry filename.
       (if (and (save-excursion
-                 (org-journal-open-previous-entry 'no-select)
-                 (or (not (org-journal-open-previous-entry 'no-select))
+                 (org-journal-open-entry t t)
+                 (or (not (org-journal-open-entry t t))
                      (not (eq (current-buffer) prev-buffer))))
                (not (eq (current-buffer) prev-buffer)))
           (progn
@@ -767,7 +772,7 @@ items, and delete or not delete the empty entry/file based on
             (kill-buffer prev-buffer)
             (when org-journal-enable-cache (org-journal-list-dates)))
         (save-excursion
-          (org-journal-open-previous-entry 'no-select)
+          (org-journal-open-entry t t)
           (kill-region (point) (progn (outline-end-of-subtree) (point)))
           (save-buffer))))))
 
@@ -832,7 +837,7 @@ previous day's file to the current file."
     ;; Get carryover paths
     (save-excursion
       (save-restriction
-        (when (let ((inhibit-message t)) (org-journal-open-previous-entry 'no-select))
+        (when (org-journal-open-entry t t)
           (setq prev-buffer (current-buffer))
           (unless (org-journal-daily-p)
             (org-narrow-to-subtree))
@@ -984,7 +989,7 @@ arguments (C-u C-u) are given. In that case insert just the heading."
     (org-journal-search-forward-created date))
   (org-journal-finalize-view))
 
-(defun org-journal-open-entry (msg &optional prev no-select)
+(defun org-journal-open-entry (&optional prev no-select)
   "Open journal entry.
 
 If no next/previous entry was found print MSG."
@@ -1020,18 +1025,17 @@ If no next/previous entry was found print MSG."
                (filename (org-journal-get-entry-path time)))
           (if (get-file-buffer filename)
               (progn
-                (if (eq 'no-select no-select)
+                (if no-select
                     (set-buffer (get-file-buffer filename))
                   (switch-to-buffer (get-file-buffer filename)))
                 (setq org-journal--kill-buffer nil))
-            (push (if (eq 'no-select no-select)
+            (push (if no-select
                       (set-buffer (find-file-noselect filename))
                     (find-file filename))
                   org-journal--kill-buffer))
           (org-journal-goto-entry date)
           (view-mode (if view-mode-p 1 -1))
           t)
-      (message msg)
       nil)))
 
 ;;;###autoload
@@ -1047,19 +1051,6 @@ If no next/previous entry was found print MSG."
               (when last-entry-date
                 (org-journal-goto-entry last-entry-date)))))
       (message "Journal file %s not found" org-journal-file))))
-
-;;;###autoload
-(defun org-journal-open-next-entry (&optional no-select)
-  "Open the next journal entry starting from a currently displayed one."
-  (interactive)
-  (org-journal-open-entry "No next journal entry after this one" nil no-select))
-
-;;;###autoload
-(defun org-journal-open-previous-entry (&optional no-select)
-  "Open the previous journal entry starting from a currently displayed one."
-  (interactive)
-  (org-journal-open-entry "No previous journal entry before this one" t no-select))
-
 
 ;;; Functions to browse existing journal entries using the calendar
 
@@ -1281,28 +1272,37 @@ is nil or avoid switching when NOSELECT is non-nil."
   "Go to next entry.
 
 If prev is non-nil open previous entry instead of next."
-  (let ((dates (if prev
-                   (reverse (org-journal-list-dates))
-                 (org-journal-list-dates))))
-    (while (and dates
-                (not (if prev
-                         (calendar-date-compare dates (list (calendar-cursor-to-date)))
-                       (calendar-date-compare (list (calendar-cursor-to-date)) dates))))
-      (setq dates (cdr dates)))
-    (when dates
-      (calendar-goto-date (car dates))
-      (when org-journal-follow-mode
-        (org-journal-display-entry nil)))))
+  (unless (cond
+            ((eq major-mode 'calendar-mode)
+             (let ((dates (if prev
+                              (reverse (org-journal-list-dates))
+                            (org-journal-list-dates))))
+               (while (and dates
+                           (not (if prev
+                                    (calendar-date-compare dates (list (calendar-cursor-to-date)))
+                                  (calendar-date-compare (list (calendar-cursor-to-date)) dates))))
+                 (setq dates (cdr dates)))
+               (when dates
+                 (calendar-goto-date (car dates))
+                 (when org-journal-follow-mode
+                   (org-journal-display-entry nil)))))
+            ((eq major-mode 'org-journal-mode)
+             (org-journal-open-entry prev))
+            (t
+             (user-error
+              (concat "org-journal-" (if prev "previous" "next")
+                      "-entry called outside calendar/org-journal mode."))))
+    (message (concat "No journal entry " (if prev "before" "after") " this one"))))
 
 ;;;###autoload
 (defun org-journal-next-entry ()
-  "Go to the next date with a journal entry."
+  "Go to the next journal entry."
   (interactive)
   (org-journal--next-entry))
 
 ;;;###autoload
 (defun org-journal-previous-entry ()
-  "Go to the previous date with a journal entry."
+  "Go to the previous journal entry."
   (interactive)
   (org-journal--next-entry t))
 
