@@ -920,14 +920,21 @@ Month and Day capture group default to 1."
         year)
     (setq year (string-to-number
                 (replace-regexp-in-string file-pattern "\\1" file-name)))
+    (when (= year 0)
+      (user-error "Failed to extract year from file: %s" file-name))
 
-    (when (integerp (string-match "\(\?2:" file-pattern))
+    (if (and (not (integerp (string-match "\(\?2:" file-pattern)))
+             (member org-journal-file-type '(daily weekly monthly)))
+        (user-error "Failed to extract month from file: %s" file-name)
       (setq month (string-to-number
                    (replace-regexp-in-string file-pattern "\\2" file-name))))
 
-    (when (integerp (string-match "\(\?3:" file-pattern))
+    (if (and (not (integerp (string-match "\(\?3:" file-pattern)))
+             (member org-journal-file-type '(daily weekly)))
+        (user-error "Failed to extract day from file: %s" file-name)
       (setq day (string-to-number
                  (replace-regexp-in-string file-pattern "\\3" file-name))))
+
     (list month day year)))
 
 (defun org-journal-entry-date->calendar-date ()
