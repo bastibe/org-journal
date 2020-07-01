@@ -378,20 +378,19 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
 (define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
 
-;;;###autoload
 (eval-after-load "calendar"
   '(progn
-    (define-key calendar-mode-map "m" 'org-journal-mark-entries)
-    (define-key calendar-mode-map "j" 'org-journal-read-entry)
-    (define-key calendar-mode-map (kbd "C-j") 'org-journal-display-entry)
+    (define-key calendar-mode-map (kbd "j m") 'org-journal-mark-entries)
+    (define-key calendar-mode-map (kbd "j r") 'org-journal-read-entry)
+    (define-key calendar-mode-map (kbd "j d") 'org-journal-display-entry)
     (define-key calendar-mode-map "]" 'org-journal-next-entry)
     (define-key calendar-mode-map "[" 'org-journal-previous-entry)
-    (define-key calendar-mode-map (kbd "i j") 'org-journal-new-date-entry)
-    (define-key calendar-mode-map (kbd "f f") 'org-journal-search-forever)
-    (define-key calendar-mode-map (kbd "f F") 'org-journal-search-future)
-    (define-key calendar-mode-map (kbd "f w") 'org-journal-search-calendar-week)
-    (define-key calendar-mode-map (kbd "f m") 'org-journal-search-calendar-month)
-    (define-key calendar-mode-map (kbd "f y") 'org-journal-search-calendar-year)))
+    (define-key calendar-mode-map (kbd "j n") 'org-journal-new-date-entry)
+    (define-key calendar-mode-map (kbd "j s f") 'org-journal-search-forever)
+    (define-key calendar-mode-map (kbd "j s F") 'org-journal-search-future)
+    (define-key calendar-mode-map (kbd "j s w") 'org-journal-search-calendar-week)
+    (define-key calendar-mode-map (kbd "j s m") 'org-journal-search-calendar-month)
+    (define-key calendar-mode-map (kbd "j s y") 'org-journal-search-calendar-year)))
 
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
