@@ -136,21 +136,23 @@ Bindings available in =org-journal-mode=:
 All journal entries are registered in the Emacs Calendar. To see available journal
 entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
-- =j= - view an entry in a new buffer.
+- =j m= - mark entries in calendar
 
-- =C-j= - view an entry but do not switch to it.
+- =j r= - view an entry in a new buffer.
 
-- =i j= - add a new entry into the day's file (creates the file if not present).
+- =j d= - view an entry but do not switch to it.
 
-- =f w= - search in all entries of the current week.
+- =j n= - add a new entry into the day's file (creates the file if not present).
 
-- =f m= - search in all entries of the current month.
+- =j s w= - search in all entries of the current week.
 
-- =f y= - search in all entries of the current year.
+- =j s m= - search in all entries of the current month.
 
-- =f f= - search in all entries of all time.
+- =j s y= - search in all entries of the current year.
 
-- =f F= - search in all entries in the future.
+- =j s f= - search in all entries of all time.
+
+- =j s F= - search in all entries in the future.
 
 - =[= - go to previous day with journal entries.
 

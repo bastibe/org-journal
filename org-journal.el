@@ -47,14 +47,15 @@
 ;; Quick summary:
 ;; To create a new journal entry for the current time and day: C-c C-j
 ;; To open today's journal without creating a new entry: C-u C-c C-j
-;; In calendar view: j to view an entry in a new buffer
-;;                   C-j to view an entry but not switch to it
-;;                   i j to add a new entry
-;;                   f w to search all entries of the current week
-;;                   f m to search all entries of the current month
-;;                   f y to search all entries of the current year
-;;                   f f to search all entries of all time
-;;                   f F to search all entries in the future
+;; In calendar view: j m to mark entries in calendar
+;;                   j r to view an entry in a new buffer
+;;                   j d to view an entry but not switch to it
+;;                   j n to add a new entry
+;;                   j s w to search all entries of the current week
+;;                   j s m to search all entries of the current month
+;;                   j s y to search all entries of the current year
+;;                   j s f to search all entries of all time
+;;                   j s F to search all entries in the future
 ;;                   [ to go to previous entry
 ;;                   ] to go to next entry
 ;; When viewing a journal entry: C-c C-b to view previous entry
@@ -62,6 +63,7 @@
 
 
 ;;; Code:
+
 (require 'cal-iso)
 (require 'epa)
 (require 'org)
