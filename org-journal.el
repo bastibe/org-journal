@@ -1165,9 +1165,10 @@ It's used only when `org-journal-file-type' is not 'daily.")
 
 (defun org-journal-flatten-dates ()
   "Flatten dates if `org-journal-file-type' is not `'daily'."
-  (unless (org-journal-daily-p)
-    (setq org-journal-flatten-dates
-          (org-journal-flatten-dates-recursive (hash-table-values org-journal-dates)))))
+  (setq org-journal-flatten-dates (if (org-journal-daily-p)
+                                      (hash-table-values org-journal-dates)
+                                    (org-journal-flatten-dates-recursive
+                                     (hash-table-values org-journal-dates)))))
 
 (defun org-journal-list-dates ()
   "Return all journal dates \(\(month day year\) ...\)."
@@ -1200,9 +1201,7 @@ It's used only when `org-journal-file-type' is not 'daily.")
         (setq serialize t)))
     (when serialize
       (org-journal-serialize))
-    (if (org-journal-daily-p)
-        (hash-table-values org-journal-dates)
-      org-journal-flatten-dates)))
+    org-journal-flatten-dates))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
