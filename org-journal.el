@@ -470,7 +470,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 
 (defun org-journal-org-heading-p ()
   "Returns t if `org-journal-date-prefix' starts with \"* \"."
-  (string-match "^\* " org-journal-date-prefix))
+  (eq 0 (string-match "^\* " org-journal-date-prefix)))
 
 ;;;###autoload
 (defun org-journal-convert-created-property-timestamps (old-format)
@@ -1269,9 +1269,10 @@ is nil or avoid switching when NOSELECT is non-nil."
             (if (org-journal-daily-p)
                 (when (org-journal-org-heading-p)
                   (goto-char (point-min))
-                  (re-search-forward (if (functionp org-journal-date-format)
-                                         (funcall org-journal-date-format time)
-                                       (format-time-string org-journal-date-format time))))
+                  (re-search-forward (concat org-journal-date-prefix
+                                             (if (functionp org-journal-date-format)
+                                                 (funcall org-journal-date-format time)
+                                               (format-time-string org-journal-date-format time)))))
               (goto-char point))
             (org-journal-finalize-view)
             (setq point (point)))
