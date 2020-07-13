@@ -1021,16 +1021,15 @@ If NO-SELECT is non-nil, open it, but don't show it."
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
     (unless (member calendar-date dates)
-      ;; Insert calendar-date into dates list keeping it in order.
-      (setq dates (cl-loop
-                     for date in dates
-                     while (calendar-date-compare (list date) (list calendar-date))
-                     collect date into result and count t into cnt
-                     finally return (if result
-                                        ;; Front
-                                        `(,@result ,calendar-date)
-                                      ;; Somewhere enbetween or end of dates
-                                      `(,calendar-date ,@result ,@(nthcdr cnt dates))))))
+      (cl-loop
+         for date in dates
+         while (org-journal-calendar-date-compare date calendar-date)
+         count t into cnt
+         finally (if (> cnt 0)
+                     ;; Insert new date into list
+                     (setcdr (nthcdr (1- cnt) dates) (cons calendar-date (nthcdr cnt dates)))
+                   ;; Insert new date at front
+                   (setq dates (cons calendar-date dates)))))
     ;; Reverse list for previous search.
     (when prev
       (setq dates (reverse dates)))
