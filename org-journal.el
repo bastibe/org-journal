@@ -573,6 +573,12 @@ This allows the use of `org-journal-tag-alist' and
                (org-tag-string-to-alist tags)
              (or org-journal-tag-alist org-tag-alist))))))
 
+(defun org-journal-calendar-date-compare (date1 date2)
+  "Return t if DATE1 is before DATE2, nil otherwise.
+The actual dates are in the car of DATE1 and DATE2."
+  (< (calendar-absolute-from-gregorian date1)
+     (calendar-absolute-from-gregorian date2)))
+
 ;;;###autoload
 (defun org-journal-new-entry (prefix &optional time)
   "Open today's journal file and start a new entry.
@@ -643,10 +649,10 @@ hook is run."
             (let ((date (decode-time time))
                   (dates (sort (org-journal-file->calendar-dates (buffer-file-name))
                                (lambda (a b)
-                                 (calendar-date-compare (list b) (list a))))))
+                                 (org-journal-calendar-date-compare b a)))))
               (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
               (while dates
-                (when (calendar-date-compare dates (list date))
+                (when (org-journal-calendar-date-compare (car dates) date)
                   (org-journal-search-forward-created (car dates))
                   (outline-end-of-subtree)
                   (insert "\n")
@@ -1006,7 +1012,8 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 (defun org-journal-open-entry (&optional prev no-select)
   "Open journal entry.
 
-If no next/previous entry was found print MSG."
+If PREV is non-nil, open previous entry instead of next.
+If NO-SELECT is non-nil, open it, but don't show it."
   (let ((calendar-date (if (org-journal-daily-p)
                            (org-journal-file-name->calendar-date (file-truename (buffer-file-name)))
                          (while (org-up-heading-safe))
@@ -1029,8 +1036,8 @@ If no next/previous entry was found print MSG."
       (setq dates (reverse dates)))
     (while (and dates (car dates)
                 (or (if prev
-                        (calendar-date-compare (list calendar-date) dates)
-                      (calendar-date-compare dates (list calendar-date)))
+                        (org-journal-calendar-date-compare calendar-date (car dates))
+                      (org-journal-calendar-date-compare (car dates) calendar-date))
                     (calendar-date-equal (car dates) calendar-date)))
       (setq dates (cdr dates)))
     (if (and dates (car dates))
@@ -1294,8 +1301,8 @@ If prev is non-nil open previous entry instead of next."
                             (org-journal-list-dates))))
                (while (and dates
                            (not (if prev
-                                    (calendar-date-compare dates (list (calendar-cursor-to-date)))
-                                  (calendar-date-compare (list (calendar-cursor-to-date)) dates))))
+                                    (org-journal-calendar-date-compare (car dates) (calendar-cursor-to-date))
+                                  (org-journal-calendar-date-compare (calendar-cursor-to-date) (car dates)))))
                  (setq dates (cdr dates)))
                (when dates
                  (calendar-goto-date (car dates))
