@@ -116,3 +116,14 @@
   - Improves search result buffer
   - Include start/end date in search result
   - Adds `org-journal-follow-mode` to follow journal entries when moving between entries in calendar
+
+## 2020-07-14 V2.1.0
+  - Allow changing start of week for weekly journal fils (Thank you, Jeff Spaulding)
+  - Improve carryover functionality
+  - Allow changing of CREATED property timestamp
+  - Fix and improve org-journal-agenda
+  - Add org-journal-open-current-journal-file (Thank you, Sibi Prabakaran)
+  - Add support to skip carrying over drawers (Thank you, Sibi Prabakaran)
+  - Lot of general code improvements and bug fixes
+  - Documentation update (Thank you, Doolio)
+  - Support %b/%B in org-journal-file-format (Thank you, Jinhee Baek)
