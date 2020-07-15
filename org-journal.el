@@ -1164,10 +1164,11 @@ It's used only when `org-journal-file-type' is not 'daily.")
 
 (defun org-journal-flatten-dates ()
   "Flatten dates if `org-journal-file-type' is not `'daily'."
-  (setq org-journal-flatten-dates (if (org-journal-daily-p)
-                                      (hash-table-values org-journal-dates)
-                                    (org-journal-flatten-dates-recursive
-                                     (hash-table-values org-journal-dates)))))
+  (setq org-journal-flatten-dates (sort (if (org-journal-daily-p)
+                                            (hash-table-values org-journal-dates)
+                                          (org-journal-flatten-dates-recursive
+                                           (hash-table-values org-journal-dates)))
+                                        'org-journal-calendar-date-compare)))
 
 (defun org-journal-list-dates ()
   "Return all journal dates \(\(month day year\) ...\)."
