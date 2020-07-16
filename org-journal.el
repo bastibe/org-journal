@@ -1110,6 +1110,10 @@ file `org-journal-cache-file'."
   (let ((mtime (org-journal-file-modification-time file)))
     (if (org-journal-daily-p)
         (puthash (org-journal-file-name->calendar-date file) (list file mtime) org-journal-dates)
+      ;; Remove any key where (car value) equals FILE
+      (cl-loop for key being the hash-keys of org-journal-dates
+         when (string-equal (car (gethash key org-journal-dates)) file)
+         do (remhash key org-journal-dates))
       (dolist (date (org-journal-file->calendar-dates file))
         (puthash date (list file mtime) org-journal-dates)))))
 
@@ -1123,7 +1127,7 @@ file `org-journal-cache-file'."
           (let (print-length)
             (insert (prin1-to-string org-journal-dates))))
       (error "%s is not writable" org-journal-cache-file)))
-  (setq org-journal--sorted-dates (org-journal-sort-dates)))
+  (org-journal-sort-dates))
 
 (defun org-journal-deserialize ()
   "Read hashmap from file."
@@ -1134,13 +1138,13 @@ file `org-journal-cache-file'."
         (with-temp-buffer
           (insert-file-contents org-journal-cache-file)
           (setq org-journal-dates (read (buffer-substring (point-at-bol) (point-at-eol))))))))
-  (setq org-journal--sorted-dates (org-journal-sort-dates)))
+  (org-journal-sort-dates))
 
 (defvar org-journal--sorted-dates nil)
 
 (defun org-journal-sort-dates ()
   "Flatten and sort dates, and assign the result to `org-journal-flatten-dates'."
-  (sort (hash-table-keys org-journal-dates) 'org-journal-calendar-date-compare))
+  (setq org-journal--sorted-dates (sort (hash-table-keys org-journal-dates) 'org-journal-calendar-date-compare)))
 
 (defun org-journal-list-dates ()
   "Return all journal dates \(\(month day year\) ...\)."
@@ -1154,23 +1158,20 @@ file `org-journal-cache-file'."
         (setq serialize-p t)))
     ;; Verify modification time is unchanged, if we have already data.
     (unless serialize-p
-      (let ((keys (org-journal-sort-dates))
-            value file mtime
-            files-in-hash)
-        (dolist (key keys)
-          (setq value (gethash key org-journal-dates)
-                file (car value)
-                mtime (cadr value))
-          (unless (member file files-in-hash)
-            (push file files-in-hash))
-          (unless (equal mtime (org-journal-file-modification-time file))
-            (when (and (member file files) (not (member file reparse-files)))
-              (push file reparse-files))
-            (remhash key org-journal-dates)))
-        ;; Are there any new files
-        (dolist (file files)
-          (unless (member file files-in-hash)
-            (push file reparse-files)))))
+      (cl-loop
+         with (value files-in-hash file)
+         for key being the hash-keys of org-journal-dates
+         do (progn
+              (setq value (gethash key org-journal-dates)
+                    file (car value))
+              (unless (member file files-in-hash)
+                (push file files-in-hash)
+                (unless (equal (cadr value) (org-journal-file-modification-time file))
+                  (when (and (member file files) (not (member file reparse-files)))
+                    (push file reparse-files)))))
+         finally do (dolist (file files) ;; Are there any new files
+                      (unless (member file files-in-hash)
+                        (push file reparse-files)))))
     (when reparse-files
       (dolist (f reparse-files)
         (org-journal-dates-puthash f))
