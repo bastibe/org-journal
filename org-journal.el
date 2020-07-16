@@ -1155,15 +1155,22 @@ file `org-journal-cache-file'."
     ;; Verify modification time is unchanged, if we have already data.
     (unless serialize-p
       (let ((keys (org-journal-sort-dates))
-            value file mtime)
+            value file mtime
+            files-in-hash)
         (dolist (key keys)
           (setq value (gethash key org-journal-dates)
                 file (car value)
                 mtime (cadr value))
+          (unless (member file files-in-hash)
+            (push file files-in-hash))
           (unless (equal mtime (org-journal-file-modification-time file))
             (when (and (member file files) (not (member file reparse-files)))
               (push file reparse-files))
-            (remhash key org-journal-dates)))))
+            (remhash key org-journal-dates)))
+        ;; Are there any new files
+        (dolist (file files)
+          (unless (member file files-in-hash)
+            (push file reparse-files)))))
     (when reparse-files
       (dolist (f reparse-files)
         (org-journal-dates-puthash f))
