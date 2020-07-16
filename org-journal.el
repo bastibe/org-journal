@@ -1014,6 +1014,8 @@ If NO-SELECT is non-nil, open it, but don't show it."
         (view-mode-p view-mode)
         (dates (org-journal-list-dates)))
     (unless (member calendar-date dates)
+      ;; Create copy of `org-journal--sorted-dates'
+      (setq dates (copy-tree dates))
       (cl-loop
          for date in dates
          while (org-journal-calendar-date-compare date calendar-date)
@@ -1161,17 +1163,16 @@ file `org-journal-cache-file'."
       (cl-loop
          with (value files-in-hash file)
          for key being the hash-keys of org-journal-dates
-         do (progn
-              (setq value (gethash key org-journal-dates)
-                    file (car value))
-              (unless (member file files-in-hash)
-                (push file files-in-hash)
-                (unless (equal (cadr value) (org-journal-file-modification-time file))
-                  (when (and (member file files) (not (member file reparse-files)))
-                    (push file reparse-files)))))
-         finally do (dolist (file files) ;; Are there any new files
-                      (unless (member file files-in-hash)
-                        (push file reparse-files)))))
+         always (setq value (gethash key org-journal-dates)
+                      file (car value))
+         do (unless (member file files-in-hash)
+              (push file files-in-hash)
+              (unless (equal (cadr value) (org-journal-file-modification-time file))
+                (when (and (member file files) (not (member file reparse-files)))
+                  (push file reparse-files))))
+         finally (dolist (file files) ;; Are there any new files
+                   (unless (member file files-in-hash)
+                     (push file reparse-files)))))
     (when reparse-files
       (dolist (f reparse-files)
         (org-journal-dates-puthash f))
