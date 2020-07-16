@@ -547,7 +547,7 @@ the first date of the year."
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
   (unless (file-exists-p org-journal-dir)
-    (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create one? " (file-truename org-journal-dir)))
+    (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create it? " (file-truename org-journal-dir)))
         (make-directory (file-truename org-journal-dir) t)
       (error "A journal directory is necessary to use org-journal."))))
 
@@ -568,8 +568,7 @@ This allows the use of `org-journal-tag-alist' and
              (or org-journal-tag-alist org-tag-alist))))))
 
 (defun org-journal-calendar-date-compare (date1 date2)
-  "Return t if DATE1 is before DATE2, nil otherwise.
-The actual dates are in the car of DATE1 and DATE2."
+  "Return t if DATE1 is before DATE2, nil otherwise."
   (< (calendar-absolute-from-gregorian date1)
      (calendar-absolute-from-gregorian date2)))
 
@@ -1089,8 +1088,10 @@ If NO-SELECT is non-nil, open it, but don't show it."
   "Cache file for `org-journal-dates' and `org-journal-journals' hash maps.")
 
 (defvar org-journal-dates (make-hash-table :test 'equal)
-  "Hash map for journal dates. The key is the journal file and the
-value the journal file dates.")
+  "Hash map for journal dates.
+
+The key is a journal date entry, and the value of the key is of the form
+\(FILENAME \(FILE MODIFICATION TIME\)\).")
 
 ;;;###autoload
 (defun org-journal-invalidate-cache ()
