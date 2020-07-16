@@ -547,9 +547,9 @@ the first date of the year."
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
   (unless (file-exists-p org-journal-dir)
-    (if (yes-or-no-p (format "Journal directory %s not found. Create one? " org-journal-dir))
-        (make-directory org-journal-dir t)
-      (error "Journal directory is necessary to use org-journal."))))
+    (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create one? " (file-truename org-journal-dir)))
+        (make-directory (file-truename org-journal-dir) t)
+      (error "A journal directory is necessary to use org-journal."))))
 
 (defun org-journal-set-current-tag-alist ()
   "Set `org-current-tag-alist' for the current journal file.
