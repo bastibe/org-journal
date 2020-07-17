@@ -1063,8 +1063,6 @@ If NO-SELECT is non-nil, open it, but don't show it."
                 (org-journal-goto-entry last-entry-date)))))
       (message "Journal file %s not found" org-journal-file))))
 
-;;; Functions to browse existing journal entries using the calendar
-
 (defun org-journal-list-files ()
   "Returns a list of all files in the journal directory."
   (org-journal-dir-check-or-create)
@@ -1083,18 +1081,17 @@ If NO-SELECT is non-nil, open it, but don't show it."
 
 (defvar org-journal-cache-file
   (expand-file-name "org-journal.cache" user-emacs-directory)
-  "Cache file for `org-journal-dates' and `org-journal-journals' hash maps.")
+  "Cache file for `org-journal-dates'.")
 
 (defvar org-journal-dates (make-hash-table :test 'equal)
-  "Hash map for journal dates.
+  "Hash table for journal dates.
 
 The key is a journal date entry, and the value of the key is of the form
 \(FILENAME \(FILE MODIFICATION TIME\)\).")
 
 ;;;###autoload
 (defun org-journal-invalidate-cache ()
-  "Reset `org-journal-journals', `org-journal-dates' and remove the
-file `org-journal-cache-file'."
+  "Clear `org-journal-dates' hash table, and the cache file."
   (interactive)
   (clrhash org-journal-dates)
   (when org-journal-enable-cache
@@ -1145,7 +1142,10 @@ file `org-journal-cache-file'."
   (setq org-journal--sorted-dates (sort (hash-table-keys org-journal-dates) 'org-journal-calendar-date-compare)))
 
 (defun org-journal-list-dates ()
-  "Return all journal dates \(\(month day year\) ...\)."
+  "Return all journal dates.
+
+The list ((month day year) ...) contains calendar dates, and is sorted
+from oldest to newest."
   (let ((files (org-journal-list-files))
         reparse-files serialize-p)
     (when (hash-table-empty-p org-journal-dates)
