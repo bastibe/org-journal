@@ -858,20 +858,17 @@ previous day's file to the current file."
            do (cl-loop
                  for path in paths
                  with cleared-paths
-                 with counter = 0
-                 do (progn
-                      (when (or (not (and prev-paths (nth counter prev-paths)))
-                                (> (car path) (car (nth counter prev-paths))))
-                        (setq text (concat text (cddr path)))
-                        (if cleared-paths
-                            (setcdr (last cleared-paths) (list path))
-                          (setq cleared-paths (list path))))
-                      (setq counter (1+ counter)))
-                 finally (progn
-                           (if cleared-carryover-paths
-                               (setcdr (last cleared-carryover-paths) cleared-paths)
-                             (setq cleared-carryover-paths cleared-paths))
-                           (setq prev-paths paths))))
+                 count t into counter
+                 do (when (or (not (and prev-paths (nth counter prev-paths)))
+                              (> (car path) (car (nth counter prev-paths))))
+                      (setq text (concat text (cddr path)))
+                      (if cleared-paths
+                          (setcdr (last cleared-paths) (list path))
+                        (setq cleared-paths (list path))))
+                 finally (if cleared-carryover-paths
+                             (setcdr (last cleared-carryover-paths) cleared-paths)
+                           (setq cleared-carryover-paths cleared-paths))
+                   (setq prev-paths paths)))
         (org-journal-carryover-items text cleared-carryover-paths prev-buffer))
       (org-journal-carryover-delete-empty-journal prev-buffer))
 
