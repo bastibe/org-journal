@@ -1035,9 +1035,8 @@ If NO-SELECT is non-nil, open it, but don't show it."
                     (calendar-date-equal (car dates) calendar-date)))
       (setq dates (cdr dates)))
     (if (and dates (car dates))
-        (let* ((date (car dates))
-               (time (org-journal-calendar-date->time date))
-               (filename (org-journal-get-entry-path time)))
+        (let ((filename (org-journal-get-entry-path
+                         (org-journal-calendar-date->time (car dates)))))
           (if (get-file-buffer filename)
               (progn
                 (if no-select
@@ -1048,7 +1047,7 @@ If NO-SELECT is non-nil, open it, but don't show it."
                       (set-buffer (find-file-noselect filename))
                     (find-file filename))
                   org-journal--kill-buffer))
-          (org-journal-goto-entry date)
+          (org-journal-goto-entry (car dates))
           (view-mode (if view-mode-p 1 -1))
           t)
       nil)))
