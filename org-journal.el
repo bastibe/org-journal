@@ -1100,9 +1100,9 @@ The key is a journal date entry, and the value of the key is of the form
   "Reset `org-journal-journals', `org-journal-dates' and remove the
 file `org-journal-cache-file'."
   (interactive)
-  (setq org-journal-dates (make-hash-table :test 'equal))
-  (when (file-exists-p org-journal-cache-file)
-    (delete-file org-journal-cache-file)))
+  (clrhash org-journal-dates)
+  (when org-journal-enable-cache
+    (org-journal-serialize)))
 
 (defun org-journal-file-modification-time (file)
   (nth 5 (file-attributes file)))
