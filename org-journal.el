@@ -550,7 +550,7 @@ exist, try to create the directory."
   (unless (file-exists-p org-journal-dir)
     (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create it? " (file-truename org-journal-dir)))
         (make-directory (file-truename org-journal-dir) t)
-      (user-error "A journal directory is necessary to use org-journal."))))
+      (user-error "A journal directory is necessary to use org-journal"))))
 
 (defun org-journal-set-current-tag-alist ()
   "Set `org-current-tag-alist' for the current journal file.
@@ -1713,10 +1713,10 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 Only one recipient is supported.  ")))
 
   (unless recipient
-    (user-error "You need to specify exactly one recipient."))
+    (user-error "You need to specify exactly one recipient"))
 
   (unless org-journal-encrypt-journal
-    (user-error "org-journal encryption not enabled."))
+    (user-error "org-journal encryption not enabled"))
 
   (cl-loop
      with buf
