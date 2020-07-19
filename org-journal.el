@@ -483,7 +483,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
                                      (org-journal-file->calendar-dates file))))
               (unless (let ((org-journal-created-property-timestamp-format old-format))
                         (org-journal-search-forward-created date nil t))
-                (error "Did not find journal entry in file (%s), date was (%s) " file date))
+                (error "Didn't find journal entry in file (%s), date was (%s) " file date))
               (org-set-property "CREATED" (format-time-string
                                            org-journal-created-property-timestamp-format
                                            (org-journal-calendar-date->time date)))))
@@ -545,11 +545,12 @@ the first date of the year."
     file))
 
 (defun org-journal-dir-check-or-create ()
-  "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
+  "Check for existence of `org-journal-dir', if it doesn't
+exist, try to create the directory."
   (unless (file-exists-p org-journal-dir)
     (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create it? " (file-truename org-journal-dir)))
         (make-directory (file-truename org-journal-dir) t)
-      (error "A journal directory is necessary to use org-journal."))))
+      (user-error "A journal directory is necessary to use org-journal."))))
 
 (defun org-journal-set-current-tag-alist ()
   "Set `org-current-tag-alist' for the current journal file.
@@ -632,7 +633,7 @@ hook is run."
              (if (functionp org-journal-date-format)
                  (funcall org-journal-date-format time)
                (when (string-empty-p org-journal-date-format)
-                 (error "org-journal-date-format is empty, this won't work"))
+                 (user-error "org-journal-date-format is empty, this won't work"))
                (concat org-journal-date-prefix
                        (format-time-string org-journal-date-format time)))))
         (goto-char (point-min))
@@ -943,7 +944,7 @@ This is the counterpart of `org-journal-file-name->calendar-date' for
         date)
     (setq date (org-entry-get (point) "CREATED"))
     (unless (ignore-errors (string-match re date))
-      (error "Created property regex (%s) doesn't match CREATED property value (%s)" re date))
+      (user-error "Created property regex (%s) doesn't match CREATED property value (%s)" re date))
     (list (string-to-number (match-string 2 date))    ;; Month
           (string-to-number (match-string 3 date))    ;; Day
           (string-to-number (match-string 1 date))))) ;; Year
@@ -1286,7 +1287,7 @@ If prev is non-nil open previous entry instead of next."
             (t
              (user-error
               (concat "org-journal-" (if prev "previous" "next")
-                      "-entry called outside calendar/org-journal mode."))))
+                      "-entry called outside calendar/org-journal mode"))))
     (message (concat "No journal entry " (if prev "before" "after") " this one"))))
 
 ;;;###autoload
@@ -1533,14 +1534,14 @@ then use current week, month or year from the calendar, accordingly."
             (end (calendar-gregorian-from-absolute absolute-end)))
        (cons start end)))
 
-    (t (error "Wrong period-name given or not in the calendar mode"))))
+    (t (user-error "Wrong period-name given or not in the calendar mode"))))
 
 (defun org-journal-search-by-string (str &optional period-start period-end)
   "Search for a string within a given time interval.
 
 If STR is empty, search for all entries using `org-journal-time-prefix'."
   (when (time-less-p period-end period-start)
-    (error "Period end cannot be before the start"))
+    (user-error "Period end cannot be before the start"))
   (let* ((search-str (if (string= "" str) org-journal-time-prefix str))
          (files (org-journal-search-build-file-list period-start period-end))
          (results (org-journal-search-do-search search-str files))
@@ -1561,7 +1562,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
   (unless (and period-start period-end ;; Check for null values
                (car period-start) (cdr period-start)
                (car period-end) (cdr period-end))
-    (error "Time `%s' and/or `%s' are not valid" period-start period-end))
+    (user-error "Time `%s' and/or `%s' are not valid" period-start period-end))
 
   (let (result filetime)
     (dolist (file (org-journal-list-files))
@@ -1712,10 +1713,10 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 Only one recipient is supported.  ")))
 
   (unless recipient
-    (error "You need to specify exactly one recipient."))
+    (user-error "You need to specify exactly one recipient."))
 
   (unless org-journal-encrypt-journal
-    (error "org-journal encryption not enabled."))
+    (user-error "org-journal encryption not enabled."))
 
   (cl-loop
      with buf
