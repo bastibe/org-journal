@@ -373,11 +373,6 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (define-obsolete-function-alias 'org-journal-open-previous-entry 'org-journal-previous-entry)
 
 ;; Key bindings
-(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-next-entry)
-(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-previous-entry)
-(define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
-(define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
-
 (eval-after-load "calendar"
   '(progn
     (define-key calendar-mode-map (kbd "j m") 'org-journal-mark-entries)
