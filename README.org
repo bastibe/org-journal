@@ -227,9 +227,9 @@ Customization options related to the journal file contents:
 A very basic example of customization.
 
 #+BEGIN_EXAMPLE emacs-lisp
+(require 'org-journal)
 (setq org-journal-dir "~/org/journal/")
 (setq org-journal-date-format "%A, %d %B %Y")
-(require 'org-journal)
 (define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-next-entry)
 (define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-previous-entry)
 (define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
