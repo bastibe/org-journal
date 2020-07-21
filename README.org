@@ -422,7 +422,7 @@ When working in an org-journal buffer the following org-mode key bindings are ov
 - =C-c C-b= (=org-backward-heading-same-level=) with =org-journal-open-previous-entry=
 - =C-c C-j= (=org-goto=) with =org-journal-new-entry=
 
-To workaround this, you can use user bindings of the form =C-c ?=, where =?= can be any letter, to call the org-journal functions. This allows you to have a set of keybindings that work the same in org-mode and org-journal buffers. However, this is Emacs, and if you don't like a key binding, change it!
+To workaround this, you can use user bindings of the form =C-c ?=, where =?= can be any letter, to call the org-journal functions. This allows you to have a set of keybindings that work the same in org-mode and org-journal buffers. However, this is Emacs, and if you don't like a key binding, change it in your configuration!
 
 *** Opening journal entries from the calendar are not editable
 
