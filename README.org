@@ -230,6 +230,10 @@ A very basic example of customization.
 (setq org-journal-dir "~/org/journal/")
 (setq org-journal-date-format "%A, %d %B %Y")
 (require 'org-journal)
+(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-next-entry)
+(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-previous-entry)
+(define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
+(define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
 #+END_EXAMPLE
 
 For users of =use-package=, this setup could look like the following:
@@ -238,6 +242,11 @@ For users of =use-package=, this setup could look like the following:
 (use-package org-journal
   :ensure t
   :defer t
+  :bind (:map org-journal-mode-map
+         ("C-c C-f" . org-journal-next-entry)
+         ("C-c C-b" . org-journal-previous-entry)
+         ("C-c C-j" . org-journal-new-entry)
+         ("C-c C-s" . org-journal-search))
   :config
   (setq org-journal-dir "~/org/journal/"
         org-journal-date-format "%A, %d %B %Y"))
