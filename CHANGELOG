@@ -127,3 +127,6 @@
   - Lot of general code improvements and bug fixes
   - Documentation update (Thank you, Doolio)
   - Support %b/%B in org-journal-file-format (Thank you, Jinhee Baek)
+
+## TBD
+  - Move default key-bindings from codebase to user-config
