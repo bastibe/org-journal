@@ -238,6 +238,9 @@ For users of =use-package=, this setup could look like the following:
 (use-package org-journal
   :ensure t
   :defer t
+  :init
+  ;; Change default prefix key; needs to be set before loading org-journal
+  (setq org-journal-prefix-key "C-c j ")
   :config
   (setq org-journal-dir "~/org/journal/"
         org-journal-date-format "%A, %d %B %Y"))

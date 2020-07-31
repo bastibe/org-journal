@@ -340,6 +340,18 @@ You must call `org-journal-convert-created-property-timestamps' afterwards,
 if you have existing journal entries."
   :type 'string)
 
+(defcustom org-journal-prefix-key "C-c C-"
+  "The default prefix key inside `org-journal-mode'.
+
+This variable needs to loaded before `org-journal' gets loaded.
+
+This prefix key is used for:
+  - `org-journal-next-entry' (key \"f\")
+  - `org-journal-previous-entry' (key \"b\")
+  - `org-journal-new-entry' (key \"j\")
+  - `org-journal-search' (key \"s\")"
+  :type 'string)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -373,10 +385,16 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (define-obsolete-function-alias 'org-journal-open-previous-entry 'org-journal-previous-entry)
 
 ;; Key bindings
-(define-key org-journal-mode-map (kbd "C-c C-f") 'org-journal-next-entry)
-(define-key org-journal-mode-map (kbd "C-c C-b") 'org-journal-previous-entry)
-(define-key org-journal-mode-map (kbd "C-c C-j") 'org-journal-new-entry)
-(define-key org-journal-mode-map (kbd "C-c C-s") 'org-journal-search)
+(when (and (stringp org-journal-prefix-key) (not (string-empty-p org-journal-prefix-key)))
+  (let ((command-table '(("f" . org-journal-next-entry)
+                         ("b" . org-journal-previous-entry)
+                         ("j" . org-journal-new-entry)
+                         ("s" . org-journal-search)))
+        (key-func (if (string-prefix-p "\\" org-journal-prefix-key)
+                      #'concat
+                    (lambda (prefix key) (kbd (concat prefix "" key))))))
+    (cl-loop for (key . command) in command-table
+       do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
 
 (eval-after-load "calendar"
   '(progn
