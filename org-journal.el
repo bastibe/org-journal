@@ -794,7 +794,7 @@ items, and delete or not delete the empty entry/file based on
           (progn
             (delete-file (buffer-file-name prev-buffer))
             (kill-buffer prev-buffer)
-            (when org-journal-enable-cache (org-journal-list-dates)))
+            (org-journal-list-dates))
         (save-excursion
           (org-journal-open-entry t t)
           (kill-region (point) (progn (outline-end-of-subtree) (point)))
@@ -1168,7 +1168,8 @@ The key is a journal date entry, and the value of the key is of the form
 The list ((month day year) ...) contains calendar dates, and is sorted
 from oldest to newest."
   (let ((files (org-journal-list-files))
-        reparse-files serialize-p)
+        reparse-files serialize-p
+        rem-keys)
     (when (hash-table-empty-p org-journal-dates)
       (org-journal-deserialize)
       (when (hash-table-empty-p org-journal-dates)
@@ -1182,14 +1183,22 @@ from oldest to newest."
          for key being the hash-keys of org-journal-dates
          always (setq value (gethash key org-journal-dates)
                       file (car value))
-         do (unless (member file files-in-hash)
-              (push file files-in-hash)
-              (unless (equal (cadr value) (org-journal-file-modification-time file))
-                (when (and (member file files) (not (member file reparse-files)))
-                  (push file reparse-files))))
+         do
+           (unless (member (car value) files)
+             (unless (member key rem-keys)
+               (push key rem-keys)))
+           (unless (member file files-in-hash)
+             (push file files-in-hash)
+             (unless (equal (cadr value) (org-journal-file-modification-time file))
+               (when (and (member file files) (not (member file reparse-files)))
+                 (push file reparse-files))))
          finally (dolist (file files) ;; Are there any new files
                    (unless (member file files-in-hash)
                      (push file reparse-files)))))
+    (when rem-keys
+      (dolist (k rem-keys)
+        (remhash k org-journal-dates))
+      (setq serialize-p t))
     (when reparse-files
       (dolist (f reparse-files)
         (org-journal-dates-puthash f))
