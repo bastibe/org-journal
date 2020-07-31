@@ -343,7 +343,9 @@ if you have existing journal entries."
 (defcustom org-journal-prefix-key "C-c C-"
   "The default prefix key inside `org-journal-mode'.
 
-This variable needs to loaded before `org-journal' gets loaded.
+This variable needs to set before `org-journal' gets loaded.
+When this variable is set to an empty string or `nil' no bindings will
+be made.
 
 This prefix key is used for:
   - `org-journal-next-entry' (key \"f\")
