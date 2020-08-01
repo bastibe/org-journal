@@ -1438,8 +1438,8 @@ and cleans out past org-journal files."
              (org-journal-search-build-file-list
               (org-journal-calendar-date->time beg)
               (org-journal-calendar-date->time end)))))
-      (setq org-agenda-files (append not-org-journal-agenda-files
-                                     org-journal-agenda-files)))))
+      (org-store-new-agenda-file-list (append not-org-journal-agenda-files
+					      org-journal-agenda-files)))))
 
 (defvar org-journal-schedule-buffer-name "*Org-journal schedule*")
 
