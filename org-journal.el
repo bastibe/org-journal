@@ -454,8 +454,8 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 
 (defvar org-journal--format-rx-alist
   '(("%[aAbB]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
-    ("%d" . "\\\\(?3:[0-9][0-9]\\\\)")
-    ("%m" . "\\\\(?2:[0-9][0-9]\\\\)")
+    ("%d" . "\\\\(?3:[0-9]\\\\{2\\\\}\\\\)")
+    ("%m" . "\\\\(?2:[0-9]\\\\{2\\\\}\\\\)")
     ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
 
 (defun org-journal-format->regex (format)
@@ -822,19 +822,21 @@ If the parent heading has no more content delete it is well."
     (while (org-up-heading-safe))
 
     (save-excursion
-      (while (re-search-forward org-ts-regexp nil t)
+      (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} [a-z]+\\)\\( ?[^
+>]*?\\)>" nil t)
         (unless (save-excursion
                   (goto-char (point-at-bol))
                   (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
           (replace-match
-           (format-time-string "<%Y-%m-%d %a>"
+           (format-time-string "%Y-%m-%d %a"
                                (org-journal-calendar-date->time
                                 (save-match-data
                                   (if (org-journal-daily-p)
                                       (org-journal-file-name->calendar-date (buffer-file-name))
                                     (save-excursion
                                       (while (org-up-heading-safe))
-                                      (org-journal-entry-date->calendar-date))))))))))
+                                      (org-journal-entry-date->calendar-date))))))
+           nil nil nil 1))))
 
     (outline-end-of-subtree)
 
