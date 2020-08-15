@@ -161,12 +161,13 @@ MUST at least include `%Y' and `%m', and at least `%Y' when
 
 Currently supported placeholders are:
 
-%Y is the year.
-%m is the numeric month.
-%d is the day of the month, zero-padded.
+%Y is the year as decimal number, including the century.
+%m is the month as a decimal number (range 01 to 12).
+%d is the day as a decimal number (range 01 to 31).
+%V is the ISO 8601 week number as a decimal number (range 01 to 53).
 %a is the locale’s abbreviated name of the day of week, %A the full name.
 %b is the locale's abbreviated name of the month, %B the full name.
-%F is the ISO 8601 date format (like \"%+4Y-%m-%d\")."
+%F is the ISO 8601 date format (equivalent to \"%Y-%m-%d\")."
   :type 'string)
 
 (defcustom org-journal-date-format "%A, %x"
@@ -329,12 +330,13 @@ month and day.
 
 Currently supported placeholders are:
 
-%Y is the year.
-%m is the numeric month.
-%d is the day of the month, zero-padded.
+%Y is the year as decimal number, including the century.
+%m is the month as a decimal number (range 01 to 12).
+%d is the day as a decimal number (range 01 to 31).
+%V is the ISO 8601 week number as a decimal number (range 01 to 53).
 %a is the locale’s abbreviated name of the day of week, %A the full name.
 %b is the locale's abbreviated name of the month, %B the full name.
-%F is the ISO 8601 date format (like \"%+4Y-%m-%d\").
+%F is the ISO 8601 date format (equivalent to \"%Y-%m-%d\").
 
 You must call `org-journal-convert-created-property-timestamps' afterwards,
 if you have existing journal entries."
@@ -456,7 +458,8 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
   '(("%[aAbB]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
     ("%d" . "\\\\(?3:[0-9]\\\\{2\\\\}\\\\)")
     ("%m" . "\\\\(?2:[0-9]\\\\{2\\\\}\\\\)")
-    ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")))
+    ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")
+    ("%V" . "[0-9]\\\\{2\\\\}")))
 
 (defun org-journal-format->regex (format)
   (setq format (replace-regexp-in-string "%F" "%Y-%m-%d" format))
