@@ -24,7 +24,7 @@
   "Wrapp a `org-journal' -- `ert'-test with default values."
   `(let* ((org-journal-dir (concat org-journal-dir-test "-link"))
           (comment-start-skip "^\\s-*#\\(?: \\|$\\)")
-          (org-journal-cache-file (expand-file-name  "org-journal.cache" org-journal-dir-test))
+          (org-journal--cache-file (expand-file-name  "org-journal.cache" org-journal-dir-test))
           (org-journal-file-type 'daily)
           (org-journal-date-format "Test header")
           (org-agenda-inhibit-startup t)
@@ -37,7 +37,7 @@
 (ert-deftest org-journal-calendar-date-from-file-test ()
   "Should return a list with day/month/year"
   (org-journal-test-macro
-   (should (equal (org-journal-file-name->calendar-date
+   (should (equal (org-journal--file-name->calendar-date
                    (expand-file-name "20190103" (file-truename org-journal-dir)))
                   '(1 03 2019)))))
 
@@ -45,19 +45,19 @@
   "Testing"
   (org-journal-test-macro
    (let ((time (current-time)))
-     (should (equal (org-journal-convert-time-to-file-type-time time)
+     (should (equal (org-journal--convert-time-to-file-type-time time)
                     time))
      (setq time (encode-time 0 0 0 3 1 2019)
            org-journal-file-type 'weekly)
-     (should (equal (org-journal-convert-time-to-file-type-time time)
+     (should (equal (org-journal--convert-time-to-file-type-time time)
                     (encode-time 0 0 0 31 12 2018)))
      (setq time (encode-time 0 0 0 15 4 2019)
            org-journal-file-type 'monthly)
-     (should (equal (org-journal-convert-time-to-file-type-time time)
+     (should (equal (org-journal--convert-time-to-file-type-time time)
                     (encode-time 0 0 0 1 4 2019)))
      (setq time (encode-time 0 0 0 3 2 2019)
            org-journal-file-type 'yearly)
-     (should (equal (org-journal-convert-time-to-file-type-time time)
+     (should (equal (org-journal--convert-time-to-file-type-time time)
                     (encode-time 0 0 0 1 1 2019))))))
 
 (ert-deftest org-journal-insert-header-test ()
@@ -68,7 +68,7 @@
      (save-buffer)
      (kill-buffer)
      (should (string= (with-temp-buffer
-                        (insert-file-contents (org-journal-get-entry-path))
+                        (insert-file-contents (org-journal--get-entry-path))
                         (buffer-substring-no-properties (point-min) (point-max)))
                       (concat org-journal-file-header "\n* Test header\n"))))))
 
@@ -107,7 +107,7 @@
 
      (should (string= (with-temp-buffer
                         (org-journal-mode)
-                        (insert-file-contents (org-journal-get-entry-path))
+                        (insert-file-contents (org-journal--get-entry-path))
                         (replace-regexp-in-string
                          "^[ ]*" ""
                          (buffer-substring-no-properties (point-min) (point-max))))
@@ -142,7 +142,7 @@
      (kill-buffer)
      (kill-buffer buffer)
      (should (string= (with-temp-buffer
-                        (insert-file-contents (org-journal-get-entry-path))
+                        (insert-file-contents (org-journal--get-entry-path))
                         (buffer-substring-no-properties (point-min) (point-max)))
                       (concat "* Test header\n** TODO a\n** b1\n*** TODO b1\n*** b2\n**** TODO b2\n**** b3\n***** TODO b3\n** TODO b\n" new-entry "\n")))
      )))
@@ -161,7 +161,7 @@
      (org-journal-new-entry nil)
      (save-buffer)
      (kill-buffer)
-     (should (not (file-exists-p (org-journal-get-entry-path (encode-time 0 0 0 31 12 2018)))))
+     (should (not (file-exists-p (org-journal--get-entry-path (encode-time 0 0 0 31 12 2018)))))
 
      ;; Test even single entry gets deleted, relevant for weekly, monthly and yearly journal files.
      (org-journal-dir-test-setup)
@@ -184,7 +184,7 @@
                  (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)))))))
 
 (ert-deftest org-journal-search-build-file-list-test ()
-  "Test for `org-journal-search-build-file-list'."
+  "Test for `org-journal--search-build-file-list'."
   (org-journal-test-macro
    (let ((test-file-daily '("20170104" "20170312" "20190201"))
          (test-file-yearly '("20170101" "20180101" "20190101"))
@@ -202,25 +202,25 @@
      (setq period-start (encode-time 0 0 0 4 1 2017)
            period-end (encode-time 0 0 0 1 2 2019))
      (funcall create-files test-file-daily)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+     (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1))
 
      (setq period-start (encode-time 0 0 0 8 1 2017)
            period-end (encode-time 0 0 0 31 12 2018))
      ;; Weekly build file boundary check
      (setq org-journal-file-type 'weekly)
      (funcall create-files test-file-weekly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+     (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1))
 
      (setq period-start (encode-time 0 0 0 31 1 2017)
            period-end (encode-time 0 0 0 1 3 2019))
      ;; Monthly build file boundary check
      (setq org-journal-file-type 'monthly)
      (funcall create-files test-file-monthly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1))
+     (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1))
 
      (setq period-start (encode-time 0 0 0 31 12 2017)
            period-end (encode-time 0 0 0 1 1 2019))
      ;; Yearly build file boundary check
      (setq org-journal-file-type 'yearly)
      (funcall create-files test-file-yearly)
-     (should (equal (length (org-journal-search-build-file-list period-start period-end)) 1)))))
+     (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))

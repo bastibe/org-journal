@@ -259,7 +259,8 @@ See agenda tags view match description for the format of this."
 (defcustom org-journal-skip-carryover-drawers nil
   "By default, we carry over all the drawers associated with the items.
 
-This option can be used to skip certain drawers being carried over."
+This option can be used to skip certain drawers being carried over. The drawers listed
+here will be wiped completely, when the item gets carried over."
   :type 'list)
 
 (defcustom org-journal-carryover-delete-empty-journal 'never
@@ -723,10 +724,6 @@ hook is run."
                             ;; “time” is on some other day, use blank timestamp
                             (t ""))))
           (insert org-journal-time-prefix timestamp))
-
-        (unless (null org-journal-skip-carryover-drawers)
-          (org-journal--remove-drawer))
-
         (run-hooks 'org-journal-after-entry-create-hook))
 
       (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
@@ -769,7 +766,6 @@ buffer not open already, otherwise `nil'.")
   (save-excursion
     (save-restriction
       (unless (org-journal--daily-p)
-        (while (org-up-heading-safe))
         (org-narrow-to-subtree))
       (goto-char (point-min))
       (mapc 'delete-matching-lines (mapcar
@@ -823,6 +819,9 @@ If the parent heading has no more content delete it is well."
     (insert text)
 
     (while (org-up-heading-safe))
+
+    (unless (null org-journal-skip-carryover-drawers)
+      (org-journal--remove-drawer))
 
     (save-excursion
       (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} [a-z]+\\)\\( ?[^
