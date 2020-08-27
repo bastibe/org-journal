@@ -77,6 +77,10 @@
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
+;; org--setup-collect-keywords got renamed between version 9.3.6 and 9.3.7
+(unless (fboundp 'org--setup-collect-keywords)
+  (defalias 'org--setup-collect-keywords 'org-collect-keywords))
+
 (unless (fboundp 'org--tag-add-to-alist)
   ;; This function can be removed once emacs-26 es required or de-facto standard.
   (defun org-tag-add-to-alist (alist1 alist2)
