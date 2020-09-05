@@ -1028,29 +1028,34 @@ arguments (C-u C-u) are given. In that case insert just the heading."
     (org-journal--search-forward-created date))
   (org-journal--finalize-view))
 
+(defun org-journal-sort-dates (dates calendar-date)
+  "Sorts DATES to determine the order of journal entries. Can be advised\replaced by a user."
+  (let ((sorted-dates (copy-tree dates)))
+    (cl-loop
+      for date in sorted-dates
+      while (org-journal--calendar-date-compare date calendar-date)
+      count t into cnt
+      finally (if (> cnt 0)
+                ;; Insert new date into list
+                (setcdr (nthcdr (1- cnt) sorted-dates) (cons calendar-date (nthcdr cnt sorted-dates)))
+                ;; Insert new date at front
+                (setq sorted-dates (cons calendar-date sorted-dates))))
+    sorted-dates))
+
 (defun org-journal--open-entry (&optional prev no-select)
   "Open journal entry.
 
 If PREV is non-nil, open previous entry instead of next.
 If NO-SELECT is non-nil, open it, but don't show it."
   (let ((calendar-date (if (org-journal--daily-p)
-                           (org-journal--file-name->calendar-date (file-truename (buffer-file-name)))
+                         (org-journal--file-name->calendar-date (file-truename (buffer-file-name)))
                          (while (org-up-heading-safe))
                          (org-journal--entry-date->calendar-date)))
-        (view-mode-p view-mode)
-        (dates (org-journal--list-dates)))
+         (view-mode-p view-mode)
+         (dates (org-journal--list-dates)))
     (unless (member calendar-date dates)
       ;; Create copy of `org-journal--sorted-dates'
-      (setq dates (copy-tree dates))
-      (cl-loop
-         for date in dates
-         while (org-journal--calendar-date-compare date calendar-date)
-         count t into cnt
-         finally (if (> cnt 0)
-                     ;; Insert new date into list
-                     (setcdr (nthcdr (1- cnt) dates) (cons calendar-date (nthcdr cnt dates)))
-                   ;; Insert new date at front
-                   (setq dates (cons calendar-date dates)))))
+      (setq dates (org-journal-sort-dates dates calendar-date)))
     ;; Reverse list for previous search.
     (when prev
       (setq dates (reverse dates)))
