@@ -449,6 +449,17 @@ Each (=org-journal-new-entry=) will call =org-journal-after-entry-create-hook=, 
 
 See [[file:CONTRIBUTORS][CONTRIBUTORS]].
 
+** Contributing to =org-journal=
+We format the code using =common-lisp-indent-function= rather than the default
+=lisp-indent-function=. Please set the variable =lisp-indent-function= to
+=common-lisp-indent-function=, and format the code before creating a PR.
+
+#+BEGIN_SRC emacs-lisp
+  (setq lisp-indent-function 'common-lisp-indent-function)
+  ;; Markt the whole buffer: C-x h
+  ;; Call indent-region: C-M-\
+#+END_SRC
+
 ** Changelog
 
 See [[file:CHANGELOG][CHANGELOG]].
