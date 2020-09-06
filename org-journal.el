@@ -79,6 +79,7 @@
 
 ;; org--setup-collect-keywords got renamed between version 9.3.6 and 9.3.7
 (unless (fboundp 'org--setup-collect-keywords)
+  (declare-function org--setup-collect-keywords "org-journal")
   (defalias 'org--setup-collect-keywords 'org-collect-keywords))
 
 (unless (fboundp 'org--tag-add-to-alist)
