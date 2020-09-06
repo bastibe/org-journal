@@ -1028,6 +1028,23 @@ arguments (C-u C-u) are given. In that case insert just the heading."
     (org-journal--search-forward-created date))
   (org-journal--finalize-view))
 
+(defun org-journal-sort-dates (dates calendar-date prev)
+  "Sorts DATES to determine the order of journal entries. Can be advised\replaced by a user."
+  (let ((sorted-dates (copy-tree dates)))  ;; We won't modify `dates', as it would change `org-journal--sorted-dates'
+    (cl-loop
+       for date in sorted-dates
+       while (org-journal--calendar-date-compare date calendar-date)
+       count t into cnt
+       finally (if (> cnt 0)
+                   ;; Insert new date into list
+                   (setcdr (nthcdr (1- cnt) sorted-dates) (cons calendar-date (nthcdr cnt sorted-dates)))
+                 ;; Insert new date at front
+                 (setq sorted-dates (cons calendar-date sorted-dates))))
+    ;; Reverse list for previous search.
+    (when prev
+      (setq sorted-dates (reverse sorted-dates)))
+    sorted-dates))
+
 (defun org-journal--open-entry (&optional prev no-select)
   "Open journal entry.
 
@@ -1040,20 +1057,7 @@ If NO-SELECT is non-nil, open it, but don't show it."
         (view-mode-p view-mode)
         (dates (org-journal--list-dates)))
     (unless (member calendar-date dates)
-      ;; Create copy of `org-journal--sorted-dates'
-      (setq dates (copy-tree dates))
-      (cl-loop
-         for date in dates
-         while (org-journal--calendar-date-compare date calendar-date)
-         count t into cnt
-         finally (if (> cnt 0)
-                     ;; Insert new date into list
-                     (setcdr (nthcdr (1- cnt) dates) (cons calendar-date (nthcdr cnt dates)))
-                   ;; Insert new date at front
-                   (setq dates (cons calendar-date dates)))))
-    ;; Reverse list for previous search.
-    (when prev
-      (setq dates (reverse dates)))
+      (setq dates (org-journal-sort-dates dates calendar-date prev)))
     (while (and dates (car dates)
                 (or (if prev
                         (org-journal--calendar-date-compare calendar-date (car dates))
