@@ -364,6 +364,22 @@ as in the following example for a daily journal:
                                  "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")))
 #+END_EXAMPLE
 
+For a monthly journal, replace the definition of `org-journal-find-location` with the following to make sure your entries find the right date:
+
+#+BEGIN_EXAMPLE emacs-lisp
+  (defun sl/org-journal-find-location ()
+    ;; Open today's journal, but specify a non-nil prefix argument in order to
+    ;; inhibit inserting the heading; org-capture will insert the heading.
+    (org-journal-new-entry t)
+    ;; Position point on the journal's today date so that org-capture
+    ;; will add the new entry as a child entry.
+    (goto-char (point-min))
+    (let ((date (format-time-string org-journal-date-format)))
+      (if (not (re-search-forward date nil t))
+          (error "No match for target date in journal file")
+        (goto-char (match-end 0)))))
+#+END_EXAMPLE
+
 *** Caching of journal dates
 Since version 2.0.0 a cache has been added to speed up calendar
 operations. This should drastically improve the performance when using
