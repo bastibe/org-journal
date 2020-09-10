@@ -73,14 +73,10 @@
 
 ;; Silent byte-compiler
 (defvar view-exit-action)
+(declare-function org-collect-keywords "org")
 
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
-
-;; org--setup-collect-keywords got renamed between version 9.3.6 and 9.3.7
-(unless (fboundp 'org--setup-collect-keywords)
-  (declare-function org--setup-collect-keywords "org-journal")
-  (defalias 'org--setup-collect-keywords 'org-collect-keywords))
 
 (unless (fboundp 'org--tag-add-to-alist)
   ;; This function can be removed once emacs-26 es required or de-facto standard.
@@ -589,9 +585,14 @@ This allows the use of `org-journal-tag-alist' and
   (setq org-current-tag-alist ; this var is always buffer-local
         (org--tag-add-to-alist
          (or org-journal-tag-persistent-alist org-tag-persistent-alist)
-         (let* ((alist (org--setup-collect-keywords
-                        (org-make-options-regexp
-                         '("FILETAGS" "TAGS" "SETUPFILE"))))
+         ;; TODO: Remove this once org 9.3.7 is required
+         ;; `org--setup-collect-keywords' was removed between version 9.3.6 and 9.3.7,
+         ;; and is now called `org-collect-keywords', which has a different signature.
+         (let* ((alist (if (fboundp 'org--setup-collect-keywords)
+                           (org--setup-collect-keywords
+                            (org-make-options-regexp
+                             '("FILETAGS" "TAGS" "SETUPFILE")))
+                         (org-collect-keywords '("FILETAGS" "TAGS"))))
                 (tags (cdr (assq 'tags alist))))
            (if (and alist tags)
                (org-tag-string-to-alist tags)
