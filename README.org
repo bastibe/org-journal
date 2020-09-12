@@ -356,28 +356,12 @@ as in the following example for a daily journal:
     ;; Open today's journal, but specify a non-nil prefix argument in order to
     ;; inhibit inserting the heading; org-capture will insert the heading.
     (org-journal-new-entry t)
-    ;; Position point on the journal's top-level heading so that org-capture
-    ;; will add the new entry as a child entry.
-    (goto-char (point-min)))
+    (org-narrow-to-subtree)
+    (goto-char (point-max)))
 
-  (setq org-capture-templates '(("j" "Journal entry" entry (function org-journal-find-location)
-                                 "* %(format-time-string org-journal-time-format)%^{Title}\n%i%?")))
-#+END_EXAMPLE
-
-For a monthly journal, replace the definition of `org-journal-find-location` with the following to make sure your entries find the right date:
-
-#+BEGIN_EXAMPLE emacs-lisp
-  (defun sl/org-journal-find-location ()
-    ;; Open today's journal, but specify a non-nil prefix argument in order to
-    ;; inhibit inserting the heading; org-capture will insert the heading.
-    (org-journal-new-entry t)
-    ;; Position point on the journal's today date so that org-capture
-    ;; will add the new entry as a child entry.
-    (goto-char (point-min))
-    (let ((date (format-time-string org-journal-date-format)))
-      (if (not (re-search-forward date nil t))
-          (error "No match for target date in journal file")
-        (goto-char (match-end 0)))))
+  (setq org-capture-templates '(("j" "Journal entry" plain (function org-journal-find-location)
+                                 "** %(format-time-string org-journal-time-format)%^{Title}\n%i%?"
+                                 :jump-to-captured t :immediate-finish t)))
 #+END_EXAMPLE
 
 *** Caching of journal dates
