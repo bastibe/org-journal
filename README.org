@@ -368,16 +368,18 @@ as in the following example for a daily journal:
 If you want to do the same to schedule a task for a future date, you can use the following:
 
 #+BEGIN_EXAMPLE emacs-lisp
+  (defvar org-journal--date-location-scheduled-time nil)
+
   (defun org-journal-date-location (&optional scheduled-time)
     (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
-      (setq org-journal-date-location-scheduled-time scheduled-time)
+      (setq org-journal--date-location-scheduled-time scheduled-time)
       (org-journal-new-entry t (org-time-string-to-time scheduled-time))
       (unless (eq org-journal-file-type 'daily)
         (org-narrow-to-subtree))
       (goto-char (point-max))))
-    
+
   (setq org-capture-templates '(("j" "Journal entry" plain (function org-journal-date-location)
-                                 "** TODO %?\n <%(princ as/org-journal-date-location-scheduled-time)>\n"
+                                 "** TODO %?\n <%(princ org-journal--date-location-scheduled-time)>\n"
                                  :jump-to-captured t))
 #+END_EXAMPLE
 
