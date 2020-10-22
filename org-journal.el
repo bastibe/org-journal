@@ -830,8 +830,7 @@ If the parent heading has no more content delete it is well."
       (org-journal--remove-drawer))
 
     (save-excursion
-      (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} [a-z]+\\)\\( ?[^
->]*?\\)>" nil t)
+      (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\( [a-z]+\\)?\\)>" nil t)
         (unless (save-excursion
                   (goto-char (point-at-bol))
                   (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
@@ -974,7 +973,7 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
         date)
     (setq date (org-entry-get (point) "CREATED"))
     (unless (ignore-errors (string-match re date))
-      (user-error "Created property regex (%s) doesn't match CREATED property value (%s)" re date))
+      (user-error "Created property timestamp format \"%s\" doesn't match CREATED property value (%s) from entry at line: %s" org-journal-created-property-timestamp-format date (what-line)))
     (list (string-to-number (match-string 2 date))    ;; Month
           (string-to-number (match-string 3 date))    ;; Day
           (string-to-number (match-string 1 date))))) ;; Year
@@ -1012,14 +1011,16 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
   "Create a new entry in the future."
   (interactive "P")
-  (let ((scheduled-time (or scheduled-time (org-read-date nil nil nil "Date:")))
+  (let ((time (org-time-string-to-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
         (raw (prefix-numeric-value prefix)))
-    (org-journal-new-entry (= raw 16) (org-time-string-to-time scheduled-time))
+    (let (org-journal-carryover-items) ;; Don't carryover anything when creating a new scheduled entry
+      (org-journal-new-entry (= raw 16) time))
     (unless (= raw 16)
       (if (not prefix)
           (insert "TODO "))
       (save-excursion
-        (insert "\n<" scheduled-time ">")))))
+        (insert "\n")
+        (org-insert-time-stamp time)))))
 
 (defun org-journal--goto-entry (date)
   "Goto DATE entry in current journal file."
