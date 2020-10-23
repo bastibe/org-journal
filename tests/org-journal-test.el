@@ -34,8 +34,7 @@
      (org-journal-dir-test-setup)
      ,@body
      (delete-directory org-journal-dir-test t)
-     (delete-file (concat org-journal-dir-test "-link"))
-     ))
+     (delete-file (concat org-journal-dir-test "-link"))))
 
 (ert-deftest org-journal-calendar-date-from-file-test ()
   "Should return a list with day/month/year"
@@ -228,7 +227,7 @@
      (funcall create-files test-file-yearly)
      (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))
 
-(ert-deftest org-journal-scheduled-carryover-test ()
+(ert-deftest org-journal-scheduled-carryover-yearly-test ()
   (org-journal-test-macro
    (let ((org-journal-file-type 'yearly)
          (org-journal-created-property-timestamp-format "[%Y-%m-%d %a]")
@@ -237,7 +236,35 @@
      (copy-directory
       (directory-file-name "tests/journals/yearly")
       (file-name-as-directory org-journal-dir-test) nil nil t)
-     (org-journal-new-entry nil)
-     (setq new-scheduled-date (with-output-to-string (org-insert-time-stamp (current-time))))
+     (org-journal-new-entry 4) ;; prefix == no new time entry
+     (setq new-scheduled-date (with-temp-buffer
+                                (org-insert-time-stamp (current-time))
+                                (buffer-substring-no-properties (point-min) (point-max))))
      (goto-char (point-min))
-     (search-forward new-scheduled-date nil nil 2))))
+     (search-forward new-scheduled-date)
+     (search-forward new-scheduled-date))))
+
+(ert-deftest org-journal-scheduled-carryover-daily-test ()
+  (org-journal-test-macro
+   (let ((org-journal-file-type 'daily)
+         (org-journal-date-prefix "#+TITLE: ")
+         (org-journal-time-prefix "* ")
+         (org-journal-file-format "%Y-%m-%d.org")
+         (org-journal-date-format "%Y-%m-%d (%A)")
+         org-journal-encrypt-journal
+         org-journal-enable-encryption
+         org-journal-enable-cache
+         org-journal-file-header
+         new-scheduled-date)
+     ;; Copy test files to temporary directory
+     (copy-directory
+      (directory-file-name "tests/journals/daily")
+      (file-name-as-directory org-journal-dir-test) nil nil t)
+
+     (org-journal-new-entry 4) ;; prefix == no new time entry
+     (setq new-scheduled-date (with-temp-buffer
+                                (org-insert-time-stamp (current-time))
+                                (buffer-substring-no-properties (point-min) (point-max))))
+     (goto-char (point-min))
+     (search-forward new-scheduled-date)
+     (search-forward new-scheduled-date))))

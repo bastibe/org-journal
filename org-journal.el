@@ -824,26 +824,29 @@ If the parent heading has no more content delete it is well."
 
     (insert text)
 
-    (while (org-up-heading-safe))
-
-    (unless (null org-journal-skip-carryover-drawers)
-      (org-journal--remove-drawer))
-
     (save-excursion
-      (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\( [a-z]+\\)?\\)>" nil t)
-        (unless (save-excursion
-                  (goto-char (point-at-bol))
-                  (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
-          (replace-match
-           (format-time-string "%Y-%m-%d %a"
-                               (org-journal--calendar-date->time
-                                (save-match-data
-                                  (if (org-journal--daily-p)
-                                      (org-journal--file-name->calendar-date (buffer-file-name))
-                                    (save-excursion
-                                      (while (org-up-heading-safe))
-                                      (org-journal--entry-date->calendar-date))))))
-           nil nil nil 1))))
+      (if (org-journal--daily-p)
+          (goto-char (point-min))
+        (while (org-up-heading-safe)))
+
+      (unless (null org-journal-skip-carryover-drawers)
+        (org-journal--remove-drawer))
+
+      (save-excursion
+        (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\( [a-z]+\\)?\\)>" nil t)
+          (unless (save-excursion
+                    (goto-char (point-at-bol))
+                    (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
+            (replace-match
+             (format-time-string "%Y-%m-%d %a"
+                                 (org-journal--calendar-date->time
+                                  (save-match-data
+                                    (if (org-journal--daily-p)
+                                        (org-journal--file-name->calendar-date (buffer-file-name))
+                                      (save-excursion
+                                        (while (org-up-heading-safe))
+                                        (org-journal--entry-date->calendar-date))))))
+             nil nil nil 1)))))
 
     (outline-end-of-subtree)
 
