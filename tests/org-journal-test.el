@@ -240,5 +240,4 @@
      (org-journal-new-entry nil)
      (setq new-scheduled-date (with-output-to-string (org-insert-time-stamp (current-time))))
      (goto-char (point-min))
-     (message "%s" (buffer-substring-no-properties (point-min) (point-max)))
      (search-forward new-scheduled-date nil nil 2))))
