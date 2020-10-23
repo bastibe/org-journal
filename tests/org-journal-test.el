@@ -28,11 +28,14 @@
           (org-journal-file-type 'daily)
           (org-journal-date-format "Test header")
           (org-agenda-inhibit-startup t)
-          (org-journal-time-format "%R"))
+          (org-journal-time-format "%R")
+          org-journal-file-header)
+     (org-journal-invalidate-cache)
      (org-journal-dir-test-setup)
      ,@body
      (delete-directory org-journal-dir-test t)
-     (delete-file (concat org-journal-dir-test "-link"))))
+     (delete-file (concat org-journal-dir-test "-link"))
+     ))
 
 (ert-deftest org-journal-calendar-date-from-file-test ()
   "Should return a list with day/month/year"
@@ -224,3 +227,18 @@
      (setq org-journal-file-type 'yearly)
      (funcall create-files test-file-yearly)
      (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))
+
+(ert-deftest org-journal-scheduled-carryover-test ()
+  (org-journal-test-macro
+   (let ((org-journal-file-type 'yearly)
+         (org-journal-created-property-timestamp-format "[%Y-%m-%d %a]")
+         new-scheduled-date)
+     ;; Copy test files to temporary directory
+     (copy-directory
+      (directory-file-name "tests/journals/yearly")
+      (file-name-as-directory org-journal-dir-test) nil nil t)
+     (org-journal-new-entry nil)
+     (setq new-scheduled-date (with-output-to-string (org-insert-time-stamp (current-time))))
+     (goto-char (point-min))
+     (message "%s" (buffer-substring-no-properties (point-min) (point-max)))
+     (search-forward new-scheduled-date nil nil 2))))

@@ -1,0 +1,27 @@
+#+TITLE: 2020 Journal
+* Sunday, 12 January 2020
+:PROPERTIES:
+:CREATED:  [2020-01-12 Sun]
+:END:
+** 22:00 First entry
+* Monday, 13 April 2020
+:PROPERTIES:
+:CREATED:  [2020-04-13 Mon]
+:END:
+** 14:00 What a rainy day
+* Monday, 01 June 2020
+:PROPERTIES:
+:CREATED:  [2020-06-01 Mon]
+:END:
+** 11:56 Yet another day
+** TODO Just a task
+** TODO Project
+*** TODO Task 1
+*** Some note
+*** TODO Subproject
+**** TODO Task of subproject
+** DONE Closed task
+** TODO Scheduled1
+<2020-06-01>
+** TODO Scheduled2
+<2020-06-01>
