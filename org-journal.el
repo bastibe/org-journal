@@ -265,11 +265,12 @@ here will be wiped completely, when the item gets carried over."
   :type 'list)
 
 (defcustom org-journal-handle-old-carryover 'org-journal--delete-old-carryover
-  "The function to handle the carried-over entries in the previous journal.
+  "The function to handle the carryover entries in the previous journal.
 
-This function takes one argument, which is a list of the carried-over entries
+This function takes one argument, which is a list of the carryover entries
 in the journal of previous day.
-The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\"))); and in ascending order of START_POINT.
+The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\"))); 
+and in ascending order of START_POINT.
 
 Default is the function `org-journal--delete-old-carryover' to delete them all."
   :type 'function)
@@ -815,8 +816,8 @@ items, and delete or not delete the empty entry/file based on
           (kill-region (point) (progn (outline-end-of-subtree) (point)))
           (save-buffer))))))
 
-(defun org-journal--delete-old-carryover (old_entries &rest _args)
-  "Delete all carried-over entries from previous buffer.
+(defun org-journal--delete-old-carryover (old_entries)
+  "Delete all carryover entries from the previous day's journal.
 
 If the parent heading has no more content, delete it as well."
   (mapc (lambda (x)
@@ -830,7 +831,7 @@ If the parent heading has no more content, delete it as well."
   "Carryover items.
 
 Will insert `entries', and run `org-journal-handle-old-carryover' function
-to process the carried-over entries in `prev-buffer'."
+to process the carryover entries in `prev-buffer'."
   (when entries
     (if (org-journal--org-heading-p)
         (progn
@@ -868,7 +869,7 @@ to process the carried-over entries in `prev-buffer'."
 
     (outline-end-of-subtree)
 
-    ;; Process carried-over entries in the previous day
+    ;; Process carryover entries in the previous day's journal
     (with-current-buffer prev-buffer
       (funcall org-journal-handle-old-carryover entries))))
 
