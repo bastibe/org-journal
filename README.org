@@ -282,14 +282,35 @@ Search is also available through the Emacs Calendar as described in "Basic Usage
 *** Carry Over
 
 By default, =org-journal= will try to /carry over/ previous day TODO-marked
-items whenever a new journal file is created. The older journal entry will be
-/moved/ (i.e., deleted and reinserted) to the current day's file.
+items whenever a new journal file is created. The older journal entry will be inserted to the current day's file.
 
 This feature is controlled through the =org-journal-carryover-items=
 variable. To disable this feature set =org-journal-carryover-items= to an
 empty string =""=. Any [[http://orgmode.org/manual/Matching-tags-and-properties.html][agenda tags view match string]], tags, properties, and
 todo states are allowed. By default this is ~TODO=”TODO”~. Which will
 match TODO items.
+
+The old carryover items in the previos day's journal are processed by the function assigned to =org-journal-handle-old-carryover= variable. 
+Default is to remove all of them. You can change this behavior by
+assigning a custom fuction to the variable.
+Your function has to take one argument, which is a list of old carryover entries. The list is in form of ((START_POINT (END_POINT . "TEXT")) ... (START_POINT (END_POINT . "TEXT"))); and in ascending order of START_POINT.
+ 
+For example, you can choose putting a tag on the old carryover entries intead of removing them:
+
+#+begin_src elisp
+(defun my-old-carryover (old_carryover)
+  (save-excursion
+    (let ((matcher (cdr (org-make-tags-matcher org-journal-carryover-items))))
+      (dolist (entry (reverse old_carryover))
+        (save-restriction
+          (narrow-to-region (car entry) (cadr entry)) 
+          (goto-char (point-min))
+          (org-scan-tags '(lambda ()
+                            (org-set-tags ":carried:"))
+                         matcher org--matcher-tags-todo-only))))))
+
+(setq org-journal-handle-old-carryover 'my-old-carryover)
+#+end_src
 
 You can also skip carry over of [[https://orgmode.org/manual/Drawers.html][Drawers]] through the
 =org-journal-skip-carryover-drawers= variable. This is specifically

@@ -264,6 +264,17 @@ This option can be used to skip certain drawers being carried over. The drawers 
 here will be wiped completely, when the item gets carried over."
   :type 'list)
 
+(defcustom org-journal-handle-old-carryover 'org-journal--delete-old-carryover
+  "The function to handle the carryover entries in the previous journal.
+
+This function takes one argument, which is a list of the carryover entries
+in the journal of previous day.
+The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\"))); 
+and in ascending order of START_POINT.
+
+Default is the function `org-journal--delete-old-carryover' to delete them all."
+  :type 'function)
+
 (defcustom org-journal-carryover-delete-empty-journal 'never
   "Delete empty journal entry/file after carryover.
 
@@ -805,11 +816,22 @@ items, and delete or not delete the empty entry/file based on
           (kill-region (point) (progn (outline-end-of-subtree) (point)))
           (save-buffer))))))
 
+(defun org-journal--delete-old-carryover (old_entries)
+  "Delete all carryover entries from the previous day's journal.
+
+If the parent heading has no more content, delete it as well."
+  (mapc (lambda (x)
+              (unless (save-excursion
+                        (goto-char (1- (cadr x)))
+                        (org-goto-first-child))
+                (kill-region (car x) (cadr x))))
+            (reverse old_entries)))
+
 (defun org-journal-carryover-items (text entries prev-buffer)
   "Carryover items.
 
-Will insert `entries', and delete the inserted entries from `prev-buffer'.
-If the parent heading has no more content delete it is well."
+Will insert `entries', and run `org-journal-handle-old-carryover' function
+to process the carryover entries in `prev-buffer'."
   (when entries
     (if (org-journal--org-heading-p)
         (progn
@@ -850,14 +872,9 @@ If the parent heading has no more content delete it is well."
 
     (outline-end-of-subtree)
 
-    ;; Delete carried over items
+    ;; Process carryover entries in the previous day's journal
     (with-current-buffer prev-buffer
-      (mapc (lambda (x)
-              (unless (save-excursion
-                        (goto-char (1- (cadr x)))
-                        (org-goto-first-child))
-                (kill-region (car x) (cadr x))))
-            (reverse entries)))))
+      (funcall org-journal-handle-old-carryover entries))))
 
 (defun org-journal--carryover ()
   "Moves all items matching `org-journal-carryover-items' from the
