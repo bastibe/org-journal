@@ -295,14 +295,13 @@ Default is to remove all of them. You can change this behavior by
 assigning a custom fuction to the variable.
 Your function has to take one argument, which is a list of old carryover entries. The list is in form of ((START_POINT (END_POINT . "TEXT")) ... (START_POINT (END_POINT . "TEXT"))); and in ascending order of START_POINT.
  
-The example below puts a tag on the old carryover entries intead of
-removing them.
+For example, you can choose putting a tag on the old carryover entries intead of removing them:
 
 #+begin_src elisp
 (defun my-old-carryover (old_carryover)
   (save-excursion
     (let ((matcher (cdr (org-make-tags-matcher org-journal-carryover-items))))
-      (dolist (entry old_carryover)
+      (dolist (entry (reverse old_carryover))
         (save-restriction
           (narrow-to-region (car entry) (cadr entry)) 
           (goto-char (point-min))
