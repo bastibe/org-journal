@@ -269,7 +269,7 @@ here will be wiped completely, when the item gets carried over."
 
 This function takes one argument, which is a list of the carryover entries
 in the journal of previous day.
-The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\"))); 
+The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\")));
 and in ascending order of START_POINT.
 
 Default is the function `org-journal--delete-old-carryover' to delete them all."
@@ -1029,18 +1029,44 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 
 ;;;###autoload
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
-  "Create a new entry in the future."
+  "Create a new entry in the future with an active timestamp.
+
+With non-nil prefix argument create a regular entry instead of a TODO entry."
   (interactive "P")
   (let ((time (org-time-string-to-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
-        (raw (prefix-numeric-value prefix)))
-    (let (org-journal-carryover-items) ;; Don't carryover anything when creating a new scheduled entry
-      (org-journal-new-entry (= raw 16) time))
-    (unless (= raw 16)
-      (if (not prefix)
-          (insert "TODO "))
-      (save-excursion
-        (insert "\n")
-        (org-insert-time-stamp time)))))
+        org-journal-carryover-items)
+    (when (time-less-p time (current-time))
+      (user-error "Scheduled time needs to be in the future"))
+    (org-journal-new-entry nil time)
+    (unless prefix
+      (insert "TODO "))
+    (save-excursion
+      (insert "\n")
+      (org-insert-time-stamp time))))
+
+;;;###autoload
+(defun org-journal-reschedule-scheduled-entry (&optional time)
+  "Reschedule an entry in the future."
+  (interactive "P")
+  (or time (setq time (org-time-string-to-time (org-read-date nil nil nil "Data:"))))
+  (when (time-less-p time (current-time))
+    (user-error "Scheduled time needs to be in the future"))
+  (save-excursion
+    (save-restriction
+      (org-back-to-heading)
+      (org-narrow-to-subtree)
+      (if (re-search-forward org-ts-regexp (line-end-position 2) t)
+          (replace-match "")
+        (org-end-of-subtree)
+        (insert "\n"))
+      (org-insert-time-stamp time)
+      (org-cut-subtree))
+    (let (org-journal-carryover-items)
+      (org-save-outline-visibility t
+        (org-journal-new-entry t time)
+        (when (looking-back "[^\t ]" (point-at-bol) t)
+          (insert "\n"))
+        (org-yank)))))
 
 (defun org-journal--goto-entry (date)
   "Goto DATE entry in current journal file."
