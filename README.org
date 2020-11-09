@@ -290,7 +290,7 @@ empty string =""=. Any [[http://orgmode.org/manual/Matching-tags-and-properties.
 todo states are allowed. By default this is ~TODO=”TODO”~. Which will
 match TODO items.
 
-The old carryover items in the previos day's journal are processed by the function assigned to =org-journal-handle-old-carryover= variable. 
+The old carryover items in the previous day's journal are processed by the function assigned to =org-journal-handle-old-carryover= variable. 
 Default is to remove all of them. You can change this behavior by
 assigning a custom fuction to the variable.
 Your function has to take one argument, which is a list of old carryover entries. The list is in form of ((START_POINT (END_POINT . "TEXT")) ... (START_POINT (END_POINT . "TEXT"))); and in ascending order of START_POINT.
