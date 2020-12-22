@@ -964,23 +964,24 @@ Month and Day capture group default to 1."
   (let ((file-pattern (org-journal--dir-and-file-format->pattern))
         (day 1)
         (month 1)
-        year)
+        year
+        (file (file-truename file-name)))
     (setq year (string-to-number
-                (replace-regexp-in-string file-pattern "\\1" file-name)))
+                (replace-regexp-in-string file-pattern "\\1" file)))
     (when (= year 0)
-      (user-error "Failed to extract year from file: %s" file-name))
+      (user-error "Failed to extract year from file: %s" file))
 
     (if (and (not (integerp (string-match "\(\?2:" file-pattern)))
              (member org-journal-file-type '(daily weekly monthly)))
-        (user-error "Failed to extract month from file: %s" file-name)
+        (user-error "Failed to extract month from file: %s" file)
       (setq month (string-to-number
-                   (replace-regexp-in-string file-pattern "\\2" file-name))))
+                   (replace-regexp-in-string file-pattern "\\2" file))))
 
     (if (and (not (integerp (string-match "\(\?3:" file-pattern)))
              (member org-journal-file-type '(daily weekly)))
-        (user-error "Failed to extract day from file: %s" file-name)
+        (user-error "Failed to extract day from file: %s" file)
       (setq day (string-to-number
-                 (replace-regexp-in-string file-pattern "\\3" file-name))))
+                 (replace-regexp-in-string file-pattern "\\3" file))))
 
     (list month day year)))
 
