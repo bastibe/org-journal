@@ -435,6 +435,7 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 Returns the last value from BODY. If the buffer didn't exist before it will be deposed."
   ;; Use find-file... instead of view-file... since
   ;; view-file does not respect auto-mode-alist
+  (declare (indent 1))
   `(let* ((buffer-exists (get-buffer (file-name-nondirectory ,file)))
           (buf (if buffer-exists buffer-exists
                  (generate-new-buffer (file-name-nondirectory ,file))))
@@ -446,6 +447,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
      (unless buffer-exists
        (kill-buffer buf))
      result))
+(def-edebug-spec org-journal--with-journal (form body))
 
 (defun org-journal-after-save-hook ()
   "Update agenda files and dates."
@@ -1463,6 +1465,7 @@ If a prefix argument is given, search all dates."
 
 The buffer is disposed after the macro exits (unless it already
 existed before)."
+  (declare (indent 1))
   `(save-excursion
      (let ((current-buffer (current-buffer))
            (buffer-exists (get-buffer (file-name-nondirectory ,file)))
@@ -1476,6 +1479,7 @@ existed before)."
          (kill-buffer))
        (switch-to-buffer current-buffer)
        result)))
+(def-edebug-spec org-journal--with-find-file (form body))
 
 (defun org-journal--update-org-agenda-files ()
   "Adds the current and future journal files to `org-agenda-files' containing TODOs,
