@@ -238,7 +238,7 @@
         (copy-directory
          (directory-file-name "tests/journals/yearly")
          (file-name-as-directory org-journal-dir-test) nil nil t)
-        (org-journal-new-entry 4) ;; prefix == no new time entry
+        (org-journal-new-entry 4) ;; 4 - no new time entry
         (setq new-scheduled-date (with-temp-buffer
                                    (org-insert-time-stamp (current-time))
                                    (buffer-substring-no-properties (point-min) (point-max))))
@@ -263,10 +263,11 @@
          (directory-file-name "tests/journals/daily")
          (file-name-as-directory org-journal-dir-test) nil nil t)
 
-        (org-journal-new-entry 4) ;; prefix == no new time entry
+        (org-journal-new-entry 4) ;; 4 - no new time entry
         (setq new-scheduled-date (with-temp-buffer
                                    (org-insert-time-stamp (current-time))
                                    (buffer-substring-no-properties (point-min) (point-max))))
+        (save-buffer)
         (goto-char (point-min))
         (search-forward new-scheduled-date)
         (search-forward new-scheduled-date))))
