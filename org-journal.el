@@ -397,9 +397,9 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
   (run-mode-hooks))
 
 ;;;###autoload
-(define-obsolete-function-alias 'org-journal-open-next-entry 'org-journal-next-entry)
+(define-obsolete-function-alias 'org-journal-open-next-entry 'org-journal-next-entry "2.1.0")
 ;;;###autoload
-(define-obsolete-function-alias 'org-journal-open-previous-entry 'org-journal-previous-entry)
+(define-obsolete-function-alias 'org-journal-open-previous-entry 'org-journal-previous-entry "2.1.0")
 
 ;; Key bindings
 (when (and (stringp org-journal-prefix-key) (not (string-empty-p org-journal-prefix-key)))
