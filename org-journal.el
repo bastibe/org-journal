@@ -686,6 +686,7 @@ hook is run."
                                (lambda (a b)
                                  (org-journal--calendar-date-compare b a)))))
               (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
+              (setq first-date (car dates))
               (while dates
                 (when (org-journal--calendar-date-compare (car dates) date)
                   (org-journal--search-forward-created (car dates))
@@ -693,7 +694,15 @@ hook is run."
                   (insert "\n")
                   (setq match t
                         dates nil))
-                (setq dates (cdr dates)))))
+                (setq dates (cdr dates)))
+              ; All dates in file are older than this new date
+              ; Insert before first
+              (when (and first-date (not match))
+                  (org-journal--search-forward-created first-date)
+                  (forward-line -2)
+                  (insert "\n")
+                  (forward-line -1)
+                  (setq match t))))
           ;; True if entry must be inserted at the end of the journal file.
           (unless match
             (goto-char (point-max))
