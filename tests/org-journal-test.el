@@ -55,6 +55,11 @@
               org-journal-file-type 'weekly)
         (should (equal (org-journal--convert-time-to-file-type-time time)
                        (encode-time 0 0 0 31 12 2018)))
+        (setq time (encode-time 0 0 0 30 12 2018)
+              org-journal-file-type 'weekly
+              org-journal-start-on-weekday 7) ;; Start of week is Sunday
+        (should (equal (org-journal--convert-time-to-file-type-time time)
+                       (encode-time 0 0 0 30 12 2018)))
         (setq time (encode-time 0 0 0 15 4 2019)
               org-journal-file-type 'monthly)
         (should (equal (org-journal--convert-time-to-file-type-time time)
