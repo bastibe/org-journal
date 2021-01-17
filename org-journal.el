@@ -4,7 +4,7 @@
 ;;         Christian Schwarzgruber
 
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 2.1.1
+;; Version: 2.1.2
 ;; Package-Requires: ((emacs "25.1") (org "9.1"))
 
 ;;; Commentary:
@@ -99,7 +99,6 @@ From branch \"emacs-26\", added for compatibility.
 ;;; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.15.1"
   :group 'org
   :group 'org-journal)
 
@@ -134,10 +133,9 @@ to be done manually by calling `org-journal-invalidate-cache'."
           (const :tag "Yearly" yearly)))
 
 (defcustom org-journal-start-on-weekday 1
-  "What day of the week to start a weekly journal.
+  "When `org-journal-file-type' is set to 'weekly, start the week on this day.
 
-When `org-journal-file-type' is set to 'weekly, start the week on
-this day.  Default is Monday."
+1 for Monday, ..., and 7 for Sunday."
   :type '(choice
           (const :tag "Monday" 1)
           (const :tag "Tuesday" 2)
