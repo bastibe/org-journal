@@ -139,13 +139,13 @@ to be done manually by calling `org-journal-invalidate-cache'."
 When `org-journal-file-type' is set to 'weekly, start the week on
 this day.  Default is Monday."
   :type '(choice
-	  (const :tag "Sunday" 0)
-	  (const :tag "Monday" 1)
-	  (const :tag "Tuesday" 2)
-	  (const :tag "Wednesday" 3)
-	  (const :tag "Thursday" 4)
-	  (const :tag "Friday" 5)
-	  (const :tag "Saturday" 6)))
+          (const :tag "Monday" 1)
+          (const :tag "Tuesday" 2)
+          (const :tag "Wednesday" 3)
+          (const :tag "Thursday" 4)
+          (const :tag "Friday" 5)
+          (const :tag "Saturday" 6)
+          (const :tag "Sunday" 7)))
 
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries."
