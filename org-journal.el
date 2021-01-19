@@ -1034,7 +1034,7 @@ arguments (C-u C-u) are given. In that case insert just the heading."
 
 With non-nil prefix argument create a regular entry instead of a TODO entry."
   (interactive "P")
-  (let ((time (org-time-string-to-time (or scheduled-time (org-read-date nil nil nil "Date:"))))
+  (let ((time (or scheduled-time (org-time-string-to-time (org-read-date nil nil nil "Date:"))))
         org-journal-carryover-items)
     (when (time-less-p time (current-time))
       (user-error "Scheduled time needs to be in the future"))
