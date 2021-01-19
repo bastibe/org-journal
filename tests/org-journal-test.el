@@ -16,6 +16,12 @@
   "Create temporary directory."
   (when (file-exists-p org-journal-dir-test)
     (delete-directory org-journal-dir-test t))
+  ;; Kill leftover buffers from previous failed test
+  (dolist (buffer (buffer-list))
+    (when (and (buffer-file-name buffer) (string-match org-journal-dir-test (buffer-file-name buffer)))
+      (with-current-buffer buffer
+        (set-buffer-modified-p nil)
+        (kill-buffer buffer))))
   (make-directory org-journal-dir-test)
   (make-symbolic-link org-journal-dir-test (concat org-journal-dir-test "-link") t)
   (org-journal-invalidate-cache))
