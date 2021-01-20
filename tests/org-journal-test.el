@@ -280,5 +280,6 @@
                                    (buffer-substring-no-properties (point-min) (point-max))))
         (save-buffer)
         (goto-char (point-min))
+        ;; FIXME(cschwarzgruber): this is bad; changes are high that this test passes even though it shouldn't. Better use `should'...
         (search-forward new-scheduled-date)
         (search-forward new-scheduled-date))))
