@@ -247,7 +247,7 @@
             new-scheduled-date)
         ;; Copy test files to temporary directory
         (copy-directory
-         (directory-file-name "tests/journals/yearly")
+         (directory-file-name "tests/journals/yearly/carryover1")
          (file-name-as-directory org-journal-dir-test) nil nil t)
         (org-journal-new-entry 4) ;; 4 - no new time entry
         (setq new-scheduled-date (with-temp-buffer
