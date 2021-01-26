@@ -647,8 +647,7 @@ hook is run."
                                   (nth 8 now)))))  ; timezone
 
     (let* ((entry-path (org-journal--get-entry-path time))
-           (should-add-entry-p (not prefix))
-           match)
+           (should-add-entry-p (not prefix)))
 
       ;; Open journal file
       (unless (string= entry-path (buffer-file-name))
@@ -680,36 +679,49 @@ hook is run."
                (concat org-journal-date-prefix
                        (format-time-string org-journal-date-format time)))))
         (goto-char (point-min))
-        (unless (search-forward entry-header nil t)
-          ;; Insure we insert the new journal header at the correct location
-          (unless (org-journal--daily-p)
-            (let ((date (decode-time time))
-                  (dates (sort (org-journal--file->calendar-dates (buffer-file-name))
-                               (lambda (a b)
-                                 (org-journal--calendar-date-compare b a)))))
-              (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
-              (while dates
-                (when (org-journal--calendar-date-compare (car dates) date)
-                  (org-journal--search-forward-created (car dates))
-                  (outline-end-of-subtree)
-                  (insert "\n")
-                  (setq match t
-                        dates nil))
-                (setq dates (cdr dates)))))
-          ;; True if entry must be inserted at the end of the journal file.
-          (unless match
-            (goto-char (point-max))
-            (forward-line))
+        (unless (if (org-journal--daily-p)
+                    (or (search-forward entry-header nil t) (and (goto-char (point-max)) nil))
+                  (cl-loop
+                    with date = (decode-time time)
+                    with file-dates = (sort (org-journal--file->calendar-dates (buffer-file-name))
+                                            (lambda (a b)
+                                              (org-journal--calendar-date-compare b a)))
+                    with entry
+                    initially (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
+                    unless file-dates ;; New entry at bof
+                    do
+                      (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
+                        (goto-char (point-max)))
+                      (if (org-journal--org-heading-p)
+                          (progn
+                            (beginning-of-line)
+                            (insert "\n")
+                            (forward-line -1))
+                        (forward-line -1)
+                        (end-of-line))
+                    and return nil
+                    while file-dates
+                    do
+                      (setq entry (car file-dates)
+                            file-dates (cdr file-dates))
+                    if (or (org-journal--calendar-date-compare entry date) (equal entry date))
+                    do
+                      (org-journal--search-forward-created entry)
+                      (when (org-journal--calendar-date-compare entry date) ;; New entry at eof, or somewhere in-between
+                        (org-end-of-subtree))
+                    and return (equal entry date))) ;; If an entry exists don't create a header
+
+
           (when (looking-back "[^\t ]" (point-at-bol))
             (insert "\n"))
-          (beginning-of-line)
           (insert entry-header)
-          ;; For 'weekly, 'monthly and 'yearly journal entries
-          ;; create a "CREATED" property with the current date.
+
+          ;; Create CREATED property for weekly, montly, and yearly journal entries
           (unless (org-journal--daily-p)
             (org-set-property "CREATED"
                               (format-time-string
                                org-journal-created-property-timestamp-format time)))
+
           (when org-journal-enable-encryption
             (unless (member org-crypt-tag-matcher (org-get-tags))
               (org-set-tags org-crypt-tag-matcher)))
