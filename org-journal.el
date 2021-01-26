@@ -223,7 +223,7 @@ By default, this is an org-mode sub-heading."
 (defcustom org-journal-enable-encryption nil
   "Add `org-crypt-tag-matcher' tag for encrypted entries when non-nil.
 
-Whenever a user saves/opens these journal entries, emacs asks a user
+Whenever a user saves/opens these journal entries, Emacs asks a user
 passphrase to encrypt/decrypt it."
   :type 'boolean)
 
@@ -259,8 +259,8 @@ Set this to `find-file' if you don't want org-journal to split your window."
   "By default, we carry over all the drawers associated with the items.
 
 This option can be used to skip certain drawers being carried over.
-The drawers listed
-here will be wiped completely, when the item gets carried over."
+The drawers listed here will be wiped completely, when the item gets carried
+over."
   :type 'list)
 
 (defcustom org-journal-handle-old-carryover 'org-journal--delete-old-carryover
@@ -269,9 +269,7 @@ here will be wiped completely, when the item gets carried over."
 This function takes one argument, which is a list of the carryover entries
 in the journal of previous day.
 The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ...);
-and in ascending order of START_POINT.
-
-Default is the function `org-journal--delete-old-carryover' to delete them all."
+and in ascending order of START_POINT."
   :type 'function)
 
 (defcustom org-journal-carryover-delete-empty-journal 'never
@@ -716,7 +714,7 @@ hook is run."
             (insert "\n"))
           (insert entry-header)
 
-          ;; Create CREATED property for weekly, montly, and yearly journal entries
+          ;; Create CREATED property for weekly, monthly, and yearly journal entries
           (unless (org-journal--daily-p)
             (org-set-property "CREATED"
                               (format-time-string
@@ -1094,7 +1092,9 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
   (org-journal--finalize-view))
 
 (defun org-journal-sort-dates (dates calendar-date prev)
-  "Sorts DATES to determine the order of journal entries. Can be advised\replaced by a user."
+  "Sorts DATES to determine the order of journal entries.
+
+Can be advised/replaced by a user."
   (unless (member calendar-date dates)
     (setq dates (copy-tree dates))
     (cl-loop
