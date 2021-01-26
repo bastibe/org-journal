@@ -1029,7 +1029,7 @@ arguments (C-u C-u) are given. In that case insert just the heading."
                    (org-time-string-to-time (org-read-date nil nil nil "Date:")))))
     (if (time-less-p time (current-time))
         (org-journal-new-entry prefix time)
-      (org-journal-new-scheduled-entry prefix (format-time-string "%Y-%m-%d" time)))))
+      (org-journal-new-scheduled-entry prefix time))))
 
 ;;;###autoload
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)

@@ -36,7 +36,10 @@
           (org-journal-date-format "Test header")
           (org-agenda-inhibit-startup t)
           (org-journal-time-format "%R")
-          org-journal-file-header)
+          (org-journal-created-property-timestamp-format "%Y%m%d")
+          org-journal-file-header
+          org-journal-encrypt-journal
+          org-journal-enable-encryption)
      (org-journal-invalidate-cache)
      (org-journal-dir-test-setup)
      ,@body
@@ -283,3 +286,70 @@
         ;; FIXME(cschwarzgruber): this is bad; changes are high that this test passes even though it shouldn't. Better use `should'...
         (search-forward new-scheduled-date)
         (search-forward new-scheduled-date))))
+
+(ert-deftest org-journal-scheduled-weekly-test ()
+  (org-journal-test-macro
+      (let ((org-journal-file-type 'weekly)
+            (org-journal-start-on-weekday 7) ;; sunday
+            org-journal-encrypt-journal
+            org-journal-enable-encryption
+            org-journal-enable-cache
+            org-journal-file-header
+            day-offset)
+
+        ;; Compute correct day-offset, so future and today journal entry end in the same file
+        (let ((current-date (calendar-current-date))
+              (current-date+1 (calendar-current-date 1)))
+          (if (equal (org-journal--convert-time-to-file-type-time
+                      (encode-time 0 0 0 (nth 1 current-date) (nth 0 current-date) (nth 2 current-date)))
+                     (org-journal--convert-time-to-file-type-time
+                      (encode-time 0 0 0 (nth 1 current-date+1) (nth 0 current-date+1) (nth 2 current-date+1))))
+              (setq day-offset 1)
+            (setq day-offset 2)))
+
+        (let* ((scheduled-entry-date (calendar-current-date day-offset))
+               (scheduled-entry-time (encode-time
+                                      0 0 0
+                                      (nth 1 scheduled-entry-date)
+                                      (nth 0 scheduled-entry-date)
+                                      (nth 2 scheduled-entry-date)))
+               (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
+               (new-entry-time (encode-time
+                                0 0 0
+                                (nth 1 new-entry-date)
+                                (nth 0 new-entry-date)
+                                (nth 2 new-entry-date))))
+          ;; Add first scheduled entry
+          (org-journal-new-scheduled-entry nil scheduled-entry-time)
+          (insert "Task 1")
+          ;; Add a second scheduled entry
+          (org-journal-new-scheduled-entry nil scheduled-entry-time)
+          (insert "Task 2")
+          ;; New today entry should be added at the beginning of the journal file
+          (org-journal-new-entry 4)
+          (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                         (with-temp-buffer
+                           (insert
+                            (concat
+                             ;; Today entry
+                             "* Test header\n"
+                             "  :PROPERTIES:\n"
+                             (concat
+                              "  :CREATED:  "
+                              (format-time-string org-journal-created-property-timestamp-format new-entry-time)
+                              "\n")
+                             "  :END:\n"
+
+                             ;; Scheduled entries
+                             "* Test header\n"
+                             "  :PROPERTIES:\n"
+                             (concat
+                              "  :CREATED:  "
+                              (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
+                              "\n")
+                             "  :END:\n"
+                             "** TODO Task 1\n"
+                             (format-time-string "<%F %a>\n" scheduled-entry-time)
+                             "** TODO Task 2\n"
+                             (format-time-string "<%F %a>" scheduled-entry-time)))
+                           (buffer-substring-no-properties (point-min) (point-max)))))))))
