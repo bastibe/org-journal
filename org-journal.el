@@ -217,14 +217,14 @@ By default, this is an org-mode sub-heading."
   :type 'string)
 
 (defcustom org-journal-hide-entries-p t
-  "If true, `org-journal-mode' will hide all but the current entry when creating a new one."
+  "If true all but the current entry will be hidden when creating a new one."
   :type 'boolean)
 
 (defcustom org-journal-enable-encryption nil
-  "If non-nil, new journal entries will have a `org-crypt-tag-matcher' tag for encrypting.
+  "Add `org-crypt-tag-matcher' tag for encrypted entries when non-nil.
 
-Whenever a user saves/opens these journal entries, emacs asks a user passphrase
-to encrypt/decrypt it."
+Whenever a user saves/opens these journal entries, emacs asks a user
+passphrase to encrypt/decrypt it."
   :type 'boolean)
 
 (defcustom org-journal-encrypt-journal nil
@@ -240,7 +240,7 @@ It can be set to other hooks like `kill-buffer-hook'."
   :type 'function)
 
 (defcustom org-journal-enable-agenda-integration nil
-  "If non-nil, automatically adds current and future org-journal files to `org-agenda-files'."
+  "Add current and future org-journal files to `org-agenda-files' when non-nil."
   :type 'boolean)
 
 (defcustom org-journal-find-file 'find-file-other-window
@@ -250,15 +250,16 @@ Set this to `find-file' if you don't want org-journal to split your window."
   :type 'function)
 
 (defcustom org-journal-carryover-items "TODO=\"TODO\""
-  "Carry over items that match these criteria from the previous entry to new entries.
+  "Carry over items that match these criteria.
 
-See agenda tags view match description for the format of this."
+  See agenda tags view match description for the format of this."
   :type 'string)
 
 (defcustom org-journal-skip-carryover-drawers nil
   "By default, we carry over all the drawers associated with the items.
 
-This option can be used to skip certain drawers being carried over. The drawers listed
+This option can be used to skip certain drawers being carried over.
+The drawers listed
 here will be wiped completely, when the item gets carried over."
   :type 'list)
 
@@ -267,7 +268,7 @@ here will be wiped completely, when the item gets carried over."
 
 This function takes one argument, which is a list of the carryover entries
 in the journal of previous day.
-The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ... (START_POINT (END_POINT . \"TEXT\")));
+The list is in form of ((START_POINT (END_POINT . \"TEXT\")) ...);
 and in ascending order of START_POINT.
 
 Default is the function `org-journal--delete-old-carryover' to delete them all."
@@ -276,24 +277,25 @@ Default is the function `org-journal--delete-old-carryover' to delete them all."
 (defcustom org-journal-carryover-delete-empty-journal 'never
   "Delete empty journal entry/file after carryover.
 
-Default is to `never' delete an empty journal entry/file. Other options are `always',
-i.e. don't prompt, just delete or `ask'"
+Default is to `never' delete an empty journal entry/file. Other options
+are `always', i.e. don't prompt, just delete or `ask'"
   :type '(choice
           (const :tag "never" never)
           (const :tag "always" always)
           (const :tag "ask" ask)))
 
 (defcustom org-journal-search-results-order-by :asc
-  "When :desc, make search results ordered by date descending, otherwise date ascending."
+  "Journal entry search order.
+
+Search gets sorted by date either ascending :asc, or descending :desc."
   :type 'symbol)
 
 (defcustom org-journal-tag-alist nil
   "Default tags for use in Org-Journal mode.
 
 This is analogous to `org-tag-alist', and uses the same format.
-If nil, the default, then `org-tag-alist' is used instead.
-This can also be overridden on a file-local level by using a “#+TAGS:”
-keyword."
+If nil, then `org-tag-alist' is used instead.
+This can also be overridden on a file-local level by using a “#+TAGS:” keyword."
   :type (get 'org-tag-alist 'custom-type))
 
 (defcustom org-journal-tag-persistent-alist nil
@@ -307,11 +309,9 @@ anywhere in your file."
   :type (get 'org-tag-persistent-alist 'custom-type))
 
 (defcustom org-journal-search-forward-fn 'search-forward
-  "The function used by `org-journal-search` to look for the string forward in a buffer.
+  "The function used by `org-journal-search`.
 
-Defaults to search-forward.
-You can, for example, set it to `search-forward-regexp` so the
-search works with regexps."
+Other possible value is e.g. `re-search-forward'."
   :type 'function)
 
 (defcustom org-journal-follow-mode nil
@@ -361,10 +361,10 @@ When this variable is set to an empty string or `nil' no bindings will
 be made.
 
 This prefix key is used for:
-  - `org-journal-next-entry' (key \"f\")
-  - `org-journal-previous-entry' (key \"b\")
-  - `org-journal-new-entry' (key \"j\")
-  - `org-journal-search' (key \"s\")"
+- `org-journal-next-entry' (key \"f\")
+- `org-journal-previous-entry' (key \"b\")
+- `org-journal-new-entry' (key \"j\")
+- `org-journal-search' (key \"s\")"
   :type 'string)
 
 (defvar org-journal-after-entry-create-hook nil
