@@ -263,7 +263,7 @@ The drawers listed here will be wiped completely, when the item gets carried
 over."
   :type 'list)
 
-(defcustom org-journal-handle-old-carryover 'org-journal--delete-old-carryover
+(defcustom org-journal-handle-old-carryover 'org-journal-delete-old-carryover
   "The function to handle the carryover entries in the previous journal.
 
 This function takes one argument, which is a list of the carryover entries
@@ -829,7 +829,7 @@ items, and delete or not delete the empty entry/file based on
           (kill-region (point) (progn (outline-end-of-subtree) (point)))
           (save-buffer))))))
 
-(defun org-journal--delete-old-carryover (old_entries)
+(defun org-journal-delete-old-carryover (old_entries)
   "Delete all carryover entries from the previous day's journal.
 
 If the parent heading has no more content, delete it as well."
