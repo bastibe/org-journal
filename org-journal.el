@@ -496,7 +496,7 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
   "Returns t if `org-journal-file-type' is set to `'daily'."
   (eq org-journal-file-type 'daily))
 
-(defun org-journal--org-heading-p ()
+(defun org-journal--is-date-prefix-org-heading-p ()
   "Returns t if `org-journal-date-prefix' starts with \"* \"."
   (eq 0 (string-match "^\* " org-journal-date-prefix)))
 
@@ -690,7 +690,7 @@ hook is run."
                     do
                       (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
                         (goto-char (point-max)))
-                      (if (org-journal--org-heading-p)
+                      (if (org-at-heading-p)
                           (progn
                             (beginning-of-line)
                             (insert "\n")
@@ -732,7 +732,7 @@ hook is run."
                  (string= entry-path (org-journal--get-entry-path (current-time))))
         (org-journal--carryover))
 
-      (if (org-journal--org-heading-p)
+      (if (org-journal--is-date-prefix-org-heading-p)
           (outline-end-of-subtree)
         (goto-char (point-max)))
 
@@ -772,7 +772,7 @@ buffer not open already, otherwise `nil'.")
     (with-current-buffer prev-buffer (save-buffer))
     (save-excursion
       (org-journal--open-entry t t)
-      (setq entry (if (org-journal--org-heading-p)
+      (setq entry (if (org-journal--is-date-prefix-org-heading-p)
                       (org-get-entry)
                     (buffer-substring-no-properties (point) (point-max)))))
     (with-temp-buffer
@@ -846,7 +846,7 @@ If the parent heading has no more content, delete it as well."
 Will insert `entries', and run `org-journal-handle-old-carryover' function
 to process the carryover entries in `prev-buffer'."
   (when entries
-    (if (org-journal--org-heading-p)
+    (if (org-journal--is-date-prefix-org-heading-p)
         (progn
           (while (org-up-heading-safe))
           (outline-end-of-subtree))
@@ -1315,7 +1315,7 @@ from oldest to newest."
 (defun org-journal--finalize-view ()
   "Finalize visability of entry."
   (org-journal--decrypt)
-  (if (org-journal--org-heading-p)
+  (if (org-journal--is-date-prefix-org-heading-p)
       (progn
         (org-up-heading-safe)
         (org-back-to-heading)
@@ -1351,7 +1351,7 @@ is nil or avoid switching when NOSELECT is non-nil."
               (setq view-exit-action 'kill-buffer))
             (set (make-local-variable 'org-hide-emphasis-markers) t)
             (if (org-journal--daily-p)
-                (when (org-journal--org-heading-p)
+                (when (org-journal--is-date-prefix-org-heading-p)
                   (goto-char (point-min))
                   (re-search-forward (concat org-journal-date-prefix
                                              (if (functionp org-journal-date-format)
