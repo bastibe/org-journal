@@ -409,7 +409,7 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
                       #'concat
                     (lambda (prefix key) (kbd (concat prefix "" key))))))
     (cl-loop for (key . command) in command-table
-       do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
+      do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
 
 (eval-after-load "calendar"
   '(progn
@@ -477,10 +477,10 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 (defun org-journal--format->regex (format)
   (setq format (replace-regexp-in-string "%F" "%Y-%m-%d" format))
   (cl-loop
-     initially (setq format (regexp-quote format))
-     for x in org-journal--format-rx-alist
-     do (setq format (replace-regexp-in-string (car x) (cdr x) format))
-     finally return format))
+    initially (setq format (regexp-quote format))
+    for x in org-journal--format-rx-alist
+    do (setq format (replace-regexp-in-string (car x) (cdr x) format))
+    finally return format))
 
 (defvar org-journal--created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
 
@@ -657,6 +657,7 @@ hook is run."
       ;; Insure `view-mode' is not active
       (view-mode -1)
 
+      ;; TODO(cschwarzgruber): Refactor into own function `org-journal--add-file-header'
       ;; Insert org-journal-file-header
       (when (and (or (functionp org-journal-file-header)
                      (and (stringp org-journal-file-header)
@@ -669,6 +670,7 @@ hook is run."
           (when (re-search-backward "^#\\+" nil t)
             (org-ctrl-c-ctrl-c))))
 
+      ;; TODO(cschwarzgruber): Refactor into own function `org-journal--add-header'
       ;; Create new journal entry if there isn't one.
       (let ((entry-header
              (if (functionp org-journal-date-format)
@@ -724,6 +726,7 @@ hook is run."
           (outline-end-of-subtree)
         (goto-char (point-max)))
 
+      ;; TODO(cschwarzgruber): refactor into own function `org-journal--add-header-entry'
       ;; Insert the header of the entry
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
@@ -821,11 +824,11 @@ items, and delete or not delete the empty entry/file based on
 
 If the parent heading has no more content, delete it as well."
   (mapc (lambda (x)
-              (unless (save-excursion
-                        (goto-char (1- (cadr x)))
-                        (org-goto-first-child))
-                (kill-region (car x) (cadr x))))
-            (reverse old_entries)))
+          (unless (save-excursion
+                    (goto-char (1- (cadr x)))
+                    (org-goto-first-child))
+            (kill-region (car x) (cadr x))))
+        (reverse old_entries)))
 
 (defun org-journal-carryover-items (text entries prev-buffer)
   "Carryover items.
@@ -903,22 +906,22 @@ previous day's file to the current file."
       (let (cleared-carryover-paths text)
         ;; Construct the text to carryover, and remove any duplicate elements from carryover-paths
         (cl-loop
-           for paths in carryover-paths
-           with prev-paths
-           do (cl-loop
-                 for path in paths
-                 with cleared-paths
-                 count t into counter
-                 do (when (or (not (and prev-paths (nth counter prev-paths)))
-                              (> (car path) (car (nth counter prev-paths))))
-                      (setq text (concat text (cddr path)))
-                      (if cleared-paths
-                          (setcdr (last cleared-paths) (list path))
-                        (setq cleared-paths (list path))))
-                 finally (if cleared-carryover-paths
-                             (setcdr (last cleared-carryover-paths) cleared-paths)
-                           (setq cleared-carryover-paths cleared-paths))
-                   (setq prev-paths paths)))
+          for paths in carryover-paths
+          with prev-paths
+          do (cl-loop
+               for path in paths
+               with cleared-paths
+               count t into counter
+               do (when (or (not (and prev-paths (nth counter prev-paths)))
+                            (> (car path) (car (nth counter prev-paths))))
+                    (setq text (concat text (cddr path)))
+                    (if cleared-paths
+                        (setcdr (last cleared-paths) (list path))
+                      (setq cleared-paths (list path))))
+               finally (if cleared-carryover-paths
+                           (setcdr (last cleared-carryover-paths) cleared-paths)
+                         (setq cleared-carryover-paths cleared-paths))
+                 (setq prev-paths paths)))
         (org-journal-carryover-items text cleared-carryover-paths prev-buffer))
       (org-journal--carryover-delete-empty-journal prev-buffer))
 
@@ -1002,14 +1005,14 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
 (defun org-journal--file->calendar-dates (file)
   "Return journal dates from FILE."
   (org-journal--with-journal
-   file
-   (let (dates)
-     (save-excursion
-       (goto-char (point-min))
-       (while (re-search-forward org-journal--created-re nil t)
-         (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
-           (push (org-journal--entry-date->calendar-date) dates)))
-       dates))))
+      file
+    (let (dates)
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward org-journal--created-re nil t)
+          (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
+            (push (org-journal--entry-date->calendar-date) dates)))
+        dates))))
 
 ;;;###autoload
 (defun org-journal-new-date-entry (prefix &optional event)
@@ -1083,14 +1086,14 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
   (unless (member calendar-date dates)
     (setq dates (copy-tree dates))
     (cl-loop
-       for date in dates
-       while (org-journal--calendar-date-compare date calendar-date)
-       count t into cnt
-       finally (if (> cnt 0)
-                   ;; Insert new date into list
-                   (setcdr (nthcdr (1- cnt) dates) (cons calendar-date (nthcdr cnt dates)))
-                 ;; Insert new date at front
-                 (setq dates (cons calendar-date dates)))))
+      for date in dates
+      while (org-journal--calendar-date-compare date calendar-date)
+      count t into cnt
+      finally (if (> cnt 0)
+                  ;; Insert new date into list
+                  (setcdr (nthcdr (1- cnt) dates) (cons calendar-date (nthcdr cnt dates)))
+                ;; Insert new date at front
+                (setq dates (cons calendar-date dates)))))
   ;; Reverse list for previous search.
   (if prev (reverse dates) dates))
 
@@ -1187,8 +1190,8 @@ The key is a journal date entry, and the value of the key is of the form
         (puthash (org-journal--file-name->calendar-date file) (list file mtime) org-journal--dates)
       ;; Remove any key where (car value) equals FILE
       (cl-loop for key being the hash-keys of org-journal--dates
-         when (string-equal (car (gethash key org-journal--dates)) file)
-         do (remhash key org-journal--dates))
+        when (string-equal (car (gethash key org-journal--dates)) file)
+        do (remhash key org-journal--dates))
       (dolist (date (org-journal--file->calendar-dates file))
         (puthash date (list file mtime) org-journal--dates)))))
 
@@ -1238,22 +1241,22 @@ from oldest to newest."
     ;; Verify modification time is unchanged, if we have already data.
     (unless serialize-p
       (cl-loop
-         with (value files-in-hash file)
-         for key being the hash-keys of org-journal--dates
-         always (setq value (gethash key org-journal--dates)
-                      file (car value))
-         do
-           (unless (member (car value) files)
-             (unless (member key rem-keys)
-               (push key rem-keys)))
-           (unless (member file files-in-hash)
-             (push file files-in-hash)
-             (unless (equal (cadr value) (org-journal--file-modification-time file))
-               (when (and (member file files) (not (member file reparse-files)))
-                 (push file reparse-files))))
-         finally (dolist (file files) ;; Are there any new files
-                   (unless (member file files-in-hash)
-                     (push file reparse-files)))))
+        with (value files-in-hash file)
+        for key being the hash-keys of org-journal--dates
+        always (setq value (gethash key org-journal--dates)
+                     file (car value))
+        do
+          (unless (member (car value) files)
+            (unless (member key rem-keys)
+              (push key rem-keys)))
+          (unless (member file files-in-hash)
+            (push file files-in-hash)
+            (unless (equal (cadr value) (org-journal--file-modification-time file))
+              (when (and (member file files) (not (member file reparse-files)))
+                (push file reparse-files))))
+        finally (dolist (file files) ;; Are there any new files
+                  (unless (member file files-in-hash)
+                    (push file reparse-files)))))
     (when rem-keys
       (dolist (k rem-keys)
         (remhash k org-journal--dates))
@@ -1519,42 +1522,42 @@ Think of this as a faster, less fancy version of your `org-agenda'."
     (goto-char (point-max)))
 
   (cl-loop
-     with copy-mapper = (lambda ()
-                          (let ((subtree (org-journal--carryover-item-with-parents)))
-                            ;; since the next subtree now starts at point,
-                            ;; continue mapping from before that, to include it
-                            ;; in the search
-                            (backward-char)
-                            (setq org-map-continue-from (point))
-                            subtree))
-     with (content-to-copy journal-buffers)
-     with today = (current-time)
-     for date in (org-journal--list-dates)
-     always (setq date (org-journal--calendar-date->time date))
-     when (time-less-p today date)
-     do
-       (cl-pushnew (org-journal-read-or-display-entry date) journal-buffers)
-       (with-current-buffer org-journal--schedule-buffer-name
-         (if (functionp org-journal-date-format)
-             (insert (funcall org-journal-date-format date))
-           (insert org-journal-date-prefix
-                   (format-time-string org-journal-date-format date)
-                   "\n")))
-       (save-restriction
-         (org-narrow-to-subtree)
-         (setq content-to-copy (org-map-entries
-                                copy-mapper
-                                "+TIMESTAMP>=\"<now>\"|+SCHEDULED>=\"<now>\"")))
-       (when content-to-copy
-         (with-current-buffer org-journal--schedule-buffer-name
-           (insert (mapconcat (lambda (item) (cddar item)) content-to-copy "")
-                   "\n")))
-     finally
-       (mapc (lambda (b)
-               (with-current-buffer b
-                 (when view-mode
-                   (kill-buffer))))
-             journal-buffers))
+    with copy-mapper = (lambda ()
+                         (let ((subtree (org-journal--carryover-item-with-parents)))
+                           ;; since the next subtree now starts at point,
+                           ;; continue mapping from before that, to include it
+                           ;; in the search
+                           (backward-char)
+                           (setq org-map-continue-from (point))
+                           subtree))
+    with (content-to-copy journal-buffers)
+    with today = (current-time)
+    for date in (org-journal--list-dates)
+    always (setq date (org-journal--calendar-date->time date))
+    when (time-less-p today date)
+    do
+      (cl-pushnew (org-journal-read-or-display-entry date) journal-buffers)
+      (with-current-buffer org-journal--schedule-buffer-name
+        (if (functionp org-journal-date-format)
+            (insert (funcall org-journal-date-format date))
+          (insert org-journal-date-prefix
+                  (format-time-string org-journal-date-format date)
+                  "\n")))
+      (save-restriction
+        (org-narrow-to-subtree)
+        (setq content-to-copy (org-map-entries
+                               copy-mapper
+                               "+TIMESTAMP>=\"<now>\"|+SCHEDULED>=\"<now>\"")))
+      (when content-to-copy
+        (with-current-buffer org-journal--schedule-buffer-name
+          (insert (mapconcat (lambda (item) (cddar item)) content-to-copy "")
+                  "\n")))
+    finally
+      (mapc (lambda (b)
+              (with-current-buffer b
+                (when view-mode
+                  (kill-buffer))))
+            journal-buffers))
 
   (with-current-buffer org-journal--schedule-buffer-name
     (set-buffer-modified-p nil)
@@ -1698,30 +1701,30 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
   (let (results result)
     (dolist (fname (reverse files))
       (setq result (org-journal--with-journal
-                    fname
-                    (when org-journal-enable-encryption
-                      (goto-char (point-min))
-                      (while (search-forward ":crypt:" nil t)
-                        (org-decrypt-entry)))
-                    (goto-char (point-min))
-                    (while (funcall org-journal-search-forward-fn str nil t)
-                      (push
-                       (list
-                        (let ((date
-                               (if (org-journal--daily-p)
-                                   (org-journal--file-name->calendar-date fname)
-                                 (save-excursion
-                                   (when (re-search-backward org-journal--created-re nil t)
-                                     (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
-                                       (org-journal--entry-date->calendar-date)))))))
-                          (when date
-                            (org-journal--calendar-date->time date)))
-                        (- (point) (length str))
-                        (buffer-substring-no-properties
-                         (line-beginning-position)
-                         (line-end-position)))
-                       result))
-                    result))
+                       fname
+                     (when org-journal-enable-encryption
+                       (goto-char (point-min))
+                       (while (search-forward ":crypt:" nil t)
+                         (org-decrypt-entry)))
+                     (goto-char (point-min))
+                     (while (funcall org-journal-search-forward-fn str nil t)
+                       (push
+                        (list
+                         (let ((date
+                                (if (org-journal--daily-p)
+                                    (org-journal--file-name->calendar-date fname)
+                                  (save-excursion
+                                    (when (re-search-backward org-journal--created-re nil t)
+                                      (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
+                                        (org-journal--entry-date->calendar-date)))))))
+                           (when date
+                             (org-journal--calendar-date->time date)))
+                         (- (point) (length str))
+                         (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position)))
+                        result))
+                     result))
       (when result
         (mapc (lambda (res) (push res results)) result)))
     (cond
@@ -1809,29 +1812,29 @@ Only one recipient is supported.  ")))
     (user-error "org-journal encryption not enabled"))
 
   (cl-loop
-     with buf
-     with kill-buffer
-     for journal in (org-journal--list-files)
-     do
-       (setq buf (get-file-buffer journal)
-             kill-buffer nil)
+    with buf
+    with kill-buffer
+    for journal in (org-journal--list-files)
+    do
+      (setq buf (get-file-buffer journal)
+            kill-buffer nil)
 
-       (when (and buf
-                  (buffer-modified-p buf)
-                  (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
-                                    (file-name-nondirectory journal))))
-         (save-buffer buf))
+      (when (and buf
+                 (buffer-modified-p buf)
+                 (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
+                                   (file-name-nondirectory journal))))
+        (save-buffer buf))
 
-       (unless buf
-         (setq kill-buffer t
-               buf (find-file-noselect journal)))
+      (unless buf
+        (setq kill-buffer t
+              buf (find-file-noselect journal)))
 
-       (with-current-buffer buf
-         (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
-           (set-buffer-modified-p t)
-           (save-buffer)
-           (when kill-buffer
-             (kill-buffer))))))
+      (with-current-buffer buf
+        (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
+          (set-buffer-modified-p t)
+          (save-buffer)
+          (when kill-buffer
+            (kill-buffer))))))
 
 (defun org-journal--decrypt ()
   "Decrypt journal entry at point."
