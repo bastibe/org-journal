@@ -612,6 +612,96 @@ This allows the use of `org-journal-tag-alist' and
   (< (calendar-absolute-from-gregorian date1)
      (calendar-absolute-from-gregorian date2)))
 
+(defun org-journal--insert-header (time)
+  "Insert `org-journal-file-header'."
+  (when (and (or (functionp org-journal-file-header)
+                 (and (stringp org-journal-file-header)
+                      (not (string-empty-p org-journal-file-header))))
+             (= (buffer-size) 0))
+    (insert (if (functionp org-journal-file-header)
+                (funcall org-journal-file-header time)
+              (format-time-string org-journal-file-header time)))
+    (save-excursion
+      (when (re-search-backward "^#\\+" nil t)
+        (org-ctrl-c-ctrl-c)))))
+
+(defun org-journal--insert-entry-header (time)
+  "Create new journal entry if there isn't one."
+  (let ((entry-header
+         (if (functionp org-journal-date-format)
+             (funcall org-journal-date-format time)
+           (when (string-empty-p org-journal-date-format)
+             (user-error "org-journal-date-format is empty, this won't work"))
+           (concat org-journal-date-prefix
+                   (format-time-string org-journal-date-format time)))))
+    (goto-char (point-min))
+    (unless (if (org-journal--daily-p)
+                (or (search-forward entry-header nil t) (and (goto-char (point-max)) nil))
+              (cl-loop
+                with date = (decode-time time)
+                with file-dates = (sort (org-journal--file->calendar-dates (buffer-file-name))
+                                        (lambda (a b)
+                                          (org-journal--calendar-date-compare b a)))
+                with entry
+                initially (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
+                unless file-dates ;; New entry at bof
+                do
+                  (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
+                    (goto-char (point-max)))
+                  (if (org-at-heading-p)
+                      (progn
+                        (beginning-of-line)
+                        (insert "\n")
+                        (forward-line -1))
+                    (forward-line -1)
+                    (end-of-line))
+                and return nil
+                while file-dates
+                do
+                  (setq entry (car file-dates)
+                        file-dates (cdr file-dates))
+                if (or (org-journal--calendar-date-compare entry date) (equal entry date))
+                do
+                  (org-journal--search-forward-created entry)
+                  (when (org-journal--calendar-date-compare entry date) ;; New entry at eof, or somewhere in-between
+                    (org-end-of-subtree))
+                and return (equal entry date))) ;; If an entry exists don't create a header
+
+
+      (when (looking-back "[^\t ]" (point-at-bol))
+        (insert "\n"))
+      (insert entry-header)
+
+      ;; Create CREATED property for weekly, monthly, and yearly journal entries
+      (unless (org-journal--daily-p)
+        (org-set-property "CREATED"
+                          (format-time-string
+                           org-journal-created-property-timestamp-format time)))
+
+      (when org-journal-enable-encryption
+        (unless (member org-crypt-tag-matcher (org-get-tags))
+          (org-set-tags org-crypt-tag-matcher)))
+      (run-hooks 'org-journal-after-header-create-hook))))
+
+(defun org-journal--insert-entry (time org-extend-today-until-active-p)
+  "Insert a new entry."
+  (unless (eq (current-column) 0) (insert "\n"))
+  (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
+         (timestamp (cond
+                      ;; “time” is today, use normal timestamp format
+                      ((= day-discrepancy 0)
+                       (format-time-string org-journal-time-format))
+                      ;; “time” is yesterday with org-extend-today-until,
+                      ;; use different timestamp format if available
+                      ((and (= day-discrepancy 1) org-extend-today-until-active-p)
+                       (if (not (string-equal org-journal-time-format-post-midnight ""))
+                           (format-time-string org-journal-time-format-post-midnight)
+                         (format-time-string org-journal-time-format)))
+                      ;; “time” is on some other day, use blank timestamp
+                      (t ""))))
+    (insert org-journal-time-prefix timestamp))
+  (run-hooks 'org-journal-after-entry-create-hook))
+
 ;;;###autoload
 (defun org-journal-new-entry (prefix &optional time)
   "Open today's journal file and start a new entry.
@@ -628,140 +718,51 @@ hook is run."
   (interactive "P")
   (org-journal--dir-check-or-create)
 
-  ;; if time is before org-extend-today-until, interpret it as
+  ;; If time is before org-extend-today-until, interpret it as
   ;; part of the previous day:
-  (let (oetu-active-p) ;; org-extend-today-until-active-p
-    (let ((now (decode-time nil)))
-      (if (and (not time) ; time was not given
-               (< (nth 2 now)
-                  org-extend-today-until))
-          (setq oetu-active-p t
-                time (encode-time (nth 0 now)      ; second
-                                  (nth 1 now)      ; minute
-                                  (nth 2 now)      ; hour
-                                  (1- (nth 3 now)) ; day
-                                  (nth 4 now)      ; month
-                                  (nth 5 now)      ; year
-                                  (nth 8 now)))))  ; timezone
+  (let* ((now (decode-time nil))
+         (org-extend-today-until-active-p (and (not time) (< (nth 2 now) org-extend-today-until)))
+         (entry-path (org-journal--get-entry-path time))
+         (should-add-entry-p (not prefix)))
+    (when org-extend-today-until-active-p
+      (setq time (encode-time (nth 0 now)
+                              (nth 1 now)
+                              (nth 2 now)
+                              (1- (nth 3 now))
+                              (nth 4 now)
+                              (nth 5 now)
+                              (nth 8 now))))
 
-    (let* ((entry-path (org-journal--get-entry-path time))
-           (should-add-entry-p (not prefix)))
+    ;; Open journal file
+    (unless (string= entry-path (buffer-file-name))
+      (funcall org-journal-find-file entry-path))
 
-      ;; Open journal file
-      (unless (string= entry-path (buffer-file-name))
-        (funcall org-journal-find-file entry-path))
+    ;; Insure `view-mode' is not active
+    (view-mode -1)
 
-      ;; Insure `view-mode' is not active
-      (view-mode -1)
+    (org-journal--insert-header time)
+    (org-journal--insert-entry-header time)
+    (org-journal--decrypt)
 
-      ;; TODO(cschwarzgruber): Refactor into own function `org-journal--add-file-header'
-      ;; Insert org-journal-file-header
-      (when (and (or (functionp org-journal-file-header)
-                     (and (stringp org-journal-file-header)
-                          (not (string-empty-p org-journal-file-header))))
-                 (= (buffer-size) 0))
-        (insert (if (functionp org-journal-file-header)
-                    (funcall org-journal-file-header time)
-                  (format-time-string org-journal-file-header time)))
-        (save-excursion
-          (when (re-search-backward "^#\\+" nil t)
-            (org-ctrl-c-ctrl-c))))
+    ;; Move TODOs from previous day to new entry
+    (when (and org-journal-carryover-items
+               (not (string-blank-p org-journal-carryover-items))
+               (string= entry-path (org-journal--get-entry-path (current-time))))
+      (org-journal--carryover))
 
-      ;; TODO(cschwarzgruber): Refactor into own function `org-journal--add-header'
-      ;; Create new journal entry if there isn't one.
-      (let ((entry-header
-             (if (functionp org-journal-date-format)
-                 (funcall org-journal-date-format time)
-               (when (string-empty-p org-journal-date-format)
-                 (user-error "org-journal-date-format is empty, this won't work"))
-               (concat org-journal-date-prefix
-                       (format-time-string org-journal-date-format time)))))
-        (goto-char (point-min))
-        (unless (if (org-journal--daily-p)
-                    (or (search-forward entry-header nil t) (and (goto-char (point-max)) nil))
-                  (cl-loop
-                    with date = (decode-time time)
-                    with file-dates = (sort (org-journal--file->calendar-dates (buffer-file-name))
-                                            (lambda (a b)
-                                              (org-journal--calendar-date-compare b a)))
-                    with entry
-                    initially (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
-                    unless file-dates ;; New entry at bof
-                    do
-                      (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
-                        (goto-char (point-max)))
-                      (if (org-at-heading-p)
-                          (progn
-                            (beginning-of-line)
-                            (insert "\n")
-                            (forward-line -1))
-                        (forward-line -1)
-                        (end-of-line))
-                    and return nil
-                    while file-dates
-                    do
-                      (setq entry (car file-dates)
-                            file-dates (cdr file-dates))
-                    if (or (org-journal--calendar-date-compare entry date) (equal entry date))
-                    do
-                      (org-journal--search-forward-created entry)
-                      (when (org-journal--calendar-date-compare entry date) ;; New entry at eof, or somewhere in-between
-                        (org-end-of-subtree))
-                    and return (equal entry date))) ;; If an entry exists don't create a header
+    (if (org-journal--is-date-prefix-org-heading-p)
+        (outline-end-of-subtree)
+      (goto-char (point-max)))
 
+    (when should-add-entry-p
+      (org-journal--insert-entry time org-extend-today-until-active-p))
 
-          (when (looking-back "[^\t ]" (point-at-bol))
-            (insert "\n"))
-          (insert entry-header)
+    (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
+        (outline-hide-sublevels (org-journal--time-entry-level))
+      (save-excursion (org-journal--finalize-view)))
 
-          ;; Create CREATED property for weekly, monthly, and yearly journal entries
-          (unless (org-journal--daily-p)
-            (org-set-property "CREATED"
-                              (format-time-string
-                               org-journal-created-property-timestamp-format time)))
-
-          (when org-journal-enable-encryption
-            (unless (member org-crypt-tag-matcher (org-get-tags))
-              (org-set-tags org-crypt-tag-matcher)))
-          (run-hooks 'org-journal-after-header-create-hook)))
-      (org-journal--decrypt)
-
-      ;; Move TODOs from previous day to new entry
-      (when (and org-journal-carryover-items
-                 (not (string-blank-p org-journal-carryover-items))
-                 (string= entry-path (org-journal--get-entry-path (current-time))))
-        (org-journal--carryover))
-
-      (if (org-journal--is-date-prefix-org-heading-p)
-          (outline-end-of-subtree)
-        (goto-char (point-max)))
-
-      ;; TODO(cschwarzgruber): refactor into own function `org-journal--add-header-entry'
-      ;; Insert the header of the entry
-      (when should-add-entry-p
-        (unless (eq (current-column) 0) (insert "\n"))
-        (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
-               (timestamp (cond
-                            ;; “time” is today, use normal timestamp format
-                            ((= day-discrepancy 0)
-                             (format-time-string org-journal-time-format))
-                            ;; “time” is yesterday with org-extend-today-until,
-                            ;; use different timestamp format if available
-                            ((and (= day-discrepancy 1) oetu-active-p)
-                             (if (not (string-equal org-journal-time-format-post-midnight ""))
-                                 (format-time-string org-journal-time-format-post-midnight)
-                               (format-time-string org-journal-time-format)))
-                            ;; “time” is on some other day, use blank timestamp
-                            (t ""))))
-          (insert org-journal-time-prefix timestamp))
-        (run-hooks 'org-journal-after-entry-create-hook))
-
-      (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
-          (outline-hide-sublevels (org-journal--time-entry-level))
-        (save-excursion (org-journal--finalize-view)))
-
-      (when should-add-entry-p
-        (outline-show-entry)))))
+    (when should-add-entry-p
+      (outline-show-entry))))
 
 (defvar org-journal--kill-buffer nil
   "Will be set to the `t' if `org-journal--open-entry' is visiting a
