@@ -587,6 +587,13 @@ the first date of the year."
         (make-directory (file-truename org-journal-dir) t)
       (user-error "A journal directory is necessary to use org-journal"))))
 
+(defun org-journal--sanity-checks ()
+  "Do some sanity checks."
+  (unless (symbolp org-journal-file-type)
+    (user-error
+     "The value of `org-journal-file-type' must be symbol, not a %s"
+     (type-of org-journal-file-type))))
+
 (defun org-journal--set-current-tag-alist ()
   "Set `org-current-tag-alist' for the current journal file.
 This allows the use of `org-journal-tag-alist' and
@@ -717,6 +724,7 @@ smaller than `org-extend-today-until`).
 Whenever a journal entry is created the `org-journal-after-entry-create-hook'
 hook is run."
   (interactive "P")
+  (org-journal--sanity-checks)
   (org-journal--create-journal-dir)
 
   ;; If time is before org-extend-today-until, interpret it as
