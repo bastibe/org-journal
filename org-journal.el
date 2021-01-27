@@ -578,11 +578,12 @@ the first date of the year."
       (setq file (concat file ".gpg")))
     file))
 
-(defun org-journal--dir-check-or-create ()
-  "Check for existence of `org-journal-dir', if it doesn't
-exist, try to create the directory."
+(defun org-journal--create-journal-dir ()
+  "Create the `org-journal-dir'."
   (unless (file-exists-p org-journal-dir)
-    (if (yes-or-no-p (format "Journal directory %s doesn't exists. Create it? " (file-truename org-journal-dir)))
+    (if (yes-or-no-p (format
+                      "Journal directory %s doesn't exists. Create it? "
+                      (file-truename org-journal-dir)))
         (make-directory (file-truename org-journal-dir) t)
       (user-error "A journal directory is necessary to use org-journal"))))
 
@@ -716,7 +717,7 @@ smaller than `org-extend-today-until`).
 Whenever a journal entry is created the `org-journal-after-entry-create-hook'
 hook is run."
   (interactive "P")
-  (org-journal--dir-check-or-create)
+  (org-journal--create-journal-dir)
 
   ;; If time is before org-extend-today-until, interpret it as
   ;; part of the previous day:
@@ -1161,7 +1162,7 @@ If NO-SELECT is non-nil, open it, but don't show it."
 
 (defun org-journal--list-files ()
   "Returns a list of all files in the journal directory."
-  (org-journal--dir-check-or-create)
+  (org-journal--create-journal-dir)
   ;; grab the file list. We can’t use directory-files-recursively’s
   ;; regexp facility to filter it, because that only checks the
   ;; regexp against the base filenames, and we need to check it
