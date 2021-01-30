@@ -984,27 +984,28 @@ Return nil when it's impossible to figure out the level."
   "Convert an org-journal file name to a calendar date.
 
 Month and Day capture group default to 1."
-  (let ((file-pattern (org-journal--dir-and-file-format->pattern))
-        (day 1)
-        (month 1)
-        year
-        (file (file-truename file-name)))
-    (setq year (string-to-number
-                (replace-regexp-in-string file-pattern "\\1" file)))
+  (let* ((file-pattern (org-journal--dir-and-file-format->pattern))
+         (file-pattern-has-month-p (integerp (string-match "\(\?2:" file-pattern)))
+         (file-pattern-has-day-p (integerp (string-match "\(\?3:" file-pattern)))
+         (file (file-truename file-name))
+         (day 1)
+         (month 1)
+         year)
+    (setq year (string-to-number (replace-regexp-in-string file-pattern "\\1" file)))
     (when (= year 0)
       (user-error "Failed to extract year from file: %s" file))
 
-    (if (and (not (integerp (string-match "\(\?2:" file-pattern)))
+    (if (and (not file-pattern-has-month-p)
              (member org-journal-file-type '(daily weekly monthly)))
         (user-error "Failed to extract month from file: %s" file)
-      (setq month (string-to-number
-                   (replace-regexp-in-string file-pattern "\\2" file))))
+      (when file-pattern-has-month-p
+        (setq month (string-to-number (replace-regexp-in-string file-pattern "\\2" file)))))
 
-    (if (and (not (integerp (string-match "\(\?3:" file-pattern)))
+    (if (and (not file-pattern-has-day-p)
              (member org-journal-file-type '(daily weekly)))
         (user-error "Failed to extract day from file: %s" file)
-      (setq day (string-to-number
-                 (replace-regexp-in-string file-pattern "\\3" file))))
+      (when file-pattern-has-day-p
+        (setq day (string-to-number (replace-regexp-in-string file-pattern "\\3" file)))))
 
     (list month day year)))
 
