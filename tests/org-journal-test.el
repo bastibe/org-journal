@@ -303,24 +303,16 @@
         (let ((current-date (calendar-current-date))
               (current-date+1 (calendar-current-date 1)))
           (if (equal (org-journal--convert-time-to-file-type-time
-                      (encode-time 0 0 0 (nth 1 current-date) (nth 0 current-date) (nth 2 current-date)))
+                      (org-journal--calendar-date->time current-date) )
                      (org-journal--convert-time-to-file-type-time
-                      (encode-time 0 0 0 (nth 1 current-date+1) (nth 0 current-date+1) (nth 2 current-date+1))))
+                      (org-journal--calendar-date->time current-date+1)))
               (setq day-offset 1)
             (setq day-offset 2)))
 
         (let* ((scheduled-entry-date (calendar-current-date day-offset))
-               (scheduled-entry-time (encode-time
-                                      0 0 0
-                                      (nth 1 scheduled-entry-date)
-                                      (nth 0 scheduled-entry-date)
-                                      (nth 2 scheduled-entry-date)))
+               (scheduled-entry-time (org-journal--calendar-date->time scheduled-entry-date))
                (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
-               (new-entry-time (encode-time
-                                0 0 0
-                                (nth 1 new-entry-date)
-                                (nth 0 new-entry-date)
-                                (nth 2 new-entry-date))))
+               (new-entry-time (org-journal--calendar-date->time new-entry-date)))
           ;; Add first scheduled entry
           (org-journal-new-scheduled-entry nil scheduled-entry-time)
           (insert "Task 1")
@@ -328,7 +320,7 @@
           (org-journal-new-scheduled-entry nil scheduled-entry-time)
           (insert "Task 2")
           ;; New today entry should be added at the beginning of the journal file
-          (org-journal-new-entry 4)
+          (org-journal-new-entry 4 new-entry-time)
           (should (equal (buffer-substring-no-properties (point-min) (point-max))
                          (with-temp-buffer
                            (insert
