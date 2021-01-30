@@ -473,11 +473,10 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
     ("%V" . "[0-9]\\\\{2\\\\}")))
 
 (defun org-journal--format->regex (format)
-  (setq format (replace-regexp-in-string "%F" "%Y-%m-%d" format))
   (cl-loop
-    initially (setq format (regexp-quote format))
-    for x in org-journal--format-rx-alist
-    do (setq format (replace-regexp-in-string (car x) (cdr x) format))
+    initially (setq format (regexp-quote (replace-regexp-in-string "%F" "%Y-%m-%d" format)))
+    for (fmt . rx) in org-journal--format-rx-alist
+    do (setq format (replace-regexp-in-string fmt rx format))
     finally return format))
 
 (defvar org-journal--created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
@@ -485,11 +484,11 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 (defun org-journal--search-forward-created (date &optional bound noerror count)
   "Search for CREATED tag with date."
   (re-search-forward
-   (format-time-string
-    (concat "[ \t]*:CREATED:[ \t]+"
+   (concat "[ \t]*:CREATED:[ \t]+"
+           (format-time-string
             (regexp-quote org-journal-created-property-timestamp-format)
-            "[ \t]*$")
-    (org-journal--calendar-date->time date))
+            (org-journal--calendar-date->time date))
+           "[ \t]*$")
    bound noerror count))
 
 (defsubst org-journal--daily-p ()
