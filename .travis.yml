@@ -4,8 +4,8 @@ env:
   global:
     - CURL="curl -fsSkL --retry 9 --retry-delay 9"
   matrix:
-    # - EMACS_VERSION=25.3 # <- we need to install org-plus-contrib, the bundled version is to old
     - EMACS_VERSION=26.1
+    - EMACS_VERSION=27.1
     - EMACS_VERSION=master
 
 matrix:
