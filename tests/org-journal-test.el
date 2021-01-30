@@ -82,7 +82,8 @@
   "Test insertion of header"
   (org-journal-test-macro
       (let ((org-journal-file-header "#+TITLE: Some header\n#+STARTUP: folded"))
-        (org-journal-new-entry t)
+        (let ((inhibit-message t))
+          (org-journal-new-entry t))
         (save-buffer)
         (kill-buffer)
         (should (string= (with-temp-buffer
