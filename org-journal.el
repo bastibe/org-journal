@@ -730,7 +730,7 @@ hook is run."
   ;; part of the previous day:
   (let* ((now (decode-time nil))
          (org-extend-today-until-active-p (and (not time) (< (nth 2 now) org-extend-today-until)))
-         (entry-path (org-journal--get-entry-path time))
+         (entry-path)
          (should-add-entry-p (not prefix)))
     (when org-extend-today-until-active-p
       (setq time (encode-time (nth 0 now)
@@ -740,6 +740,7 @@ hook is run."
                               (nth 4 now)
                               (nth 5 now)
                               (nth 8 now))))
+    (setq entry-path (org-journal--get-entry-path time))
 
     ;; Open journal file
     (unless (string= entry-path (buffer-file-name))
