@@ -1140,11 +1140,11 @@ If NO-SELECT is non-nil, open it, but don't show it."
     (if (and dates (car dates))
         (let ((filename (org-journal--get-entry-path
                          (org-journal--calendar-date->time (car dates)))))
-          (if (get-file-buffer filename)
+          (if (find-buffer-visiting filename)
               (progn
                 (if no-select
-                    (set-buffer (get-file-buffer filename))
-                  (switch-to-buffer (get-file-buffer filename)))
+                    (set-buffer (find-buffer-visiting filename))
+                  (switch-to-buffer (find-buffer-visiting filename)))
                 (setq org-journal--kill-buffer nil))
             (push (if no-select
                       (set-buffer (find-file-noselect filename))
@@ -1339,7 +1339,7 @@ from oldest to newest."
   "Read an entry for the TIME and either select the new window when NOSELECT
 is nil or avoid switching when NOSELECT is non-nil."
   (let* ((org-journal-file (org-journal--get-entry-path time))
-         (buf-exists (get-file-buffer org-journal-file))
+         (buf-exists (find-buffer-visiting org-journal-file))
          buf point)
     (if (and (when (file-exists-p org-journal-file)
                (setq buf (find-file-noselect org-journal-file)))
@@ -1374,7 +1374,7 @@ is nil or avoid switching when NOSELECT is non-nil."
           (if noselect
               (display-buffer buf t)
             (funcall org-journal-find-file org-journal-file))
-          (set-window-point (get-buffer-window (get-file-buffer org-journal-file)) point)
+          (set-window-point (get-buffer-window (find-buffer-visiting org-journal-file)) point)
           buf)
       (message "No journal entry for this date."))))
 
@@ -1839,7 +1839,7 @@ Only one recipient is supported.  ")))
     with kill-buffer
     for journal in (org-journal--list-files)
     do
-      (setq buf (get-file-buffer journal)
+      (setq buf (find-buffer-visiting journal)
             kill-buffer nil)
 
       (when (and buf
