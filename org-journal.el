@@ -632,7 +632,7 @@ This allows the use of `org-journal-tag-alist' and
       (when (re-search-backward "^#\\+" nil t)
         (org-ctrl-c-ctrl-c)))))
 
-(defun org-journal--insert-entry-header (time)
+(defun org-journal--insert-entry-header (time &optional insert-at-point)
   "Create new journal entry if there isn't one."
   (let ((entry-header
          (if (functionp org-journal-date-format)
@@ -641,7 +641,8 @@ This allows the use of `org-journal-tag-alist' and
              (user-error "org-journal-date-format is empty, this won't work"))
            (concat org-journal-date-prefix
                    (format-time-string org-journal-date-format time)))))
-    (goto-char (point-min))
+    (unless insert-at-point
+      (goto-char (point-min)))
     (unless (if (org-journal--daily-p)
                 (or (search-forward entry-header nil t) (and (goto-char (point-max)) nil))
               (cl-loop
@@ -689,6 +690,11 @@ This allows the use of `org-journal-tag-alist' and
         (unless (member org-crypt-tag-matcher (org-get-tags))
           (org-set-tags org-crypt-tag-matcher)))
       (run-hooks 'org-journal-after-header-create-hook))))
+
+(defun org-journal-insert-header-at-point ()
+  "Create journal style headline at point."
+  (interactive)
+  (org-journal--insert-entry-header (current-time) t))
 
 (defun org-journal--insert-entry (time org-extend-today-until-active-p)
   "Insert a new entry."
