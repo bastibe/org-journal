@@ -716,7 +716,7 @@ This allows the use of `org-journal-tag-alist' and
   (run-hooks 'org-journal-after-entry-create-hook))
 
 ;;;###autoload
-(defun org-journal-new-entry (prefix &optional time todo)
+(defun org-journal-new-entry (prefix &optional time todo insert-at-point)
   "Open today's journal file and start a new entry.
 
 With a PREFIX arg, open the today's file, create a heading if it doesn't exist yet,
@@ -748,26 +748,27 @@ hook is run."
                               (nth 8 now))))
     (setq entry-path (org-journal--get-entry-path time))
 
-    ;; Open journal file
-    (unless (string= entry-path (buffer-file-name))
-      (funcall org-journal-find-file entry-path))
+    (unless insert-at-point
+      ;; Open journal file
+      (unless (string= entry-path (buffer-file-name))
+        (funcall org-journal-find-file entry-path))
 
-    ;; Insure `view-mode' is not active
-    (view-mode -1)
+      ;; Insure `view-mode' is not active
+      (view-mode -1)
 
-    (org-journal--insert-header time)
-    (org-journal--insert-entry-header time)
-    (org-journal--decrypt)
+      (org-journal--insert-header time)
+      (org-journal--insert-entry-header time)
+      (org-journal--decrypt)
 
-    ;; Move TODOs from previous day to new entry
-    (when (and org-journal-carryover-items
-               (not (string-blank-p org-journal-carryover-items))
-               (string= entry-path (org-journal--get-entry-path (current-time))))
-      (org-journal--carryover))
+      ;; Move TODOs from previous day to new entry
+      (when (and org-journal-carryover-items
+                 (not (string-blank-p org-journal-carryover-items))
+                 (string= entry-path (org-journal--get-entry-path (current-time))))
+        (org-journal--carryover))
 
-    (if (org-journal--is-date-prefix-org-heading-p)
-        (outline-end-of-subtree)
-      (goto-char (point-max)))
+      (if (org-journal--is-date-prefix-org-heading-p)
+          (outline-end-of-subtree)
+        (goto-char (point-max))))
 
     (when should-add-entry-p
       (org-journal--insert-entry time org-extend-today-until-active-p todo))
@@ -778,6 +779,12 @@ hook is run."
 
     (when should-add-entry-p
       (outline-show-entry))))
+
+(defun org-journal-new-entry-at-point (prefix &optional time todo)
+  "Insert a journal style entry at current cursor location."
+  (interactive "P")
+  (org-journal-new-entry prefix time todo t))
+
 
 (defvar org-journal--kill-buffer nil
   "Will be set to the `t' if `org-journal--open-entry' is visiting a
@@ -1059,21 +1066,25 @@ arguments (C-u C-u) are given. In that case insert just the heading."
       (org-journal-new-scheduled-entry prefix time))))
 
 ;;;###autoload
-(defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
+(defun org-journal-new-scheduled-entry (prefix &optional scheduled-time insert-at-point)
   "Create a new entry in the future with an active timestamp.
-
 With non-nil prefix argument create a regular entry instead of a TODO entry."
   (interactive "P")
   (let ((time (or scheduled-time (org-time-string-to-time (org-read-date nil nil nil "Date:"))))
         org-journal-carryover-items)
     (when (time-less-p time (current-time))
       (user-error "Scheduled time needs to be in the future"))
-    (org-journal-new-entry nil time (not prefix))
+    (org-journal-new-entry nil time (not prefix) insert-at-point)
     (save-excursion
       (insert "\n")
       (insert "SCHEDULED: ")
       (org-insert-time-stamp time t)
       (org-cycle))))
+
+(defun org-journal-new-scheduled-entry-at-point (prefix &optional scheduled-time)
+  "Insert a journal style scheduled entry at current cursor location."
+  (interactive "P")
+  (org-journal-new-scheduled-entry prefix scheduled-time t))
 
 ;;;###autoload
 (defun org-journal-reschedule-scheduled-entry (&optional time)
