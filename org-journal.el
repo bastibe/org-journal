@@ -696,7 +696,7 @@ This allows the use of `org-journal-tag-alist' and
   (interactive)
   (org-journal--insert-entry-header (current-time) t))
 
-(defun org-journal--insert-entry (time org-extend-today-until-active-p)
+(defun org-journal--insert-entry (time org-extend-today-until-active-p &optional todo)
   "Insert a new entry."
   (unless (eq (current-column) 0) (insert "\n"))
   (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
@@ -712,11 +712,11 @@ This allows the use of `org-journal-tag-alist' and
                          (format-time-string org-journal-time-format)))
                       ;; “time” is on some other day, use blank timestamp
                       (t ""))))
-    (insert org-journal-time-prefix timestamp))
+    (insert (concat org-journal-time-prefix (when todo "TODO ") timestamp)))
   (run-hooks 'org-journal-after-entry-create-hook))
 
 ;;;###autoload
-(defun org-journal-new-entry (prefix &optional time)
+(defun org-journal-new-entry (prefix &optional time todo)
   "Open today's journal file and start a new entry.
 
 With a PREFIX arg, open the today's file, create a heading if it doesn't exist yet,
@@ -770,7 +770,7 @@ hook is run."
       (goto-char (point-max)))
 
     (when should-add-entry-p
-      (org-journal--insert-entry time org-extend-today-until-active-p))
+      (org-journal--insert-entry time org-extend-today-until-active-p todo))
 
     (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
         (outline-hide-sublevels (org-journal--time-entry-level))
@@ -1068,12 +1068,12 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
         org-journal-carryover-items)
     (when (time-less-p time (current-time))
       (user-error "Scheduled time needs to be in the future"))
-    (org-journal-new-entry nil time)
-    (unless prefix
-      (insert "TODO "))
+    (org-journal-new-entry nil time (not prefix))
     (save-excursion
       (insert "\n")
-      (org-insert-time-stamp time))))
+      (insert "SCHEDULED: ")
+      (org-insert-time-stamp time t)
+      (org-cycle))))
 
 ;;;###autoload
 (defun org-journal-reschedule-scheduled-entry (&optional time)
