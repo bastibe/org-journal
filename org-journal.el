@@ -1067,7 +1067,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
       (insert "TODO "))
     (save-excursion
       (insert "\n")
-      (org-insert-time-stamp time))))
+      (org-insert-time-stamp time t))))
 
 ;;;###autoload
 (defun org-journal-reschedule-scheduled-entry (&optional time)
