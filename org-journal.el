@@ -694,7 +694,9 @@ This allows the use of `org-journal-tag-alist' and
 (defun org-journal-insert-header-at-point ()
   "Create journal style headline at point."
   (interactive)
-  (org-journal--insert-entry-header (current-time) t))
+  (if (buffer-file-name)
+      (org-journal--insert-entry-header (current-time) t)
+    (message "This command can only be used from file buffers")))
 
 (defun org-journal--insert-entry (time org-extend-today-until-active-p &optional todo)
   "Insert a new entry."
