@@ -474,9 +474,9 @@ Returns the last value from BODY. If the buffer didn't exist before it will be d
 
 (defun org-journal--format->regex (format)
   (cl-loop
-    initially (setq format (regexp-quote (replace-regexp-in-string "%F" "%Y-%m-%d" format)))
+    initially (setq format (regexp-quote (replace-regexp-in-string "%F" "%Y-%m-%d" format t)))
     for (fmt . rx) in org-journal--format-rx-alist
-    do (setq format (replace-regexp-in-string fmt rx format))
+    do (setq format (replace-regexp-in-string fmt rx format t))
     finally return format))
 
 (defvar org-journal--created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
@@ -1007,7 +1007,7 @@ Month and Day capture group default to 1."
          (day 1)
          (month 1)
          year)
-    (setq year (string-to-number (replace-regexp-in-string file-pattern "\\1" file)))
+    (setq year (string-to-number (replace-regexp-in-string file-pattern "\\1" file t)))
     (when (= year 0)
       (user-error "Failed to extract year from file: %s" file))
 
@@ -1015,13 +1015,13 @@ Month and Day capture group default to 1."
              (member org-journal-file-type '(daily weekly monthly)))
         (user-error "Failed to extract month from file: %s" file)
       (when file-pattern-has-month-p
-        (setq month (string-to-number (replace-regexp-in-string file-pattern "\\2" file)))))
+        (setq month (string-to-number (replace-regexp-in-string file-pattern "\\2" file t)))))
 
     (if (and (not file-pattern-has-day-p)
              (member org-journal-file-type '(daily weekly)))
         (user-error "Failed to extract day from file: %s" file)
       (when file-pattern-has-day-p
-        (setq day (string-to-number (replace-regexp-in-string file-pattern "\\3" file)))))
+        (setq day (string-to-number (replace-regexp-in-string file-pattern "\\3" file t)))))
 
     (list month day year)))
 

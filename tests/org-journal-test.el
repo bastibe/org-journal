@@ -313,7 +313,12 @@
         (let* ((scheduled-entry-date (calendar-current-date day-offset))
                (scheduled-entry-time (org-journal--calendar-date->time scheduled-entry-date))
                (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
-               (new-entry-time (org-journal--calendar-date->time new-entry-date)))
+               (new-entry-time (org-journal--calendar-date->time new-entry-date))
+               ;; TODO(cschwarzgruber): For PR #338
+               ;; "   "
+               ;; org-scheduled-string
+               ;; " "
+               (scheduled-string (concat (format-time-string (cdr org-time-stamp-formats) scheduled-entry-time))))
           ;; Add first scheduled entry
           (org-journal-new-scheduled-entry nil scheduled-entry-time)
           (insert "Task 1")
@@ -344,7 +349,9 @@
                               "\n")
                              "  :END:\n"
                              "** TODO Task 1\n"
-                             (format-time-string "<%F %a>\n" scheduled-entry-time)
+                             scheduled-string
+                             "\n"
+                             ;; (format-time-string "   SCHEDULED: <%F %a>\n" )
                              "** TODO Task 2\n"
-                             (format-time-string "<%F %a>" scheduled-entry-time)))
+                             scheduled-string))
                            (buffer-substring-no-properties (point-min) (point-max)))))))))
