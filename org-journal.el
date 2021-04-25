@@ -423,8 +423,6 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
     (define-key calendar-mode-map (kbd "j s m") 'org-journal-search-calendar-month)
     (define-key calendar-mode-map (kbd "j s y") 'org-journal-search-calendar-year)))
 
-(global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
-
 (defmacro org-journal--with-journal (file &rest body)
   "Opens JOURNAL-FILE in fundamental mode, or switches to the buffer which is visiting JOURNAL-FILE.
 
