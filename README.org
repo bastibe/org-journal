@@ -113,12 +113,15 @@ Then add =(require 'org-journal)= to your =.emacs=.
 
 ** Quickstart
 
-Doing =M-x org-journal-new-entry= (or =C-c C-j=) will immediately create a journal
-directory in the default path (customized using the =org-journal-dir= variable), open or
-create a file in =org-journal-mode=, and insert a template for a new journal entry.
+Doing =M-x org-journal-new-entry= will immediately create a journal
+directory in the default path (customized using the =org-journal-dir=
+variable), open or create a file in =org-journal-mode=, and insert a
+template for a new journal entry.
 
-The same command with a prefix argument (=C-u C-c C-j=) will do everything mentioned while
-skipping entry creation, which is useful for looking at the current journal file.
+The same command with a prefix argument (=C-u M-x
+org-journal-new-entry=) will do everything mentioned while skipping
+entry creation, which is useful for looking at the current journal
+file.
 
 ** Basic Usage
 
