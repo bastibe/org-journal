@@ -400,8 +400,7 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 
 ;; Key bindings
 (when (and (stringp org-journal-prefix-key) (not (string-empty-p org-journal-prefix-key)))
-  (let ((command-table '(("j" . org-journal-new-entry)
-                         ("f" . org-journal-next-entry)
+  (let ((command-table '(("f" . org-journal-next-entry)
                          ("b" . org-journal-previous-entry)
                          ("j" . org-journal-new-entry)
                          ("s" . org-journal-search)))
