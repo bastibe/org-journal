@@ -222,6 +222,10 @@ Customization options related to the journal file contents:
   (setq org-journal-file-header 'org-journal-file-header-func)
   #+END_EXAMPLE
 
+- =org-journal-hide-entries-p= - a boolean (defaults to =true=) that will
+  hide previous journal entries if true. Can be set to =nil= to show previous
+  entries.
+
 *** An example setup
 
 A very basic example of customization.
