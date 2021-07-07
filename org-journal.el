@@ -156,7 +156,7 @@ to be done manually by calling `org-journal-invalidate-cache'."
 This pattern MUST include `%Y', `%m' and `%d' when `org-journal-file-type' is
 `daily' or `weekly'. When `org-journal-file-type' is `monthly' this pattern
 MUST at least include `%Y' and `%m', and at least `%Y' when
-`org-journalf-file-type' is `yearly'.
+`org-journal-file-type' is `yearly'.
 
 Currently supported placeholders are:
 
@@ -307,7 +307,7 @@ anywhere in your file."
   :type (get 'org-tag-persistent-alist 'custom-type))
 
 (defcustom org-journal-search-forward-fn 'search-forward
-  "The function used by `org-journal-search`.
+  "The function used by `org-journal-search'.
 
 Other possible value is e.g. `re-search-forward'."
   :type 'function)
@@ -718,7 +718,7 @@ but do not create a new entry.
 
 If given a TIME, create an entry for the time's day. If no TIME was given,
 use the current time (which is interpreted as belonging to yesterday if
-smaller than `org-extend-today-until`).
+smaller than `org-extend-today-until').
 
 Whenever a journal entry is created the `org-journal-after-entry-create-hook'
 hook is run."
@@ -1244,7 +1244,7 @@ The key is a journal date entry, and the value of the key is of the form
 (defvar org-journal--sorted-dates nil)
 
 (defun org-journal--sort-dates ()
-  "Flatten and sort dates, and assign the result to `org-journal-flatten-dates'."
+  "Flatten and sort dates, and assign the result to `org-journal--sorted-dates'."
   (setq org-journal--sorted-dates (sort (hash-table-keys org-journal--dates) 'org-journal--calendar-date-compare)))
 
 (defun org-journal--list-dates ()
