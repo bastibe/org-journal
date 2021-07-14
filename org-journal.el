@@ -30,8 +30,9 @@
 ;; different times. Any subsequent entries on the same day are written
 ;; in the same file, with their own timestamp. You can customize the
 ;; date and time formats (or remove them entirely). To start writing a
-;; journal entry, press "C-c C-j". You can also open the current day's
-;; entry without adding a new entry with "C-u C-c C-j".
+;; journal entry, "M-x org-journal-new-entry". You can also open the
+;; current day's entry without adding a new entry with "C-u M-x
+;; org-journal-new-entry".
 ;;
 ;; You can browse through existing journal entries on disk via the
 ;; calendar. All dates for which an entry is present are highlighted.
@@ -45,8 +46,8 @@
 ;; day. This is customizable through org-journal-carryover-items.
 ;;
 ;; Quick summary:
-;; To create a new journal entry for the current time and day: C-c C-j
-;; To open today's journal without creating a new entry: C-u C-c C-j
+;; To create a new journal entry for the current time and day: M-x org-journal-new-entry
+;; To open today's journal without creating a new entry: C-u M-x org-journal-new-entry
 ;; In calendar view: j m to mark entries in calendar
 ;;                   j r to view an entry in a new buffer
 ;;                   j d to view an entry but not switch to it
@@ -422,8 +423,6 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
     (define-key calendar-mode-map (kbd "j s w") 'org-journal-search-calendar-week)
     (define-key calendar-mode-map (kbd "j s m") 'org-journal-search-calendar-month)
     (define-key calendar-mode-map (kbd "j s y") 'org-journal-search-calendar-year)))
-
-(global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
 (defmacro org-journal--with-journal (file &rest body)
   "Opens JOURNAL-FILE in fundamental mode, or switches to the buffer which is visiting JOURNAL-FILE.
