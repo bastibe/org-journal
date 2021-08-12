@@ -625,9 +625,16 @@ This allows the use of `org-journal-tag-alist' and
                  (and (stringp org-journal-file-header)
                       (not (string-empty-p org-journal-file-header))))
              (= (buffer-size) 0))
-    (insert (if (functionp org-journal-file-header)
-                (funcall org-journal-file-header time)
-              (format-time-string org-journal-file-header time)))
+    (let ((file-header (if (functionp org-journal-file-header)
+                           (funcall org-journal-file-header time)
+                         (format-time-string org-journal-file-header time))))
+      ;; if the file header consists of multiple lines append an
+      ;; additional newline at the end to prevent it being mixed up
+      ;; with the journal entry as in #360
+      (when (and (< 1 (length (split-string file-header "\n" :omit-nulls)))
+                 (not (string-suffix-p "\n" file-header)))
+        (setf file-header (concat file-header "\n")))
+      (insert file-header))
     (save-excursion
       (when (re-search-backward "^#\\+" nil t)
         (org-ctrl-c-ctrl-c)))))
