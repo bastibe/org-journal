@@ -798,14 +798,14 @@ buffer not open already, otherwise `nil'.")
       (let (start end)
         ;; Delete scheduled timestamps
         (while (re-search-forward (concat " *\\(CLOSED\\|DEADLINE\\|SCHEDULED\\): *" org-ts-regexp-both) nil t)
-          (kill-region (match-beginning 0) (match-end 0)))
+          (delete-region (match-beginning 0) (match-end 0)))
 
         ;; Delete drawers
         (while (re-search-forward org-drawer-regexp nil t)
           (setq start (match-beginning 0))
           (re-search-forward org-drawer-regexp nil t)
           (setq end (match-end 0))
-          (kill-region start end)))
+          (delete-region start end)))
       (string-empty-p (org-trim (buffer-string))))))
 
 (defun org-journal--remove-drawer ()
@@ -843,7 +843,7 @@ items, and delete or not delete the empty entry/file based on
             (org-journal--list-dates))
         (save-excursion
           (org-journal--open-entry t t)
-          (kill-region (point) (progn (outline-end-of-subtree) (point)))
+          (delete-region (point) (progn (outline-end-of-subtree) (point)))
           (save-buffer))))))
 
 (defun org-journal-delete-old-carryover (old_entries)
@@ -854,7 +854,7 @@ If the parent heading has no more content, delete it as well."
           (unless (save-excursion
                     (goto-char (1- (cadr x)))
                     (org-goto-first-child))
-            (kill-region (car x) (cadr x))))
+            (delete-region (car x) (cadr x))))
         (reverse old_entries)))
 
 (defun org-journal-carryover-items (text entries prev-buffer)
