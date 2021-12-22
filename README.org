@@ -226,6 +226,13 @@ Customization options related to the journal file contents:
   hide previous journal entries if true. Can be set to =nil= to show previous
   entries.
 
+*** =org-journal= behavior
+
+Customization options related to =org-journal= itself:
+
+- =org-journal-mode-hook= - List of functions to run when =org-journal-mode= is
+  loaded. By default this is set to ='(turn-on-visual-line-mode)=.
+
 *** An example setup
 
 A very basic example of customization.
