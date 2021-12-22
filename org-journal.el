@@ -386,7 +386,6 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (define-derived-mode org-journal-mode org-mode
   "Journal"
   "Mode for writing or viewing entries written in the journal."
-  (turn-on-visual-line-mode)
   (add-hook 'after-save-hook 'org-journal-after-save-hook nil t)
   (when (or org-journal-tag-alist org-journal-tag-persistent-alist)
     (org-journal--set-current-tag-alist))
@@ -1879,6 +1878,11 @@ Only one recipient is supported.  ")))
     (unless (equal org-journal-encrypt-on
                    'before-save-hook)
       (save-buffer))))
+
+(defcustom org-journal-mode-hook
+  '(turn-on-visual-line-mode)
+  "Hook to run when org-journal-mode is loaded."
+  :type 'hook)
 
 ;; Setup encryption by default
 ;;;###autoload
