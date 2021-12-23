@@ -1879,17 +1879,17 @@ Only one recipient is supported.  ")))
                    'before-save-hook)
       (save-buffer))))
 
+(defun org-journal-default-enable-encryption ()
+  "Add org-journal-encryption-hook to the hook org-journal-encrypt-on, enabling encryption by default."
+  (add-hook org-journal-encrypt-on
+            'org-journal-encryption-hook
+            nil t))
+
 (defcustom org-journal-mode-hook
-  '(turn-on-visual-line-mode)
+  '(turn-on-visual-line-mode
+    org-journal-default-enable-encryption)
   "Hook to run when org-journal-mode is loaded."
   :type 'hook)
-
-;; Setup encryption by default
-;;;###autoload
-(add-hook 'org-journal-mode-hook
-          (lambda () (add-hook org-journal-encrypt-on
-                               'org-journal-encryption-hook
-                               nil t)))
 
 (provide 'org-journal)
 
