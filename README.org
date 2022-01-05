@@ -102,8 +102,8 @@ An example of a weekly/monthly/yearly journal file, see also
 
 ** Installation
 
-=org-journal= is available through [[http://marmalade-repo.org/][marmalade]], [[http://melpa.milkbox.net/][melpa]] and [[http://melpa-stable.milkbox.net/][melpa-stable]]. So installation
-should be trivial:
+=org-journal= is available through [[https://elpa.nongnu.org/][NonGNU ELPA]], [[https://melpa.org/][MELPA]] and [[https://stable.melpa.org/][MELPA Stable]]. So
+installation should be trivial:
 
 #+BEGIN_EXAMPLE
     M-x package-install org-journal
