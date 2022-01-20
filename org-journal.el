@@ -271,6 +271,14 @@ It can be set to other hooks like `kill-buffer-hook'."
   "Add current and future org-journal files to `org-agenda-files' when non-nil."
   :type 'boolean)
 
+(defcustom org-journal-enable-calendar-integration t
+  "When non-nil, journal dates will be marked on the calendar.
+
+Additionally, calendar-specific commands will be keyboard-mapped.
+Users that don't want their journals decrypted when bringing up the calendar
+may consider setting this to nil. Also, see `org-journal-enable-cache'"
+  :type 'boolean)
+
 (defcustom org-journal-find-file 'find-file-other-window
   "The function to use when opening an entry.
 
@@ -405,9 +413,10 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 
 
 ;;;###autoload
-(add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
-;;;###autoload
-(add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
+(if org-journal-enable-calendar-integration
+    (progn
+      (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
+      (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)))
 
 ;; Journal mode definition
 ;;;###autoload
@@ -434,21 +443,22 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
                       #'concat
                     (lambda (prefix key) (kbd (concat prefix "" key))))))
     (cl-loop for (key . command) in command-table
-      do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
+             do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
 
-(eval-after-load "calendar"
-  '(progn
-    (define-key calendar-mode-map (kbd "j m") 'org-journal-mark-entries)
-    (define-key calendar-mode-map (kbd "j r") 'org-journal-read-entry)
-    (define-key calendar-mode-map (kbd "j d") 'org-journal-display-entry)
-    (define-key calendar-mode-map "]" 'org-journal-next-entry)
-    (define-key calendar-mode-map "[" 'org-journal-previous-entry)
-    (define-key calendar-mode-map (kbd "j n") 'org-journal-new-date-entry)
-    (define-key calendar-mode-map (kbd "j s f") 'org-journal-search-forever)
-    (define-key calendar-mode-map (kbd "j s F") 'org-journal-search-future)
-    (define-key calendar-mode-map (kbd "j s w") 'org-journal-search-calendar-week)
-    (define-key calendar-mode-map (kbd "j s m") 'org-journal-search-calendar-month)
-    (define-key calendar-mode-map (kbd "j s y") 'org-journal-search-calendar-year)))
+(if org-journal-enable-calendar-integration
+    (eval-after-load "calendar"
+      '(progn
+         (define-key calendar-mode-map (kbd "j m") 'org-journal-mark-entries)
+         (define-key calendar-mode-map (kbd "j r") 'org-journal-read-entry)
+         (define-key calendar-mode-map (kbd "j d") 'org-journal-display-entry)
+         (define-key calendar-mode-map "]" 'org-journal-next-entry)
+         (define-key calendar-mode-map "[" 'org-journal-previous-entry)
+         (define-key calendar-mode-map (kbd "j n") 'org-journal-new-date-entry)
+         (define-key calendar-mode-map (kbd "j s f") 'org-journal-search-forever)
+         (define-key calendar-mode-map (kbd "j s F") 'org-journal-search-future)
+         (define-key calendar-mode-map (kbd "j s w") 'org-journal-search-calendar-week)
+         (define-key calendar-mode-map (kbd "j s m") 'org-journal-search-calendar-month)
+         (define-key calendar-mode-map (kbd "j s y") 'org-journal-search-calendar-year))))
 
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
