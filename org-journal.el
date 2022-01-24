@@ -1343,15 +1343,15 @@ from oldest to newest."
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a journal entry is present."
   (interactive)
-  (unless org-journal-allow-mark-entries
-    (when (file-exists-p org-journal-dir)
-      (let ((current-time (current-time)))
-        (dolist (journal-entry (org-journal--list-dates))
-          (if (calendar-date-is-visible-p journal-entry)
-              (if (time-less-p (org-journal--calendar-date->time journal-entry)
-                               current-time)
-                  (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
-                (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face))))))))
+  (if org-journal-allow-mark-entries
+      (when (file-exists-p org-journal-dir)
+        (let ((current-time (current-time)))
+          (dolist (journal-entry (org-journal--list-dates))
+            (if (calendar-date-is-visible-p journal-entry)
+                (if (time-less-p (org-journal--calendar-date->time journal-entry)
+                                 current-time)
+                    (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
+                  (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face))))))))
 
 ;;;###autoload
 (defun org-journal-read-entry (_arg &optional event)
