@@ -403,7 +403,8 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 
 (defvar org-journal--search-buffer "*Org-journal search*")
 
-(defvar org-journal-dont-mark-entries nil)
+(defvar org-journal-allow-mark-entries t
+  "Allows us to prevent marking entries in cases such as org-deadline and org-time-stamp")
 
 ;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
@@ -413,10 +414,10 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 (defun org-journal--org-read-date (orig-fun &rest args)
   "In the case where the calendar is opened to input a timestamp, don't mark entries."
   (progn
-    (setq org-journal-dont-mark-entries t)
+    (setq org-journal-allow-mark-entries nil)
     (unwind-protect
         (apply orig-fun args)
-      (setq org-journal-dont-mark-entries nil))))
+      (setq org-journal-allow-mark-entries t))))
 
 ;;;###autoload
 (advice-add 'org-read-date :around #'org-journal--org-read-date)
@@ -1342,7 +1343,7 @@ from oldest to newest."
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a journal entry is present."
   (interactive)
-  (unless org-journal-dont-mark-entries
+  (unless org-journal-allow-mark-entries
     (when (file-exists-p org-journal-dir)
       (let ((current-time (current-time)))
         (dolist (journal-entry (org-journal--list-dates))
