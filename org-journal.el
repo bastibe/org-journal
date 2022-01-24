@@ -403,11 +403,23 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 
 (defvar org-journal--search-buffer "*Org-journal search*")
 
-
+(defvar org-journal-dont-mark-entries nil)
+
 ;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
 ;;;###autoload
 (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)
+
+(defun org-journal--org-read-date (orig-fun &rest args)
+  "In the case where the calendar is opened to input a timestamp, don't mark entries."
+  (progn
+    (setq org-journal-dont-mark-entries t)
+    (unwind-protect
+        (apply orig-fun args)
+      (setq org-journal-dont-mark-entries nil))))
+
+;;;###autoload
+(advice-add 'org-read-date :around #'org-journal--org-read-date)
 
 ;; Journal mode definition
 ;;;###autoload
@@ -1330,14 +1342,15 @@ from oldest to newest."
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a journal entry is present."
   (interactive)
-  (when (file-exists-p org-journal-dir)
-    (let ((current-time (current-time)))
-      (dolist (journal-entry (org-journal--list-dates))
-        (if (calendar-date-is-visible-p journal-entry)
-            (if (time-less-p (org-journal--calendar-date->time journal-entry)
-                             current-time)
-                (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
-              (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face)))))))
+  (unless org-journal-dont-mark-entries
+    (when (file-exists-p org-journal-dir)
+      (let ((current-time (current-time)))
+        (dolist (journal-entry (org-journal--list-dates))
+          (if (calendar-date-is-visible-p journal-entry)
+              (if (time-less-p (org-journal--calendar-date->time journal-entry)
+                               current-time)
+                  (calendar-mark-visible-date journal-entry 'org-journal-calendar-entry-face)
+                (calendar-mark-visible-date journal-entry 'org-journal-calendar-scheduled-face))))))))
 
 ;;;###autoload
 (defun org-journal-read-entry (_arg &optional event)
