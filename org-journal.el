@@ -568,21 +568,21 @@ the first date of the year."
     ;; Round to the monday of the current week, e.g. 20181231 is the first week of 2019
     (`weekly
      (let* ((absolute-monday
-	     (calendar-iso-to-absolute
-	      (mapcar 'string-to-number
-		      (split-string (format-time-string "%V 1 %G" time) " "))))
-	    (absolute-now
-	     (calendar-absolute-from-gregorian
-	      (mapcar 'string-to-number
-		      (split-string (format-time-string "%m %d %Y" time) " "))))
-	    (target-date
-	     (+ absolute-monday
-		(- org-journal-start-on-weekday 1)))
-	    (date
+             (calendar-iso-to-absolute
+              (mapcar 'string-to-number
+                      (split-string (format-time-string "%V 1 %G" time) " "))))
+            (absolute-now
+             (calendar-absolute-from-gregorian
+              (mapcar 'string-to-number
+                      (split-string (format-time-string "%m %d %Y" time) " "))))
+            (target-date
+             (+ absolute-monday
+                (- org-journal-start-on-weekday 1)))
+            (date
              (calendar-gregorian-from-absolute
               (if (> target-date absolute-now)
-		  (- target-date 7)
-		target-date))))
+                  (- target-date 7)
+                target-date))))
        (org-journal--calendar-date->time date)))
     ;; Round to the first day of the month, e.g. 20190301
     (`monthly
@@ -1057,6 +1057,14 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
           (string-to-number (match-string 3 date))    ;; Day
           (string-to-number (match-string 1 date))))) ;; Year
 
+(defun org-journal--skip-meta-data ()
+  "Advance point past any file-level properties drawer.
+
+Extracted from org-roam (org-roam-end-of-meta-data)."
+  (when (looking-at org-property-drawer-re)
+    (goto-char (match-end 0))
+    (forward-line)))
+
 (defun org-journal--file->calendar-dates (file)
   "Return journal dates from FILE."
   (org-journal--with-journal
@@ -1064,6 +1072,7 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
     (let (dates)
       (save-excursion
         (goto-char (point-min))
+        (org-journal--skip-meta-data)
         (while (re-search-forward org-journal--created-re nil t)
           (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
             (push (org-journal--entry-date->calendar-date) dates)))
@@ -1560,7 +1569,7 @@ and cleans out past org-journal files."
               (org-journal--calendar-date->time beg)
               (org-journal--calendar-date->time end)))))
       (org-store-new-agenda-file-list (append not-org-journal-agenda-files
-					      org-journal-agenda-files)))))
+                                              org-journal-agenda-files)))))
 
 (defvar org-journal--schedule-buffer-name "*Org-journal schedule*")
 
@@ -1859,7 +1868,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 (defun org-journal-re-encrypt-journals (recipient)
   "Re-encrypt journal files."
   (interactive (list (epa-select-keys (epg-make-context epa-protocol)
-			              "Select new recipient for encryption.
+                                      "Select new recipient for encryption.
 Only one recipient is supported.  ")))
 
   (unless recipient
@@ -1869,29 +1878,29 @@ Only one recipient is supported.  ")))
     (user-error "org-journal encryption not enabled"))
 
   (cl-loop
-    with buf
-    with kill-buffer
-    for journal in (org-journal--list-files)
-    do
-      (setq buf (find-buffer-visiting journal)
-            kill-buffer nil)
+   with buf
+   with kill-buffer
+   for journal in (org-journal--list-files)
+   do
+   (setq buf (find-buffer-visiting journal)
+         kill-buffer nil)
 
-      (when (and buf
-                 (buffer-modified-p buf)
-                 (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
-                                   (file-name-nondirectory journal))))
-        (save-buffer buf))
+   (when (and buf
+              (buffer-modified-p buf)
+              (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
+                                (file-name-nondirectory journal))))
+     (save-buffer buf))
 
-      (unless buf
-        (setq kill-buffer t
-              buf (find-file-noselect journal)))
+   (unless buf
+     (setq kill-buffer t
+           buf (find-file-noselect journal)))
 
-      (with-current-buffer buf
-        (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
-          (set-buffer-modified-p t)
-          (save-buffer)
-          (when kill-buffer
-            (kill-buffer))))))
+   (with-current-buffer buf
+     (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
+       (set-buffer-modified-p t)
+       (save-buffer)
+       (when kill-buffer
+         (kill-buffer))))))
 
 (defun org-journal--decrypt ()
   "Decrypt journal entry at point."
