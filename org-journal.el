@@ -244,6 +244,13 @@ When the current time is before the hour set by `org-extend-today-until'."
 By default, this is an org-mode sub-heading."
   :type 'string)
 
+(defcustom org-journal-schedule-include-time t
+  "Allows switching off the automatic adding of a timestamp for journal entries.
+
+By default, all scheduled journal entries will have a date and time. If you
+don't need the time by default, you can set this to nil to avoid that."
+  :type 'boolean)
+
 (defcustom org-journal-hide-entries-p t
   "If true all but the current entry will be hidden when creating a new one."
   :type 'boolean)
@@ -1106,7 +1113,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
       (insert "TODO "))
     (save-excursion
       (insert "\n")
-      (org-insert-time-stamp time t))))
+      (org-insert-time-stamp time org-journal-schedule-include-time))))
 
 ;;;###autoload
 (defun org-journal-reschedule-scheduled-entry (&optional time)
