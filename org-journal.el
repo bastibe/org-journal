@@ -505,7 +505,8 @@ before it will be deposed."
     initially (setq format (regexp-quote (replace-regexp-in-string "%F" "%Y-%m-%d" format t)))
     for (fmt . rx) in org-journal--format-rx-alist
     do (setq format (replace-regexp-in-string fmt rx format t))
-    finally return format))
+    ;; Ignore extra timestamp elements rather than erroring out
+    finally return (replace-regexp-in-string "[]>]$" "[A-z0-9: ]*\\&" format)))
 
 (defvar org-journal--created-re "^ *:CREATED: +.*$"  "Regex to find created property.")
 
