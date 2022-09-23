@@ -271,6 +271,7 @@ It can be set to other hooks like `kill-buffer-hook'."
   "Add current and future org-journal files to `org-agenda-files' when non-nil."
   :type 'boolean)
 
+;;;###autoload
 (defcustom org-journal-enable-calendar-integration t
   "When non-nil, journal dates will be marked on the calendar.
 
@@ -411,9 +412,8 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 
 (defvar org-journal--search-buffer "*Org-journal search*")
 
-
 ;;;###autoload
-(if org-journal-enable-calendar-integration
+(when org-journal-enable-calendar-integration
     (progn
       (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
       (add-hook 'calendar-today-invisible-hook 'org-journal-mark-entries)))
@@ -445,7 +445,7 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
     (cl-loop for (key . command) in command-table
              do (define-key org-journal-mode-map (funcall key-func org-journal-prefix-key key) command))))
 
-(if org-journal-enable-calendar-integration
+(when org-journal-enable-calendar-integration
     (eval-after-load "calendar"
       '(progn
          (define-key calendar-mode-map (kbd "j m") 'org-journal-mark-entries)
