@@ -1071,6 +1071,14 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
           (string-to-number (match-string 3 date))    ;; Day
           (string-to-number (match-string 1 date))))) ;; Year
 
+(defun org-journal--skip-meta-data ()
+  "Advance point past any file-level properties drawer.
+
+Extracted from org-roam (org-roam-end-of-meta-data)."
+  (when (looking-at org-property-drawer-re)
+    (goto-char (match-end 0))
+    (forward-line)))
+
 (defun org-journal--file->calendar-dates (file)
   "Return journal dates from FILE."
   (org-journal--with-journal
@@ -1078,6 +1086,7 @@ This is the counterpart of `org-journal--file-name->calendar-date' for
     (let (dates)
       (save-excursion
         (goto-char (point-min))
+        (org-journal--skip-meta-data)
         (while (re-search-forward org-journal--created-re nil t)
           (when (= (save-excursion (org-back-to-heading) (org-outline-level)) 1)
             (push (org-journal--entry-date->calendar-date) dates)))
