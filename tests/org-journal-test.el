@@ -359,21 +359,21 @@
                             (concat
                              ;; Today entry
                              "* Test header\n"
-                             "  :PROPERTIES:\n"
+                             ":PROPERTIES:\n"
                              (concat
-                              "  :CREATED:  "
+                              ":CREATED:  "
                               (format-time-string org-journal-created-property-timestamp-format new-entry-time)
                               "\n")
-                             "  :END:\n"
+                             ":END:\n"
 
                              ;; Scheduled entries
                              "* Test header\n"
-                             "  :PROPERTIES:\n"
+                             ":PROPERTIES:\n"
                              (concat
-                              "  :CREATED:  "
+                              ":CREATED:  "
                               (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
                               "\n")
-                             "  :END:\n"
+                             ":END:\n"
                              "** TODO Task 1\n"
                              scheduled-string
                              "\n"
