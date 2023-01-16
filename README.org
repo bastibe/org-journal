@@ -111,6 +111,8 @@ installation should be trivial:
 
 Then add =(require 'org-journal)= to your =.emacs=.
 
+*Note!* If you are using =org-mode= version 9.6 consider customizing the variable =org-element-use-cache= and setting it to =nil= to workaround [[https://github.com/bastibe/org-journal/issues/406][an issue where journal items are not properly carried over to the next day]]
+
 ** Quickstart
 
 Doing =M-x org-journal-new-entry= will immediately create a journal
