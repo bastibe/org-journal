@@ -482,7 +482,7 @@ before it will be deposed."
 (defun org-journal-is-journal ()
   "Determine if file is a journal file."
   (and (buffer-file-name)
-       (string-match (org-journal--dir-and-file-format->pattern) (buffer-file-name))))
+       (string-match (org-journal--dir-and-file-format->pattern) (file-truename (buffer-file-name)))))
 
 ;; Open files in `org-journal-mode' if `org-journal-is-journal' returns true.
 (add-to-list 'magic-mode-alist '(org-journal-is-journal . org-journal-mode))
