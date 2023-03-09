@@ -1,3 +1,36 @@
+2.2.0 / 2023-03-09
+==================
+
+- fix to check journal files in symlink directory correctly (tomoyukim)
+- Add note for issue #406 in README.org (Marcel van der Boom)
+- fix: do not error out on timestamps with extra components (#407) (Janek)
+- fix failing test case #404 (Jason May)
+- don't break journaling if CREATED exists at file level #383 (Jason May)
+- fill docstrings to prevent byte-compile warnings (Jason May)
+- Add NonGNU ELPA to installation instructions (Stefan Kangas)
+- Add NonGNU ELPA badge to README.org (Stefan Kangas)
+- Add copyright and license header (Stefan Kangas)
+- Encryption enabling added to org-journal-mode-hook (quantum)
+- added documentation for `org-journal-mode-hook` (quantum)
+- visual-line-mode not present in org-journal-mode-hook (quantum)
+- Replace kill-region with delete-region (Janek)
+- removed repeated text from readme (Harsha Somisetty)
+- Fix multi-line file header being mixed up with the journal entry. (Alexander Miller)
+- Minor typos in docstrings (Christopher League)
+- document org-journal-hide-entries-p (Damien)
+- Remove deplicate of C-c C-j definition. (Dmitrii Kuragin)
+- Update documentation to reflect removed 'C-c C-j' global key (Dmitrii Kuragin)
+- Remove key definition in the package loading. (Dmitrii Kuragin)
+- Fix failing test (Christian Schwarzgruber)
+- Set FIXEDCASE flag on replace-regexp-in-string (Christian Schwarzgruber)
+- Add scheduled entry time of the day (Daniel Nicolai)
+- Replace get-file-buffer with find-buffer-visiting (wolfwang)
+- Fix incorrect entry-path when extend-today (yangsheng6810)
+- Just a little code rework (Christian Schwarzgruber)
+- Swallow message in test (Christian Schwarzgruber)
+- Also test against Emacs 27.1 (Christian Schwarzgruber)
+- Fix and clean-up org-journal-scheduled-weekly-test (Christian Schwarzgruber)
+- Fix Agenda integration when not using daily files (Christian Schwarzgruber)
 
 2.1.2 / 2021-01-28
 ==================

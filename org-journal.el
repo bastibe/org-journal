@@ -6,7 +6,7 @@
 ;;         Christian Schwarzgruber
 
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 2.1.2
+;; Version: 2.2.0
 ;; Package-Requires: ((emacs "25.1") (org "9.1"))
 
 ;; Redistribution and use in source and binary forms, with or without
