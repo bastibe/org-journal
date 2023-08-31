@@ -465,9 +465,10 @@ before it will be deposed."
                  (generate-new-buffer (file-name-nondirectory ,file))))
           result)
      (with-current-buffer buf
-       (unless buffer-exists
-         (insert-file-contents ,file))
-       (setq result (progn ,@body)))
+       (let ((major-mode 'org-mode))
+         (unless buffer-exists
+           (insert-file-contents ,file))
+         (setq result (progn ,@body))))
      (unless buffer-exists
        (kill-buffer buf))
      result))
