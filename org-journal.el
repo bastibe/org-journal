@@ -1376,6 +1376,7 @@ from oldest to newest."
   (org-journal--decrypt)
   (if (org-journal--is-date-prefix-org-heading-p)
       (progn
+        (outline-next-heading)
         (org-up-heading-safe)
         (org-back-to-heading)
         (outline-hide-other)
