@@ -467,8 +467,8 @@ before it will be deposed."
      (with-current-buffer buf
        (unless buffer-exists
          (insert-file-contents ,file))
-       ;; Use `let' to change the local value of `major-mode' and
-       ;; avoid `org-mode' directly and incurring a performance penalty.
+       ;; Use `let' to change the local value of `major-mode' and avoid
+       ;; activating `org-mode' directly and incurring a performance penalty.
        (setq result (let ((major-mode 'org-mode))
                       (progn ,@body))))
      (unless buffer-exists
