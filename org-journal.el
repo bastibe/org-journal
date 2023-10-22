@@ -1381,7 +1381,7 @@ from oldest to newest."
       (progn
         (org-up-heading-safe)
         (org-back-to-heading)
-        (outline-hide-other)
+        (if org-journal-hide-entries-p (outline-hide-other))
         (outline-show-subtree))
     (outline-show-all)))
 
