@@ -731,7 +731,7 @@ This allows the use of `org-journal-tag-alist' and
           (org-set-tags org-crypt-tag-matcher)))
       (run-hooks 'org-journal-after-header-create-hook))))
 
-(defun org-journal--insert-entry (time org-extend-today-until-active-p)
+(defun org-journal--insert-entry (time org-extend-today-until-active-p &optional no-timestamp)
   "Insert a new entry."
   (unless (eq (current-column) 0) (insert "\n"))
   (let* ((day-discrepancy (- (time-to-days (current-time)) (time-to-days time)))
@@ -747,11 +747,11 @@ This allows the use of `org-journal-tag-alist' and
                          (format-time-string org-journal-time-format)))
                       ;; “time” is on some other day, use blank timestamp
                       (t ""))))
-    (insert org-journal-time-prefix timestamp))
+    (insert org-journal-time-prefix (if no-timestamp "" timestamp)))
   (run-hooks 'org-journal-after-entry-create-hook))
 
 ;;;###autoload
-(defun org-journal-new-entry (prefix &optional time)
+(defun org-journal-new-entry (prefix &optional time no-timestamp)
   "Open today's journal file and start a new entry.
 
 With a PREFIX arg, open the today's file, create a heading if it
@@ -805,7 +805,7 @@ hook is run."
       (goto-char (point-max)))
 
     (when should-add-entry-p
-      (org-journal--insert-entry time org-extend-today-until-active-p))
+      (org-journal--insert-entry time org-extend-today-until-active-p no-timestamp))
 
     (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
         (outline-hide-sublevels (org-journal--time-entry-level))
@@ -1103,46 +1103,74 @@ insert just the heading."
         (org-journal-new-entry prefix time)
       (org-journal-new-scheduled-entry prefix time))))
 
+
+(defvar org-time-was-given)
+(defvar org-end-time-was-given)
+
 ;;;###autoload
 (defun org-journal-new-scheduled-entry (prefix &optional scheduled-time)
   "Create a new entry in the future with an active timestamp.
 
 With non-nil prefix argument create a regular entry instead of a TODO entry."
   (interactive "P")
-  (let ((time (or scheduled-time (org-time-string-to-time (org-read-date nil nil nil "Date:"))))
-        org-journal-carryover-items)
+  (let* ((org-time-was-given nil) (org-end-time-was-given nil)
+         (time (or scheduled-time (org-time-string-to-time (org-read-date nil nil nil "Date:"))))
+         org-journal-carryover-items)
     (when (time-less-p time (current-time))
       (user-error "Scheduled time needs to be in the future"))
-    (org-journal-new-entry nil time)
+    (org-journal-new-entry nil time t)
     (unless prefix
       (insert "TODO "))
+    (if org-time-was-given
+        (insert (format-time-string org-journal-time-format time)))
     (save-excursion
-      (insert "\n")
-      (org-insert-time-stamp time t))))
+      (insert "\n"
+	      org-scheduled-string " ") ; "SCHEDULED: "
+      (org-insert-time-stamp
+       time org-time-was-given nil nil nil (list org-end-time-was-given)))))
 
 ;;;###autoload
 (defun org-journal-reschedule-scheduled-entry (&optional time)
   "Reschedule an entry in the future."
   (interactive "P")
-  (or time (setq time (org-time-string-to-time (org-read-date nil nil nil "Data:"))))
-  (when (time-less-p time (current-time))
-    (user-error "Scheduled time needs to be in the future"))
-  (save-excursion
-    (save-restriction
-      (org-back-to-heading)
-      (org-narrow-to-subtree)
-      (if (re-search-forward org-ts-regexp (line-end-position 2) t)
-          (replace-match "")
-        (org-end-of-subtree)
-        (insert "\n"))
-      (org-insert-time-stamp time)
-      (org-cut-subtree))
-    (let (org-journal-carryover-items)
-      (org-save-outline-visibility t
-        (org-journal-new-entry t time)
-        (when (looking-back "[^\t ]" (point-at-bol) t)
+  (let ((org-time-was-given nil) (org-end-time-was-given nil))
+    (or time (setq time (org-time-string-to-time (org-read-date nil nil nil "Date:"))))
+    (when (time-less-p time (current-time))
+      (user-error "Scheduled time needs to be in the future"))
+    (save-excursion
+      (save-restriction
+        (org-back-to-heading)
+        (org-narrow-to-subtree)
+        ;; update time after org-journal-time-prefix
+        (let ((regexp
+               (concat
+                "^"
+                (regexp-quote org-journal-time-prefix)
+                "\\(TODO \\)?"
+                "\\("
+                (replace-regexp-in-string "[[:digit:]]" "[[:digit:]]"
+					  (format-time-string org-journal-time-format '(0 0) t))
+                "\\)")))
+          (if (re-search-forward regexp (line-end-position) t)
+              (progn
+                (delete-region (match-beginning 2) (match-end 2))
+                (if org-time-was-given
+                    (insert (format-time-string org-journal-time-format time))))))
+        ;; update time of timestamp (<...>)
+        (org-back-to-heading)
+        (if (re-search-forward (concat org-scheduled-string "[[:blank:]]*" org-ts-regexp) nil t)
+            (replace-match "")
+          (org-end-of-subtree)
           (insert "\n"))
-        (org-yank)))))
+        (insert org-scheduled-string " ")
+        (org-insert-time-stamp time org-time-was-given nil nil nil (list org-end-time-was-given))
+        (org-cut-subtree))
+      (let (org-journal-carryover-items)
+        (org-save-outline-visibility t
+                                     (org-journal-new-entry t time)
+                                     (when (looking-back "[^\t ]" (point-at-bol) t)
+                                       (insert "\n"))
+                                     (org-yank))))))
 
 (defun org-journal--goto-entry (date)
   "Goto DATE entry in current journal file."
