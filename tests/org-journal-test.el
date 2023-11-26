@@ -381,3 +381,84 @@
                              "** TODO Task 2\n"
                              scheduled-string))
                            (buffer-substring-no-properties (point-min) (point-max)))))))))
+
+(ert-deftest org-journal-new-scheduled-entry-test ()
+  (org-journal-test-macro
+      (let* ((day-offset 1)
+             (scheduled-entry-time (org-journal--calendar-date->time (calendar-current-date day-offset)))
+             (scheduled-string (concat (format-time-string (car org-time-stamp-formats) scheduled-entry-time))))
+        ;; Add first scheduled entry
+        (org-journal-new-scheduled-entry nil scheduled-entry-time)
+        (insert "Task 1")
+        ;; Add a second scheduled entry
+        (org-journal-new-scheduled-entry nil scheduled-entry-time)
+        (insert "Task 2")
+        ;; Add a third scheduled entry with time
+        (cl-letf (((symbol-function 'org-read-date) ; "emulate" org-read-date
+                   #'(lambda (&rest args)
+                       (setq org-time-was-given t)
+                       (org-format-time-string "%F 10:00" scheduled-entry-time))))
+          (org-journal-new-scheduled-entry nil)
+          (insert "Task 3"))
+        ;; Add a fourth scheduled entry with timerange
+        (cl-letf (((symbol-function 'org-read-date)
+                   #'(lambda (&rest args)
+                       (setq org-time-was-given t
+                             org-end-time-was-given "12:00")
+                       (org-format-time-string "%F 11:00" scheduled-entry-time))))
+          (org-journal-new-scheduled-entry nil)
+          (insert "Task 4"))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                       (with-temp-buffer
+                         (insert
+                          "* Test header\n"
+                          "** TODO Task 1\n"
+                          "SCHEDULED: <" scheduled-string ">\n"
+                          "** TODO Task 2\n"
+                          "SCHEDULED: <" scheduled-string ">\n"
+                          "** TODO 10:00 Task 3\n"
+                          "SCHEDULED: <" scheduled-string " 10:00>\n"
+                          "** TODO 11:00 Task 4\n"
+                          "SCHEDULED: <" scheduled-string " 11:00-12:00>")
+                         (buffer-substring-no-properties (point-min) (point-max))))))))
+
+(ert-deftest org-journal-reschedule-scheduled-entry-test ()
+  (org-journal-test-macro
+      (let* ((day-offset 1)
+             (scheduled-entry-time (org-journal--calendar-date->time (calendar-current-date day-offset)))
+             (scheduled-string (concat (format-time-string (car org-time-stamp-formats) scheduled-entry-time)))
+             pos)
+        ;; dummy
+        (org-journal-new-scheduled-entry nil scheduled-entry-time)
+        (insert "Task 1")
+        ;; target
+        (cl-letf (((symbol-function 'org-read-date) ; "emulate" org-read-date
+                   #'(lambda (&rest args)
+                       (setq org-time-was-given t)
+                       (org-format-time-string "%F 12:00" scheduled-entry-time))))
+          (org-journal-new-scheduled-entry nil)
+          (setq pos (point))
+          (insert "Task 2"))
+        ;; dummy
+        (org-journal-new-scheduled-entry nil scheduled-entry-time)
+        (insert "Task 3")
+        ;; do test
+        (goto-char pos)
+        (cl-letf (((symbol-function 'org-read-date)
+                   #'(lambda (&rest args)
+                       (setq org-time-was-given t
+                             org-end-time-was-given nil)
+                       (org-format-time-string "%F 20:00" scheduled-entry-time))))
+          (org-journal-reschedule-scheduled-entry))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                       (with-temp-buffer
+                         (insert
+                          "* Test header\n"
+                          "** TODO Task 1\n"
+                          "SCHEDULED: <" scheduled-string ">\n"
+                          "\n"
+                          "** TODO Task 3\n"
+                          "SCHEDULED: <" scheduled-string ">\n"
+                          "** TODO 20:00 Task 2\n"
+                          "SCHEDULED: <" scheduled-string " 20:00>")
+                         (buffer-substring-no-properties (point-min) (point-max))))))))
