@@ -53,7 +53,7 @@
   (org-journal-invalidate-cache))
 
 (defmacro org-journal-test-macro (&rest body)
-  "Wrapp a `org-journal' -- `ert'-test with default values."
+  "Wrap a `org-journal' -- `ert'-test with default values."
   (declare (indent 1))
   `(let* ((org-journal-dir (concat org-journal-dir-test "-link"))
           (comment-start-skip "^\\s-*#\\(?: \\|$\\)")
@@ -61,7 +61,7 @@
           (org-journal-file-type 'daily)
           (org-journal-date-format "Test header")
           (org-agenda-inhibit-startup t)
-          (org-journal-time-format "%R")
+          (org-journal-time-format "%R ")
           (org-journal-created-property-timestamp-format "%Y%m%d")
           org-journal-file-header
           org-journal-encrypt-journal
