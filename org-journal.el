@@ -394,6 +394,10 @@ This prefix key is used for:
 - `org-journal-search' (key \"s\")"
   :type 'string)
 
+(defcustom org-journal-scheduled-string ""      ; or org-scheduled-string
+  "String added before a time stamp for schedules."
+  :type 'string)
+
 (defvar org-journal-after-entry-create-hook nil
   "Hook called after journal entry creation.")
 
@@ -1125,7 +1129,8 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
         (insert (format-time-string org-journal-time-format time)))
     (save-excursion
       (insert "\n"
-	      org-scheduled-string " ") ; "SCHEDULED: "
+              org-journal-scheduled-string
+              (if (length> org-journal-scheduled-string 0) " " ""))
       (org-insert-time-stamp
        time org-time-was-given nil nil nil (list org-end-time-was-given)))))
 
@@ -1149,7 +1154,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
                 "\\(TODO \\)?"
                 "\\("
                 (replace-regexp-in-string "[[:digit:]]" "[[:digit:]]"
-					  (format-time-string org-journal-time-format '(0 0) t))
+                                          (format-time-string org-journal-time-format '(0 0) t))
                 "\\)")))
           (if (re-search-forward regexp (line-end-position) t)
               (progn
@@ -1158,11 +1163,14 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
                     (insert (format-time-string org-journal-time-format time))))))
         ;; update time of timestamp (<...>)
         (org-back-to-heading)
-        (if (re-search-forward (concat org-scheduled-string "[[:blank:]]*" org-ts-regexp) nil t)
+        (if (re-search-forward (concat (regexp-quote org-journal-scheduled-string)
+                                       "[[:blank:]]*" org-ts-regexp)
+                               nil t)
             (replace-match "")
           (org-end-of-subtree)
           (insert "\n"))
-        (insert org-scheduled-string " ")
+        (insert org-journal-scheduled-string
+                (if (length> org-journal-scheduled-string 0) " " ""))
         (org-insert-time-stamp time org-time-was-given nil nil nil (list org-end-time-was-given))
         (org-cut-subtree))
       (let (org-journal-carryover-items)

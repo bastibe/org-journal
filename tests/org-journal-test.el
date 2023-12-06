@@ -323,66 +323,66 @@
 
 (ert-deftest org-journal-scheduled-weekly-test ()
   (org-journal-test-macro
-      (let ((org-journal-file-type 'weekly)
-            (org-journal-start-on-weekday 7) ;; sunday
-            org-journal-encrypt-journal
-            org-journal-enable-encryption
-            org-journal-enable-cache
-            org-journal-file-header
-            day-offset)
+   (let ((org-journal-file-type 'weekly)
+         (org-journal-start-on-weekday 7) ;; sunday
+         org-journal-encrypt-journal
+         org-journal-enable-encryption
+         org-journal-enable-cache
+         org-journal-file-header
+         day-offset)
 
-        ;; Compute correct day-offset, so future and today journal entry end in the same file
-        (let ((current-date (calendar-current-date))
-              (current-date+1 (calendar-current-date 1)))
-          (if (equal (org-journal--convert-time-to-file-type-time
-                      (org-journal--calendar-date->time current-date) )
-                     (org-journal--convert-time-to-file-type-time
-                      (org-journal--calendar-date->time current-date+1)))
-              (setq day-offset 1)
-            (setq day-offset 2)))
+     ;; Compute correct day-offset, so future and today journal entry end in the same file
+     (let ((current-date (calendar-current-date))
+           (current-date+1 (calendar-current-date 1)))
+       (if (equal (org-journal--convert-time-to-file-type-time
+                   (org-journal--calendar-date->time current-date) )
+                  (org-journal--convert-time-to-file-type-time
+                   (org-journal--calendar-date->time current-date+1)))
+           (setq day-offset 1)
+         (setq day-offset 2)))
 
-        (let* ((scheduled-entry-date (calendar-current-date day-offset))
-               (scheduled-entry-time (org-journal--calendar-date->time scheduled-entry-date))
-               (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
-               (new-entry-time (org-journal--calendar-date->time new-entry-date))
-               ;; TODO(cschwarzgruber): For PR #338
-               ;; "   "
-               ;; org-scheduled-string
-               ;; " "
-               (scheduled-string (concat "<" (format-time-string (cdr org-time-stamp-formats) scheduled-entry-time) ">")))
-          ;; Add first scheduled entry
-          (org-journal-new-scheduled-entry nil scheduled-entry-time)
-          (insert "Task 1")
-          ;; Add a second scheduled entry
-          (org-journal-new-scheduled-entry nil scheduled-entry-time)
-          (insert "Task 2")
-          ;; New today entry should be added at the beginning of the journal file
-          (org-journal-new-entry 4 new-entry-time)
-          (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                         (with-temp-buffer
-                           (insert
-                            (concat
-                             ;; Today entry
-                             "* Test header\n"
-                             ":PROPERTIES:\n"
-                             (concat
-                              ":CREATED:  "
-                              (format-time-string org-journal-created-property-timestamp-format new-entry-time)
-                              "\n")
-                             ":END:\n"
+     (let* ((scheduled-entry-date (calendar-current-date day-offset))
+            (scheduled-entry-time (org-journal--calendar-date->time scheduled-entry-date))
+            (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
+            (new-entry-time (org-journal--calendar-date->time new-entry-date))
+            ;; TODO(cschwarzgruber): For PR #338
+            ;; "   "
+            ;; org-scheduled-string
+            ;; " "
+            (scheduled-string (concat "<" (format-time-string (car org-time-stamp-formats) scheduled-entry-time) ">")))
+       ;; Add first scheduled entry
+       (org-journal-new-scheduled-entry nil scheduled-entry-time)
+       (insert "Task 1")
+       ;; Add a second scheduled entry
+       (org-journal-new-scheduled-entry nil scheduled-entry-time)
+       (insert "Task 2")
+       ;; New today entry should be added at the beginning of the journal file
+       (org-journal-new-entry 4 new-entry-time)
+       (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                      (with-temp-buffer
+                        (insert
+                         (concat
+                          ;; Today entry
+                          "* Test header\n"
+                          ":PROPERTIES:\n"
+                          (concat
+                           ":CREATED:  "
+                           (format-time-string org-journal-created-property-timestamp-format new-entry-time)
+                           "\n")
+                          ":END:\n"
 
-                             ;; Scheduled entries
-                             "* Test header\n"
-                             ":PROPERTIES:\n"
-                             (concat
-                              ":CREATED:  "
-                              (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
-                              "\n")
-                             ":END:\n"
-                             "** TODO Task 1\n"
-                             scheduled-string
-                             "\n"
-                             ;; (format-time-string "   SCHEDULED: <%F %a>\n" )
-                             "** TODO Task 2\n"
-                             scheduled-string))
-                           (buffer-substring-no-properties (point-min) (point-max)))))))))
+                          ;; Scheduled entries
+                          "* Test header\n"
+                          ":PROPERTIES:\n"
+                          (concat
+                           ":CREATED:  "
+                           (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
+                           "\n")
+                          ":END:\n"
+                          "** TODO Task 1\n"
+                          scheduled-string
+                          "\n"
+                          ;; (format-time-string "   SCHEDULED: <%F %a>\n" )
+                          "** TODO Task 2\n"
+                          scheduled-string))
+                        (buffer-substring-no-properties (point-min) (point-max)))))))))
