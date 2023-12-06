@@ -227,10 +227,11 @@
         (save-buffer)
         (kill-buffer)
         (let ((message-marker nil))
-          (fset 'message (lambda (x y) (setq message-marker x)))
-          (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)
-          (should (equal "No journal entry for this date." message-marker))
-          ))))
+          (cl-letf (((symbol-function 'message)
+                     #'(lambda (x &rest y) (setq message-marker x))))
+            (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)
+            (should (equal "No journal entry for this date." message-marker))
+            )))))
 
 (ert-deftest org-journal-search-build-file-list-test ()
   "Test for `org-journal--search-build-file-list'."
