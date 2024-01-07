@@ -1,4 +1,4 @@
-[[https://travis-ci.org/bastibe/org-journal][file:https://travis-ci.org/bastibe/org-journal.svg?branch=master]] [[https://elpa.nongnu.org/nongnu/org-journal.html][https://elpa.nongnu.org/nongnu/org-journal.svg]] [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
+[[https://github.com/bastibe/org-journal/actions/workflows/test.yml][file:https://github.com/bastibe/org-journal/actions/workflows/test.yml/badge.svg?branch=master]] [[https://elpa.nongnu.org/nongnu/org-journal.html][https://elpa.nongnu.org/nongnu/org-journal.svg]] [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
 
 #+CAPTION: The org-journal logo
 [[./org-journal.svg]]
@@ -306,11 +306,11 @@ empty string =""=. Any [[http://orgmode.org/manual/Matching-tags-and-properties.
 todo states are allowed. By default this is ~TODO=”TODO”~. Which will
 match TODO items.
 
-The old carryover items in the previous day's journal are processed by the function assigned to =org-journal-handle-old-carryover= variable. 
+The old carryover items in the previous day's journal are processed by the function assigned to =org-journal-handle-old-carryover= variable.
 Default is to remove all of them. You can change this behavior by
 assigning a custom fuction to the variable.
 Your function has to take one argument, which is a list of old carryover entries. The list is in form of ((START_POINT (END_POINT . "TEXT")) ... (START_POINT (END_POINT . "TEXT"))); and in ascending order of START_POINT.
- 
+
 For example, you can choose putting a tag on the old carryover entries intead of removing them:
 
 #+begin_src elisp
@@ -319,7 +319,7 @@ For example, you can choose putting a tag on the old carryover entries intead of
     (let ((matcher (cdr (org-make-tags-matcher org-journal-carryover-items))))
       (dolist (entry (reverse old_carryover))
         (save-restriction
-          (narrow-to-region (car entry) (cadr entry)) 
+          (narrow-to-region (car entry) (cadr entry))
           (goto-char (point-min))
           (org-scan-tags '(lambda ()
                             (org-set-tags ":carried:"))

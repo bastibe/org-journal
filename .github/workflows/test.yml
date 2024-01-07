@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    paths-ignore:
+      - CHANGELOG
+      - CONTRIBUTORS
+      - LICENSE
+      - README.org
+      - org-journal.svg
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      matrix:
+        emacs_version:
+          - 25.1
+          - 26.1
+          - 27.1
+          - 28.1
+          - 29.1
+          - release-snapshot
+        experimental: [false]
+        include:
+          - emacs_version: snapshot
+            experimental: true
+    steps:
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.emacs_version }}
+
+    - uses: actions/checkout@v4
+
+    - name: Run tests
+      run: make all
