@@ -1130,7 +1130,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
     (save-excursion
       (insert "\n"
               org-journal-scheduled-string
-              (if (length> org-journal-scheduled-string 0) " " ""))
+              (if (> (length org-journal-scheduled-string) 0) " " ""))
       (org-insert-time-stamp
        time org-time-was-given nil nil nil (list org-end-time-was-given)))))
 
@@ -1170,7 +1170,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
           (org-end-of-subtree)
           (insert "\n"))
         (insert org-journal-scheduled-string
-                (if (length> org-journal-scheduled-string 0) " " ""))
+                (if (> (length org-journal-scheduled-string) 0) " " ""))
         (org-insert-time-stamp time org-time-was-given nil nil nil (list org-end-time-was-given))
         (org-cut-subtree))
       (let (org-journal-carryover-items)
