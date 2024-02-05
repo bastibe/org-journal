@@ -1266,7 +1266,8 @@ If NO-SELECT is non-nil, open it, but don't show it."
 (defun org-journal-open-current-journal-file ()
   "Open the current journal file"
   (interactive)
-  (let ((org-journal-file (org-journal--get-entry-path)))
+  (let ((org-journal-file (org-journal--get-entry-path
+                           (time-since (* 3600 org-extend-today-until)))))
     (if (file-exists-p org-journal-file)
         (progn
           (funcall org-journal-find-file org-journal-file)
