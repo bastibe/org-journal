@@ -228,7 +228,7 @@
         (kill-buffer)
         (let ((message-marker nil))
           (cl-letf (((symbol-function 'message)
-                     #'(lambda (x &rest y) (setq message-marker x))))
+                     #'(lambda (x &rest _y) (setq message-marker x))))
             (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)
             (should (equal "No journal entry for this date." message-marker))
             )))))
