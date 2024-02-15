@@ -345,11 +345,9 @@
             (scheduled-entry-time (org-journal--calendar-date->time scheduled-entry-date))
             (new-entry-date (calendar-current-date (if (= day-offset 1) nil 1)))
             (new-entry-time (org-journal--calendar-date->time new-entry-date))
-            ;; TODO(cschwarzgruber): For PR #338
-            ;; "   "
-            ;; org-scheduled-string
-            ;; " "
-            (scheduled-string (concat "<" (format-time-string (car org-time-stamp-formats) scheduled-entry-time) ">")))
+            (scheduled-string (with-temp-buffer
+                                (org-insert-time-stamp scheduled-entry-time)
+                                (buffer-string))))
        ;; Add first scheduled entry
        (org-journal-new-scheduled-entry nil scheduled-entry-time)
        (insert "Task 1")
@@ -360,6 +358,7 @@
        (org-journal-new-entry 4 new-entry-time)
        (should (equal (buffer-substring-no-properties (point-min) (point-max))
                       (with-temp-buffer
+                        (org-journal-mode)
                         (insert
                          (concat
                           ;; Today entry
