@@ -10,7 +10,7 @@ clean:
 	git clean -Xf
 
 compile:
-	$(BATCH) -f batch-byte-compile tests/org-journal-test.el org-journal.el
+	$(BATCH) -f batch-byte-compile org-journal.el
 
 gen-autoloads:
 	$(BATCH) \

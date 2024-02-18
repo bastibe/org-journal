@@ -1449,6 +1449,7 @@ is nil or avoid switching when NOSELECT is non-nil."
                      (setq point (org-journal--search-forward-created
                                   (list (nth 4 time) (nth 3 time) (nth 5 time))
                                   nil t))))))
+
         (progn
           ;; Use `find-file-noselect' instead of `view-file' as it does not respect `auto-mode-alist'
           (with-current-buffer buf

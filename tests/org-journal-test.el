@@ -52,6 +52,18 @@
   (make-symbolic-link org-journal-dir-test (concat org-journal-dir-test "-link") t)
   (org-journal-invalidate-cache))
 
+(defun org-journal-buffer-content (&optional no-properties ignore-leading-whitespaces)
+  (let ((buffer-content-fn (if no-properties
+                               #'buffer-substring-no-properties
+                             #'buffer-substring)))
+    (when ignore-leading-whitespaces
+      (fundamental-mode)
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward "^\\([ \t]+\\)" nil t)
+          (replace-match "" nil nil))))
+    (funcall buffer-content-fn (point-min) (point-max))))
+
 (defmacro org-journal-test-macro (&rest body)
   "Wrapp a `org-journal' -- `ert'-test with default values."
   (declare (indent 1))
@@ -197,7 +209,9 @@
   "Org journal delete empty journal test"
   (org-journal-test-macro
       (let ((buffer "20181231")
-            (org-journal-carryover-delete-empty-journal 'always))
+            (org-journal-carryover-delete-empty-journal 'always)
+            (inhibit-message t))
+
         ;; Test that journal file gets dumped, after carryover
         (with-temp-buffer
           (org-journal-mode)
@@ -208,7 +222,8 @@
         (org-journal-new-entry nil)
         (save-buffer)
         (kill-buffer)
-        (should (not (file-exists-p (org-journal--get-entry-path (encode-time 0 0 0 31 12 2018)))))
+        (should (equal "No journal entry for this date."
+                       (org-journal-read-or-display-entry (encode-time 0 0 0 31 12 2018) 'noselect)))
 
         ;; Test even single entry gets deleted, relevant for weekly, monthly and yearly journal files.
         (org-journal-dir-test-setup)
@@ -217,21 +232,18 @@
           (org-journal-mode)
           (insert "* Wednesday, 01/01/19\n")
           (org-set-property "CREATED" "20190101")
-          (insert "** TODO a\n")
+          (insert "** 15:00 a\n")
           (insert "* Wednesday, 01/02/19\n")
           (org-set-property "CREATED" "20190102")
           (insert "** TODO a\n")
           (write-file (expand-file-name "20190101" org-journal-dir-test))
           (kill-buffer "20190101"))
+
         (org-journal-new-entry nil)
         (save-buffer)
         (kill-buffer)
-        (let ((message-marker nil))
-          (cl-letf (((symbol-function 'message)
-                     #'(lambda (x &rest _y) (setq message-marker x))))
-            (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect)
-            (should (equal "No journal entry for this date." message-marker))
-            )))))
+        (should (equal "No journal entry for this date."
+                       (org-journal-read-or-display-entry (encode-time 0 0 0 2 1 2019) 'noselect))))))
 
 (ert-deftest org-journal-search-build-file-list-test ()
   "Test for `org-journal--search-build-file-list'."
@@ -289,7 +301,7 @@
         (org-journal-new-entry 4) ;; 4 - no new time entry
         (setq new-scheduled-date (with-temp-buffer
                                    (org-insert-time-stamp (current-time))
-                                   (buffer-substring-no-properties (point-min) (point-max))))
+                                   (org-journal-buffer-content t t)))
         (goto-char (point-min))
         (search-forward new-scheduled-date)
         (search-forward new-scheduled-date))))
@@ -356,32 +368,29 @@
        (insert "Task 2")
        ;; New today entry should be added at the beginning of the journal file
        (org-journal-new-entry 4 new-entry-time)
-       (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                      (with-temp-buffer
-                        (org-journal-mode)
-                        (insert
-                         (concat
-                          ;; Today entry
-                          "* Test header\n"
-                          ":PROPERTIES:\n"
-                          (concat
-                           ":CREATED:  "
-                           (format-time-string org-journal-created-property-timestamp-format new-entry-time)
-                           "\n")
-                          ":END:\n"
 
-                          ;; Scheduled entries
-                          "* Test header\n"
-                          ":PROPERTIES:\n"
-                          (concat
-                           ":CREATED:  "
-                           (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
-                           "\n")
-                          ":END:\n"
-                          "** TODO Task 1\n"
-                          scheduled-string
-                          "\n"
-                          ;; (format-time-string "   SCHEDULED: <%F %a>\n" )
-                          "** TODO Task 2\n"
-                          scheduled-string))
-                        (buffer-substring-no-properties (point-min) (point-max)))))))))
+       (should (equal (org-journal-buffer-content t t)
+                      (concat
+                       ;; Today entry
+                       "* Test header\n"
+                       ":PROPERTIES:\n"
+                       (concat
+                        ":CREATED:  "
+                        (format-time-string org-journal-created-property-timestamp-format new-entry-time)
+                        "\n")
+                       ":END:\n"
+
+                       ;; Scheduled entries
+                       "* Test header\n"
+                       ":PROPERTIES:\n"
+                       (concat
+                        ":CREATED:  "
+                        (format-time-string org-journal-created-property-timestamp-format scheduled-entry-time)
+                        "\n")
+                       ":END:\n"
+                       "** TODO Task 1\n"
+                       scheduled-string
+                       "\n"
+                       ;; (format-time-string "   SCHEDULED: <%F %a>\n" )
+                       "** TODO Task 2\n"
+                       scheduled-string)))))))
