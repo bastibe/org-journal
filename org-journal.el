@@ -1,6 +1,6 @@
 ;;; org-journal.el --- a simple org-mode based journaling mode -*- lexical-binding: t; -*-
 
-;; Copyright 2013-2022 Bastian Bechtold
+;; Copyright 2013-2024 Bastian Bechtold
 
 ;; Author: Bastian Bechtold
 ;;         Christian Schwarzgruber
