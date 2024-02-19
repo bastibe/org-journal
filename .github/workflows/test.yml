@@ -35,4 +35,4 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Run tests
-      run: make all
+      run: make -f el.make all

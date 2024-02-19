@@ -1,2 +1,2 @@
 *.elc
-/org-journal-autoloads.el
+*-autoloads.el
