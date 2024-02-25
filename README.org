@@ -1,7 +1,7 @@
-[[https://github.com/bastibe/org-journal/actions/workflows/test.yml][file:https://github.com/bastibe/org-journal/actions/workflows/test.yml/badge.svg?branch=master]] [[https://elpa.nongnu.org/nongnu/org-journal.html][https://elpa.nongnu.org/nongnu/org-journal.svg]] [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/org-journal.svg]] [[license][file:https://img.shields.io/github/license/bastibe/org-journal.svg]]
+[[https://github.com/bastibe/org-journal/actions/workflows/test.yml][file:https://github.com/bastibe/org-journal/actions/workflows/test.yml/badge.svg?branch=master]] [[https://elpa.nongnu.org/nongnu/org-journal.html][https://elpa.nongnu.org/nongnu/org-journal]] [[http://melpa.org/#/org-journal][file:http://melpa.org/packages/org-journal-badge.svg]] [[http://stable.melpa.org/#/org-journal][file:http://stable.melpa.org/packages/org-journal-badge.svg]] [[contributors][file:https://img.shields.io/github/contributors/bastibe/logo.svg]] [[license][file:https://img.shields.io/github/license/bastibe/logo.svg]]
 
 #+CAPTION: The org-journal logo
-[[./org-journal.svg]]
+[[./logo.svg]]
 
 * org-journal
 
@@ -12,7 +12,7 @@
   Feel free to use, modify and improve the code!
   — mtvoid, bastibe
 
-[[open-issues][file:https://img.shields.io/github/issues/bastibe/org-journal.svg]] [[closed-issues][file:https://img.shields.io/github/issues-closed/bastibe/org-journal.svg]] [[open-pull-requests][file:https://img.shields.io/github/issues-pr/bastibe/org-journal.svg]] [[closed-pull-requests][file:https://img.shields.io/github/issues-pr-closed/bastibe/org-journal.svg]]
+[[open-issues][file:https://img.shields.io/github/issues/bastibe/logo.svg]] [[closed-issues][file:https://img.shields.io/github/issues-closed/bastibe/logo.svg]] [[open-pull-requests][file:https://img.shields.io/github/issues-pr/bastibe/logo.svg]] [[closed-pull-requests][file:https://img.shields.io/github/issues-pr-closed/bastibe/logo.svg]]
 
 ** Synopsis
 

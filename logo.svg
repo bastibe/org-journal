@@ -2,34 +2,31 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg2"
-   sodipodi:docname="org-journal.svg"
+   sodipodi:docname="logo.svg"
    viewBox="0 0 137.939 137.93899"
    version="1.1"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    width="137.939"
    height="137.939"
-   inkscape:export-filename="/mnem/Hephaistos/images/creation/org-journal/org-journal_16.png"
-   inkscape:export-xdpi="11.14"
-   inkscape:export-ydpi="11.14">
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <title
-     id="title1157">Org-Journal icon</title>
+     id="title1157">org-journal.el logo</title>
   <defs
      id="defs4">
     <filter
        id="filter3788"
-       height="1.2"
-       width="1.2"
-       y="-0.1"
-       x="-0.1"
+       height="1.9785218"
+       width="1.7125919"
+       y="-0.48951256"
+       x="-0.35633335"
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB">
       <feGaussianBlur
@@ -102,22 +99,22 @@
      id="base"
      bordercolor="#666666"
      inkscape:pageshadow="2"
-     inkscape:window-y="0"
+     inkscape:window-y="27"
      fit-margin-left="5.85626"
      pagecolor="#ffffff"
-     inkscape:window-height="720"
+     inkscape:window-height="1376"
      inkscape:window-maximized="1"
      inkscape:zoom="4.0307674"
      inkscape:window-x="0"
      showgrid="false"
      borderopacity="1.0"
      inkscape:current-layer="layer1"
-     inkscape:cx="68.969498"
-     inkscape:cy="68.969498"
+     inkscape:cx="69.093543"
+     inkscape:cy="69.093543"
      fit-margin-top="0"
      fit-margin-right="5.856265"
      fit-margin-bottom="0"
-     inkscape:window-width="1366"
+     inkscape:window-width="2560"
      inkscape:pageopacity="0"
      inkscape:document-units="px"
      showguides="true"
@@ -126,7 +123,8 @@
      inkscape:measure-start="177.223,82.6686"
      inkscape:measure-end="180.412,82.6686"
      units="px"
-     inkscape:snap-global="true" />
+     inkscape:snap-global="true"
+     inkscape:pagecheckerboard="0" />
   <g
      id="layer1"
      inkscape:label="Cover"
@@ -869,7 +867,7 @@
             <dc:title>Openclipart</dc:title>
           </cc:Agent>
         </dc:publisher>
-        <dc:title>Org-Journal icon</dc:title>
+        <dc:title>org-journal.el logo</dc:title>
         <dc:date>2018-12-0</dc:date>
         <dc:description>Icon/logo for the Emacs “org-journal” mode.
 By Tina Russell, based on original clipart by gsagri04, and incorporating the Org Mode unicorn art by Christophe Bataillon and Greg Newman. (The Org Mode unicorn was originally conceived by Bastien Guerry.)

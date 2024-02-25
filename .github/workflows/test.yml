@@ -9,7 +9,7 @@ on:
       - LICENSE
       - MAINTAINERS
       - README.org
-      - org-journal.svg
+      - logo.svg
 
 jobs:
   build:
