@@ -99,6 +99,8 @@
 (require 'org-crypt)
 (require 'seq)
 (require 'subr-x)
+(if (package-installed-p 'age)
+    (require 'age))
 
 ;; Silent byte-compiler
 (defvar view-exit-action)
@@ -245,10 +247,26 @@ passphrase to encrypt/decrypt it."
   :type 'boolean)
 
 (defcustom org-journal-encrypt-journal nil
-  "If non-nil, encrypt journal files using gpg.
+  "If non-nil, encrypt journal files.
+org-journal doesn't do the encryption itself,
+so you must have set up a transparent way of
+decryption and encryption.
+By default this is done using epa (EasyPG),
+which will automatically
 
-The journal files will have the file extension \".gpg\"."
+By default the journal files will have the file extension \".gpg\".
+You can change the file extension and therefore the encryption used via
+the `org-journal-encryption-format' variable."
   :type 'boolean)
+
+(defcustom org-journal-encryption-extension "gpg"
+  "The type of encryption to be used by apending the extension to
+the journal file name.
+Encryption is only used when `org-journal-encrypt-journal' is set.
+
+Currently supported extensions are \".gpg\" via EasyPG (epa) and
+\".age\" via age.el."
+  :type 'string)
 
 (define-obsolete-variable-alias  'org-journal-encrypt-on 'org-journal-encrypt-on-hook-fn "2.3.0")
 (defcustom org-journal-encrypt-on-hook-fn 'before-save-hook
@@ -535,7 +553,7 @@ before it will be deposed."
   "Return the current journal file pattern"
   (concat (file-name-as-directory (file-truename org-journal-dir))
           (org-journal--format->regex org-journal-file-format)
-          "\\(\\.gpg\\)?\\'"))
+          "\\(\.\\(gpg\\|age\\)\\)?\\'"))
 
 (defun org-journal--format->regex (format)
   (cl-loop
@@ -640,7 +658,7 @@ If no TIME is given, uses the current time."
                                     (org-journal--convert-time-to-file-type-time time))
                 org-journal-dir))))
     (when (and org-journal-encrypt-journal (not (file-exists-p file)))
-      (setq file (concat file ".gpg")))
+      (setq file (concat file "." org-journal-encryption-extension)))
     file))
 
 (defun org-journal--create-journal-dir ()
@@ -1291,7 +1309,7 @@ If NO-SELECT is non-nil, open it, but don't show it."
         (predicate (lambda (file-path)
                      (and (string-match-p (org-journal--dir-and-file-format->pattern) file-path)
                           (or org-journal-encrypt-journal
-                              (not (string-match-p "\.gpg$" file-path)))))))
+                              (not (string-match-p "\.\\(gpg\\|age\\)$" file-path)))))))
     (seq-filter predicate file-list)))
 
 
@@ -1922,9 +1940,17 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 
 (defun org-journal-re-encrypt-journals (recipient)
   "Re-encrypt journal files."
-  (interactive (list (epa-select-keys (epg-make-context epa-protocol)
-                                      "Select new recipient for encryption.
-Only one recipient is supported.  ")))
+  (interactive (list (cond
+                       ((string= org-journal-encryption-extension "gpg")
+                        (epa-select-keys (epg-make-context epa-protocol)
+                                         "Select new recipient for encryption.
+Only one recipient is supported.  "))
+                       ((string= org-journal-encryption-extension "age")
+                            (age-select-keys (age-make-context 'Age age-armor)
+                                             "Select new recipients for encryption."))
+                       (t
+                        (error "Encryption extension \"%s\" is unsupported"
+                               org-journal-encryption-extension)))))
 
   (unless recipient
     (user-error "You need to specify exactly one recipient"))
@@ -1933,29 +1959,36 @@ Only one recipient is supported.  ")))
     (user-error "org-journal encryption not enabled"))
 
   (cl-loop
-   with buf
-   with kill-buffer
-   for journal in (org-journal--list-files)
-   do
-   (setq buf (find-buffer-visiting journal)
-         kill-buffer nil)
+        with buf
+        with kill-buffer
+        for journal-file-path in (org-journal--list-files)
+        if (string-match-p (format "\.%s$" org-journal-encryption-extension) journal-file-path)
+        do
+        (setq buf (find-buffer-visiting journal-file-path)
+              kill-buffer nil)
 
-   (when (and buf
-              (buffer-modified-p buf)
-              (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
-                                (file-name-nondirectory journal))))
-     (save-buffer buf))
+        (when (and buf
+                   (buffer-modified-p buf)
+                   (y-or-n-p (format "Journal \"%s\" modified, save before re-encryption?"
+                                     (file-name-nondirectory journal-file-path))))
+          (save-buffer buf))
 
-   (unless buf
-     (setq kill-buffer t
-           buf (find-file-noselect journal)))
+        (unless buf
+          (setq kill-buffer t
+                buf (find-file-noselect journal-file-path)))
 
-   (with-current-buffer buf
-     (let ((epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
-       (set-buffer-modified-p t)
-       (save-buffer)
-       (when kill-buffer
-         (kill-buffer))))))
+        (with-current-buffer buf
+          (let ((epa-file-encrypt-to
+                 age-file-encrypt-to))
+            (cond
+              ((string= org-journal-encryption-extension "gpg")
+               (setq-local epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
+              ((string= org-journal-encryption-extension "age")
+               (setq-local age-file-encrypt-to recipient)))
+            (set-buffer-modified-p t)
+            (save-buffer)
+            (when kill-buffer
+              (kill-buffer))))))
 
 (defun org-journal--decrypt ()
   "Decrypt journal entry at point."
