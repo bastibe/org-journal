@@ -1977,8 +1977,8 @@ Only one recipient is supported.  "))
                 buf (find-file-noselect journal-file-path)))
 
         (with-current-buffer buf
-          (let ((epa-file-encrypt-to
-                 age-file-encrypt-to))
+          (let ((epa-file-encrypt-to)
+                (age-file-encrypt-to))
             (cond
               ((string= org-journal-encryption-extension "gpg")
                (setq-local epa-file-encrypt-to (epg-sub-key-id (car (epg-key-sub-key-list (car recipient))))))
