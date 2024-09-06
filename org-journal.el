@@ -99,8 +99,6 @@
 (require 'org-crypt)
 (require 'seq)
 (require 'subr-x)
-(if (package-installed-p 'age)
-    (require 'age))
 
 ;; Silent byte-compiler
 (defvar view-exit-action)
@@ -1946,8 +1944,9 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
                                          "Select new recipient for encryption.
 Only one recipient is supported.  "))
                        ((string= org-journal-encryption-extension "age")
-                            (age-select-keys (age-make-context 'Age age-armor)
-                                             "Select new recipients for encryption."))
+                        (require 'age)
+                        (age-select-keys (age-make-context 'Age age-armor)
+                                         "Select new recipients for encryption."))
                        (t
                         (error "Encryption extension \"%s\" is unsupported"
                                org-journal-encryption-extension)))))
