@@ -736,34 +736,34 @@ This allows the use of `org-journal-tag-alist' and
     (unless (if (org-journal--daily-p)
                 (or (search-forward entry-header nil t) (and (goto-char (point-max)) nil))
               (cl-loop
-                with date = (decode-time time)
-                with file-dates = (sort (org-journal--file->calendar-dates (buffer-file-name))
-                                        (lambda (a b)
-                                          (org-journal--calendar-date-compare b a)))
-                with entry
-                initially (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
-                unless file-dates ;; New entry at bof
-                do
-                  (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
-                    (goto-char (point-max)))
-                  (if (org-at-heading-p)
-                      (progn
-                        (beginning-of-line)
-                        (insert "\n")
-                        (forward-line -1))
-                    (forward-line -1)
-                    (end-of-line))
-                and return nil
-                while file-dates
-                do
-                  (setq entry (car file-dates)
-                        file-dates (cdr file-dates))
-                if (or (org-journal--calendar-date-compare entry date) (equal entry date))
-                do
-                  (org-journal--search-forward-created entry)
-                  (when (org-journal--calendar-date-compare entry date) ;; New entry at eof, or somewhere in-between
-                    (org-end-of-subtree))
-                and return (equal entry date))) ;; If an entry exists don't create a header
+                    with date = (decode-time time)
+                    with file-dates = (sort (org-journal--file->calendar-dates (buffer-file-name))
+                                            (lambda (a b)
+                                              (org-journal--calendar-date-compare b a)))
+                    with entry
+                    initially (setq date (list (nth 4 date) (nth 3 date) (nth 5 date)))
+                    unless file-dates ;; New entry at bof
+                    do
+                    (unless (re-search-forward (concat "^\\(" org-outline-regexp "\\)") nil t)
+                      (goto-char (point-max)))
+                    (if (org-at-heading-p)
+                        (progn
+                          (beginning-of-line)
+                          (insert "\n")
+                          (forward-line -1))
+                      (forward-line -1)
+                      (end-of-line))
+                    and return nil
+                    while file-dates
+                    do
+                    (setq entry (car file-dates)
+                          file-dates (cdr file-dates))
+                    if (or (org-journal--calendar-date-compare entry date) (equal entry date))
+                    do
+                    (org-journal--search-forward-created entry)
+                    (when (org-journal--calendar-date-compare entry date) ;; New entry at eof, or somewhere in-between
+                      (org-end-of-subtree))
+                    and return (equal entry date))) ;; If an entry exists don't create a header
 
 
       (when (looking-back "[^\t ]" (point-at-bol))
