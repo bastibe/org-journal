@@ -941,7 +941,9 @@ to process the carryover entries in `prev-buffer'."
     (save-excursion
       (if (org-journal--daily-p)
           (goto-char (point-min))
-        (while (org-up-heading-safe)))
+        (progn (while (org-up-heading-safe))
+               (if (org-before-first-heading-p)
+                   (outline-next-heading))))
 
       (unless (null org-journal-skip-carryover-drawers)
         (org-journal--remove-drawer))
@@ -958,7 +960,9 @@ to process the carryover entries in `prev-buffer'."
                                     (if (org-journal--daily-p)
                                         (org-journal--file-name->calendar-date (buffer-file-name))
                                       (save-excursion
-                                        (while (org-up-heading-safe))
+                                        (progn (while (org-up-heading-safe))
+                                               (if (org-before-first-heading-p)
+                                                 (outline-next-heading)))
                                         (org-journal--entry-date->calendar-date))))))
              nil nil nil 1)))))
 
