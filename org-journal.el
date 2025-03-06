@@ -438,7 +438,7 @@ This runs once per date, before `org-journal-after-entry-create-hook'.")
 buffer not open already, otherwise `nil'.")
 
 (defvar org-journal--format-rx-alist
-  '(("%[aAbB]" . "\\\\(?4:[a-zA-Z]\\\\{3,\\\\}\\\\)")
+  '(("%[aAbB]" . "\\\\(?4:[[:alpha:]]\\\\{3,\\\\}\\\\)")
     ("%d" . "\\\\(?3:[0-9]\\\\{2\\\\}\\\\)")
     ("%m" . "\\\\(?2:[0-9]\\\\{2\\\\}\\\\)")
     ("%Y" . "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)")
