@@ -1887,7 +1887,7 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 (unless org-journal-search-mode-map
   (setq org-journal-search-mode-map
         (let ((map (make-sparse-keymap)))
-          (define-key map "q" 'kill-this-buffer)
+          (define-key map "q" 'kill-current-buffer)
           (define-key map (kbd "<tab>") 'org-journal--search-next)
           (define-key map (kbd "<backtab>") 'org-journal--search-prev)
           (define-key map "n" 'org-journal--search-next)
