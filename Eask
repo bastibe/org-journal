@@ -14,3 +14,7 @@
 
 (depends-on "emacs" "26.1")
 (depends-on "org")
+
+(add-hook 'eask-before-compile-hook
+           (lambda ()
+             (setq byte-compile-error-on-warn t)))

@@ -111,23 +111,24 @@
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
-(unless (fboundp 'org--tag-add-to-alist)
-  ;; This function can be removed once emacs-26 is required or de-facto standard.
-  (defun org-tag-add-to-alist (alist1 alist2)
-    "Append ALIST1 elements to ALIST2 if they are not there yet.
+(eval-when-compile
+  (unless (fboundp 'org--tag-add-to-alist)
+    ;; This function can be removed once emacs-26 is required or de-facto standard.
+    (defun org-tag-add-to-alist (alist1 alist2)
+      "Append ALIST1 elements to ALIST2 if they are not there yet.
 
 From branch \"emacs-26\", added for compatibility.
 "
-    (cond
-      ((null alist2) alist1)
-      ((null alist1) alist2)
-      (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
-               to-add)
-           (dolist (i alist1)
-             (unless (member (car-safe i) alist2-cars)
-               (push i to-add)))
-           (append to-add alist2)))))
-  (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist))
+      (cond
+       ((null alist2) alist1)
+       ((null alist1) alist2)
+       (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
+                to-add)
+            (dolist (i alist1)
+              (unless (member (car-safe i) alist2-cars)
+                (push i to-add)))
+            (append to-add alist2)))))
+    (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist)))
 
 
 ;;; Customizable variables
