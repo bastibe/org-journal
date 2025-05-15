@@ -1,2 +1,5 @@
 *.elc
 /org-journal-autoloads.el
+
+/.eask
+/dist

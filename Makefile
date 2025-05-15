@@ -1,4 +1,5 @@
 EMACS = emacs
+EASK = eask
 BATCH = $(EMACS) -Q -batch -L .
 
 export LC_ALL=C
@@ -10,14 +11,10 @@ clean:
 	git clean -Xf
 
 compile:
-	$(BATCH) -f batch-byte-compile org-journal.el
+	$(EASK) compile
 
 gen-autoloads:
-	$(BATCH) \
-		--eval "(require 'autoload)" \
-		--eval '(setq make-backup-files nil)' \
-		--eval "(setq generated-autoload-file (concat command-line-default-directory \"/\" \"org-journal-autoloads.el\"))" \
-		-f batch-update-autoloads "."
+	$(EASK) generate autoloads
 
 test:
-	$(BATCH) -l tests/org-journal-test -f ert-run-tests-batch-and-exit
+	$(EASK) test ert ./tests/*.el
