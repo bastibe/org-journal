@@ -103,27 +103,32 @@
 ;; Silent byte-compiler
 (defvar view-exit-action)
 (declare-function org-collect-keywords "org")
+(defvar age-armor)
+(defvar age-file-encrypt-to)
+(declare-function age-make-context "ext:age.el")
+(declare-function age-select-keys "ext:age.el")
 
 (when (version< org-version "9.2")
   (defalias 'org-set-tags-to 'org-set-tags))
 
-(unless (fboundp 'org--tag-add-to-alist)
-  ;; This function can be removed once emacs-26 is required or de-facto standard.
-  (defun org-tag-add-to-alist (alist1 alist2)
-    "Append ALIST1 elements to ALIST2 if they are not there yet.
+(eval-when-compile
+  (unless (fboundp 'org--tag-add-to-alist)
+    ;; This function can be removed once emacs-26 is required or de-facto standard.
+    (defun org-tag-add-to-alist (alist1 alist2)
+      "Append ALIST1 elements to ALIST2 if they are not there yet.
 
 From branch \"emacs-26\", added for compatibility.
 "
-    (cond
-      ((null alist2) alist1)
-      ((null alist1) alist2)
-      (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
-               to-add)
-           (dolist (i alist1)
-             (unless (member (car-safe i) alist2-cars)
-               (push i to-add)))
-           (append to-add alist2)))))
-  (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist))
+      (cond
+       ((null alist2) alist1)
+       ((null alist1) alist2)
+       (t (let ((alist2-cars (mapcar (lambda (x) (car-safe x)) alist2))
+                to-add)
+            (dolist (i alist1)
+              (unless (member (car-safe i) alist2-cars)
+                (push i to-add)))
+            (append to-add alist2)))))
+    (defalias 'org--tag-add-to-alist 'org-tag-add-to-alist)))
 
 
 ;;; Customizable variables
@@ -764,7 +769,7 @@ This allows the use of `org-journal-tag-alist' and
                     and return (equal entry date))) ;; If an entry exists don't create a header
 
 
-      (when (looking-back "[^\t ]" (point-at-bol))
+      (when (looking-back "[^\t ]" (line-beginning-position))
         (insert "\n"))
       (insert entry-header)
 
@@ -965,8 +970,8 @@ to process the carryover entries in `prev-buffer'."
       (save-excursion
         (while (re-search-forward "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\( [a-z]+\\)?\\)>" nil t)
           (unless (save-excursion
-                    (goto-char (point-at-bol))
-                    (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (point-at-eol) t))
+                    (goto-char (line-beginning-position))
+                    (re-search-forward "\\<\\(SCHEDULED\\|DEADLINE\\):" (line-end-position) t))
             (replace-match
              (format-time-string "%Y-%m-%d %a"
                                  (org-journal--calendar-date->time
@@ -1048,7 +1053,7 @@ previous day's file to the current file."
               end (save-excursion (outline-next-heading) (point))
               text (buffer-substring-no-properties start end))
         (push (cons start (cons end text)) carryover-item-with-parents)))
-    (setq start (point-at-bol)
+    (setq start (line-beginning-position)
           end (progn (outline-end-of-subtree) (outline-next-heading) (point))
           text (buffer-substring-no-properties start end))
     (setq carryover-item-with-parents (append carryover-item-with-parents (list (cons start (cons end text)))))))
@@ -1212,7 +1217,7 @@ With non-nil prefix argument create a regular entry instead of a TODO entry."
       (let (org-journal-carryover-items)
         (org-save-outline-visibility t
                                      (org-journal-new-entry t time)
-                                     (when (looking-back "[^\t ]" (point-at-bol) t)
+                                     (when (looking-back "[^\t ]" (line-beginning-position) t)
                                        (insert "\n"))
                                      (org-yank))))))
 
@@ -1354,7 +1359,7 @@ If NO-SELECT is non-nil, open it, but don't show it."
       (when (file-exists-p org-journal--cache-file)
         (with-temp-buffer
           (insert-file-contents org-journal--cache-file)
-          (setq org-journal--dates (read (buffer-substring (point-at-bol) (point-at-eol))))))))
+          (setq org-journal--dates (read (buffer-substring (line-beginning-position) (line-end-position))))))))
   (org-journal--sort-dates))
 
 (defun org-journal--sort-dates ()
