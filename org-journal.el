@@ -1005,12 +1005,18 @@ previous day's file to the current file."
 
     ;; Get carryover paths
     (save-excursion
-      (save-restriction
-        (when (org-journal--open-entry t t)
+      (when (org-journal--open-entry t t)
+        (save-restriction
           (setq prev-buffer (current-buffer))
           (unless (org-journal--daily-p)
             (org-narrow-to-subtree))
           (setq carryover-paths (org-map-entries mapper org-journal-carryover-items)))))
+    (unless (or (org-journal--daily-p) (equal prev-buffer (current-buffer)))
+      ;; We have narrowed the previous week/month/year's buffer so
+      ;; let's reset its view to the default level
+      (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
+        (with-current-buffer prev-buffer
+          (outline-hide-sublevels (org-journal--time-entry-level)))))
 
     (when (and prev-buffer carryover-paths)
       (let (cleared-carryover-paths text)
