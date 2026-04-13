@@ -775,7 +775,7 @@ This allows the use of `org-journal-tag-alist' and
                     and return (equal entry date))) ;; If an entry exists don't create a header
 
 
-      (when (looking-back "[^\t ]" (line-beginning-position))
+      (unless (bolp)
         (insert "\n"))
       (insert entry-header)
 
