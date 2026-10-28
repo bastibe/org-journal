@@ -289,6 +289,46 @@
         (funcall create-files test-file-yearly)
         (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))
 
+;; With `current-time-list' nil (Emacs 29 added it, default t; the Emacs 32
+;; NEWS makes nil the default), `encode-time' returns (TICKS . HZ) or an
+;; integer, not a list: time values must not be taken apart as lists.
+(ert-deftest org-journal-update-org-agenda-files-test ()
+  "Test for `org-journal--update-org-agenda-files' with either time form."
+  (dolist (time-list '(nil t))
+    (org-journal-test-macro
+        (let* ((current-time-list time-list)
+               ;; search-build-file-list-test sets it without binding it
+               (org-journal-file-format "%Y%m%d")
+               (org-journal-enable-agenda-integration t)
+               (org-agenda-files nil)
+               (today (expand-file-name (format-time-string "%Y%m%d") org-journal-dir-test))
+               stored)
+          (find-file today)
+          (insert "* Test header\n** TODO Something\n")
+          (save-buffer)
+          (kill-buffer)
+          (org-journal-invalidate-cache)
+          (cl-letf (((symbol-function 'org-store-new-agenda-file-list)
+                     (lambda (list) (setq stored list))))
+            (org-journal--update-org-agenda-files))
+          (should (member (file-truename today) (mapcar #'file-truename stored)))))))
+
+(ert-deftest org-journal-search-build-file-list-time-forms-test ()
+  "`org-journal--search-build-file-list' takes times in either form."
+  (dolist (time-list '(nil t))
+    (org-journal-test-macro
+        (let ((current-time-list time-list)
+              (org-journal-file-format "%Y%m%d"))
+          (dolist (file '("20170104" "20170312"))
+            (find-file (expand-file-name file org-journal-dir-test))
+            (save-buffer)
+            (kill-buffer))
+          (should (equal (length (org-journal--search-build-file-list
+                                  (encode-time 0 0 0 1 1 2017) (encode-time 0 0 0 1 2 2017)))
+                         1))
+          (should-error (org-journal--search-build-file-list nil (encode-time 0 0 0 1 2 2017))
+                        :type 'user-error)))))
+
 (ert-deftest org-journal-scheduled-carryover-yearly-test ()
   (org-journal-test-macro
       (let ((org-journal-file-type 'yearly)

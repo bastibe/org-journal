@@ -1557,9 +1557,9 @@ If a prefix argument is given, search all dates."
          (start (org-journal--calendar-date->time (car period-pair)))
          (end (org-journal--calendar-date->time (cdr period-pair))))
     ;; Including period-start in search
-    (setcar (cdr start) (1- (cadr start)))
+    (setq start (time-subtract start (seconds-to-time 1)))
     ;; Including period-end in search
-    (setcar (cdr end) (1+ (cadr end)))
+    (setq end (time-add end (seconds-to-time 1)))
     (org-journal--search-by-string str start end)))
 
 ;;;###autoload
@@ -1801,8 +1801,8 @@ If STR is empty, search for all entries using `org-journal-time-prefix'."
 (defun org-journal--search-build-file-list (period-start period-end)
   "Build a list of journal files within a given time interval."
   (unless (and period-start period-end ;; Check for null values
-               (car period-start) (cdr period-start)
-               (car period-end) (cdr period-end))
+               ;; and for valid time values, in any form
+               (ignore-errors (and (float-time period-start) (float-time period-end))))
     (user-error "Time `%s' and/or `%s' are not valid" period-start period-end))
 
   (let (result filetime)
