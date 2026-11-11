@@ -92,6 +92,23 @@
                       (expand-file-name "20190103" (file-truename org-journal-dir)))
                      '(1 03 2019)))))
 
+(ert-deftest org-journal-scheduled-carryover-yearly-test ()
+  (org-journal-test-macro
+      (let ((org-journal-file-type 'yearly)
+            (org-journal-created-property-timestamp-format "[%Y-%m-%d %a]")
+            new-scheduled-date)
+        ;; Copy test files to temporary directory
+        (copy-directory
+         (directory-file-name "tests/journals/yearly/carryover1")
+         (file-name-as-directory org-journal-dir-test) nil nil t)
+        (org-journal-new-entry 4) ;; 4 - no new time entry
+        (setq new-scheduled-date (with-temp-buffer
+                                   (org-insert-time-stamp (current-time))
+                                   (org-journal-buffer-content t t)))
+        (goto-char (point-min))
+        (search-forward new-scheduled-date)
+        (search-forward new-scheduled-date))))
+
 (ert-deftest org-journal-convert-time-to-file-type-time-test ()
   "Testing"
   (org-journal-test-macro
@@ -167,7 +184,7 @@
                         (org-journal-mode)
                         (insert-file-contents (org-journal--get-entry-path))
                         (replace-regexp-in-string
-                         "^[ ]*" ""
+                         "^[ ]*" ""3
                          (buffer-substring-no-properties (point-min) (point-max))))
                       (concat "* Test header\n:PROPERTIES:\n:CREATED:  "
                               (format-time-string org-journal-created-property-timestamp-format)
@@ -288,23 +305,6 @@
               org-journal-file-format "%Y")
         (funcall create-files test-file-yearly)
         (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))
-
-(ert-deftest org-journal-scheduled-carryover-yearly-test ()
-  (org-journal-test-macro
-      (let ((org-journal-file-type 'yearly)
-            (org-journal-created-property-timestamp-format "[%Y-%m-%d %a]")
-            new-scheduled-date)
-        ;; Copy test files to temporary directory
-        (copy-directory
-         (directory-file-name "tests/journals/yearly/carryover1")
-         (file-name-as-directory org-journal-dir-test) nil nil t)
-        (org-journal-new-entry 4) ;; 4 - no new time entry
-        (setq new-scheduled-date (with-temp-buffer
-                                   (org-insert-time-stamp (current-time))
-                                   (org-journal-buffer-content t t)))
-        (goto-char (point-min))
-        (search-forward new-scheduled-date)
-        (search-forward new-scheduled-date))))
 
 (ert-deftest org-journal-scheduled-carryover-daily-test ()
   (org-journal-test-macro
