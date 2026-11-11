@@ -2124,12 +2124,13 @@ enabling encryption by default."
        (= (/ (- date1 week-adjust) 7) (/ (- date2 week-adjust) 7))))
     (`monthly (and (= (car day1) (car day2) (= (nth 2 day1) (nth 2 day2)))))
     (`yearly (= (nth 2 day1) (nth 2 day2)))
-    (t nil)))
+    (_ nil)))
   
 (defun org-journal--narrow-to-display-selection (&optional time)
   "Narrow the buffer to `org-journal-display-type` at point.
 
-;; TODO: something (used to?) doesn't work right when creating entries in the future, maybe only for new files
+TODO: something (used to?) doesn't work right when creating entries
+in the future, maybe only for new files
 
 Old description:  Implements display type, configured by the variable
 ORG-JOURNAL-DISPLAY-TYPE. Narrows the current buffer to the
