@@ -633,7 +633,7 @@ Convert OLD-FORMAT or input to `org-journal-created-property-timestamp-format'."
           (unless buffer-modefied (save-buffer))
           (unless buffer (kill-buffer)))))))
 
-(defun org-journal--convert-time-to-file-type-time (journal-type &optional time)
+(defun org-journal--convert-time-to-file-type-time (&optional time)
   "Converts TIME to the file type format date.
 
 If `org-journal-file-type' is `weekly', the TIME will be rounded to
@@ -645,7 +645,7 @@ the first date of the month.
 If `org-journal-file-type' is `yearly', the TIME will be rounded to
 the first date of the year."
   (or time (setq time (current-time)))
-  (pcase journal-type
+  (pcase org-journal-file-type
     ;; Do nothing for daily
     (`daily time)
     ;; Round to the monday of the current week, e.g. 20181231 is the first week of 2019
@@ -682,7 +682,7 @@ If no TIME is given, uses the current time."
   (let ((file (file-truename
                (expand-file-name
                 (format-time-string org-journal-file-format
-                                    (org-journal--convert-time-to-file-type-time org-journal-file-type time))
+                                    (org-journal--convert-time-to-file-type-time time))
                 org-journal-dir))))
     (when (and org-journal-encrypt-journal (not (file-exists-p file)))
       (setq file (concat file "." org-journal-encryption-extension)))
