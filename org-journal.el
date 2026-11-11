@@ -878,7 +878,7 @@ hook is run."
     ;; Ensure `view-mode' is not active
     (view-mode -1)
 
-    (widen)
+;    (widen)
     (org-journal--insert-header time)
     (org-journal--insert-entry-header time)
     (org-journal--decrypt)
