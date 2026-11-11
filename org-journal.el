@@ -1541,7 +1541,7 @@ is nil or avoid switching when NOSELECT is non-nil."
           buf)
       (message "No journal entry for this date."))))
 
-(defun org-journal--next-entry (&optional prev suppress)
+(defun org-journal--next-entry (&optional prev)
   "Go to next entry.
 
 If prev is non-nil open previous entry instead of next."
@@ -1565,8 +1565,7 @@ If prev is non-nil open previous entry instead of next."
              (user-error
               (concat "org-journal-" (if prev "previous" "next")
                       "-entry called outside calendar/org-journal mode"))))
-    (unless suppress
-      (message (concat "No journal entry " (if prev "before" "after") " this one")))))
+    (message (concat "No journal entry " (if prev "before" "after") " this one"))))
 
 ;;;###autoload
 (defun org-journal-next-entry ()
@@ -1582,40 +1581,59 @@ If prev is non-nil open previous entry instead of next."
   (org-journal--next-entry t)
   (org-journal--narrow-to-display-selection))
 
-(defun org-journal--next-display-type (&optional prev)
+(defun org-journal--next-display-type (repeat &optional prev)
   "Go to next display.
 
-If prev is non-nil open previous display instead of next.
+If PREV is non-nil open previous display instead of next.
+
+TODO rewrite this
 
 Moves one entry at a time until either we stop moving (we have reached
 the very first or very last entry), we have entered a new display
 period (which is where we want to be) or we have reached a new buffer
 (probably because a week is split across a month or year boundary)."
-  (when org-journal-display-type
-    (let ((prev-pointer (1- (pos-bol)))
-          (date-to-leave (org-journal--display-date-from-entry-date))
-          (start-buf (buffer-name)))
-      (while (and (/= prev-pointer (pos-bol))
-                  (equal date-to-leave (org-journal--display-date-from-entry-date))
-                  (equal start-buf (buffer-name)))
-        (setq prev-pointer (pos-bol))
-        (org-journal--next-entry prev t))
-      (when (= prev-pointer (pos-bol))
-        (message (concat "No journal display unit " (if prev "before" "after") " this one"))))))
+  (or (eq 'integer (type-of repeat))
+      (setq repeat 1))
+
+  (let (true-start-date start-date match-started (start-date-temp (org-entry-get nil "CREATED" t)))
+    (if (not start-date-temp)
+        (message "Not inside an org-journal entry: can't change display period.")
+      (setq start-date (list (string-to-number (substring start-date-temp 4 6)) (string-to-number (substring start-date-temp 6 8)) (string-to-number (substring start-date-temp 0 4)))
+            true-start-date start-date)
+      (catch 'done
+        (dolist (date (if prev
+                          (reverse (org-journal--list-dates))
+                        (org-journal--list-dates)))
+          (if (and (dates-equal date start-date org-journal-display-type)
+                   (equal (gethash date org-journal--dates) (gethash start-date org-journal--dates)))
+              (setq match-started t)
+            (when match-started
+              (setq start-date date) ;; to resume searching
+              (when (zerop (setq repeat (1- repeat)))
+                (throw 'done nil))))))
+
+      (if (and (dates-equal true-start-date start-date org-journal-display-type)
+               (equal (gethash true-start-date org-journal--dates) (gethash start-date org-journal--dates)))
+          (message (concat "No journal display unit " (if prev "before" "after") " this one"))
+;        (when (not (equal (buffer-file-name (current-buffer)) (car (gethash start-date org-journal--dates)))) ;;TODO: okay to just "always" switch?
+          (switch-to-buffer (find-file-noselect (car (gethash start-date org-journal--dates))));)
+        (org-journal--narrow-to-display-selection start-date)))))
 
 ;;;###autoload
-(defun org-journal-next-display-type ()
-  "Go to the next journal display (e.g. next week or month)."
-  (interactive)
-  (org-journal--next-display-type)
-  (org-journal--narrow-to-display-selection))
+(defun org-journal-next-display-type (&optional repeat)
+  "Go to the next journal display (e.g. next week or month).
+
+With prefix, move multiple journal display periods."
+  (interactive "P")
+  (org-journal--next-display-type repeat))
 
 ;;;###autoload
-(defun org-journal-previous-display-type ()
-  "Go to the previous journal display (e.g. prev week or month)."
-  (interactive)
-  (org-journal--next-display-type t)
-  (org-journal--narrow-to-display-selection))
+(defun org-journal-previous-display-type (&optional repeat)
+  "Go to the previous journal display (e.g. prev week or month).
+
+With prefix, move multiple journal display periods."
+  (interactive "P")
+  (org-journal--next-display-type repeat t))
 
 
 ;;; Journal search facilities
@@ -2108,64 +2126,92 @@ in a weekly-display journal starting on Mondays, get Monday's date."
           (org-up-heading-safe))
         (format-time-string "%Y%m%d" (org-journal--convert-time-to-file-type-time org-journal-display-type (org-journal--calendar-date->time (org-journal--entry-date->calendar-date))))))))
 
-;; TODO: something doesn't work right when creating entries in the future, maybe only for new files
+(defun dates-equal (day1 day2 journal-type)
+  "TODO: document. not real efficient because I'm doing the `if' (pcase) for every date (though, maybe that doesn't matter? profile!). move this up a function and speed things up!"
+  (pcase journal-type
+    (`daily (= day1 day2))
+    (`weekly
+     (let ((a (% org-journal-start-on-weekday 7))
+           (b (calendar-absolute-from-gregorian day1))
+           (c (calendar-absolute-from-gregorian day2)))
+       (= (/ (- b a) 7) (/ (- c a) 7))))
+    (`monthly (and (= (car day1) (car day2) (= (nth 2 day1) (nth 2 day2)))))
+    (`yearly (= (nth 2 day1) (nth 2 day2)))))
+  
 (defun org-journal--narrow-to-display-selection (&optional time)
-  "Implements display type, configured by the variable
-`org-journal-display-type'. Narrows the current buffer to the
+  "Narrow the buffer to `org-journal-display-type` at point.
+
+;; TODO: something (used to?) doesn't work right when creating entries in the future, maybe only for new files
+
+Old description:  Implements display type, configured by the variable
+ORG-JOURNAL-DISPLAY-TYPE. Narrows the current buffer to the
 display-type period so e.g. you can display just one week at a time
-while storing an entire year at a time."
+while storing an entire year at a time.
+
+TODO: better documentation now that I've changed it
+TODO: assumes `org-journal-created-property-timestamp-format' is still %F (the default)"
   (interactive)
   (when org-journal-display-type
-    (let ((display-start-point 0)
-          display-end-point
-          goal-date
-          (display-cur-buf (buffer-name)))
-      (save-excursion
-        (save-restriction
-          ;; okay we're going to do 3 things
-          ;; 1) get the 'goal date' based on the display mode
-          ;; 2) move backwards until we no longer match that date
-          ;;    - the previous point is the start of our display-type window
-          ;; 3) move forwards until we no longer match that date
-          ;;    - the current point is the end of our display-type window
-          ;; when we're done, we can narrow to the region we've identified
+    (let (display-start-point display-end-point goal-date first-date last-date)
 
-          (while (>= (org-outline-level) (org-journal--time-entry-level))
-            (org-up-heading-safe))
-          (setq goal-date (org-journal--display-date-from-entry-date))
-          ;; that was #1!
+      ;; Get the date `'(mm dd yyyy)' at point, if not already specified
+      (unless time
+        (setq goal-date (org-entry-get nil "CREATED" t) ;; TODO assumes %F date format
+              time (list (string-to-number (substring goal-date 4 6)) (string-to-number (substring goal-date 6 8)) (string-to-number (substring goal-date 0 4)))))
 
-          (save-excursion
-            ;; "like `org-journal--next-display-type'" but gives us
-            ;; the start point of the last entry to match the goal date
-            (while (and (/= display-start-point (pos-bol))
-                        (equal goal-date (org-journal--display-date-from-entry-date))
-                        (equal display-cur-buf (buffer-name)))
-                (setq display-start-point (pos-bol))
-                (org-journal--next-entry t t))) ;; that was #2
+      ;; We need the first entry of our display period, and the first entry
+      ;; _after_ our display period: we'll display between those 2 points.
+      ;; Search through the list until we find an entry in our display
+      ;; period. Then keep going until we find one outside it, then quit.
+      (catch 'done
+        ;; (dolist (date (reverse (org-journal--list-dates)))
+        ;;   (if (dates-equal date time org-journal-display-type)
+        ;;       (setq first-date date)
+        ;;     (if first-date
+        ;;         (throw 'done nil)
+        ;;       (setq last-date date)))))
+        (dolist (date (org-journal--list-dates))
+          (if (dates-equal date time org-journal-display-type)
+              (or first-date (setq first-date date))
+            (when first-date (throw 'done (setq last-date date))))))
 
-          ;; #3: every time we move forward an entry, one of 4 things can happen
-          ;; - A) we didn't move at all, because we're at the very very last entry. Use end-of-buffer.
-          ;; - B) we moved to a different file. Go back to the previous one and use end-of-buffer.
-          ;; - C) we moved and are in a different display-date unit: Use 1 less than beginning-of-line
-          ;;      (which is the start of the first entry in the next display-date unit).
-          ;; - D) we moved and are in the same display-date unit. Go forward again!
-          (while (not display-end-point)
-            (let ((display-latest-pointer (pos-bol)))
-              (org-journal--next-entry nil t) ; move forward to the next entry
-              (if (equal display-latest-pointer (pos-bol))
-                  (setq display-end-point (1+ (buffer-size))) ; (A)
-                (if (equal display-cur-buf (buffer-name))
-                    (unless (equal goal-date (org-journal--display-date-from-entry-date)) ; (D)
-                      (setq display-end-point (1- (pos-bol)))) ; (C)
-                  (switch-to-buffer display-cur-buf)
-                  (setq display-end-point (1+ (buffer-size))))))))) ; (B)
+      ;; Find `(point)' for both those entries
+      (widen)
 
-      ;; from the original view, we can now narrow to this display period
+      (setq display-start-point (goto-char (point-min)))
+      (and first-date
+           (org-journal--search-forward-created first-date nil t)
+           (or (org-up-heading-safe) t)
+           (setq display-start-point (point)))
+;;        (let ((goal (format "CREATED=\"%04d%02d%02d\""
+;;                            (nth 2 first-date) (nth 0 first-date) (nth 1 first-date))))
+;;          (setq display-start-point (car (org-map-entries #'point goal nil))))) ;; TODO is re-search faster?
+;;      (unless display-start-point (setq display-start-point 1)) ;; `time' wasn't found in this buffer
+
+      (or (and last-date
+               (org-journal--search-forward-created last-date nil t)
+               (or (org-up-heading-safe) t)
+               (setq display-end-point (1- (point))))
+          (setq display-end-point (1+ (buffer-size))))
+      ;; (when last-date
+      ;;   (let ((goal (format "CREATED=\"%04d%02d%02d\""
+      ;;                       (nth 2 last-date) (nth 0 last-date) (nth 1 last-date))))
+      ;;     (setq display-end-point (car (org-map-entries #'point goal nil)))))
+      ;; (if display-end-point
+      ;;     (setq display-end-point (1- display-end-point)) ;; can't do it above because `(1- nil)`
+      ;;   (setq display-end-point (1+ (buffer-size)))) ;; `time' not in this buffer or displaying the last week of the journal
+      
+      ;; Narrow to the entries and then fold per user's settings
+      (narrow-to-region display-start-point display-end-point)
+
+      (goto-char (point-min))
+      (org-journal--search-forward-created time nil t)
+      (org-up-heading-safe)
+      
       (if (and org-journal-hide-entries-p (org-journal--time-entry-level))
           (outline-hide-sublevels (org-journal--time-entry-level))
-        (save-excursion (org-journal--finalize-view)))
-      (narrow-to-region display-start-point display-end-point))))
+        (save-excursion (org-journal--finalize-view))))))
+
 
 (provide 'org-journal)
 
