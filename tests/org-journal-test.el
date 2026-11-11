@@ -184,7 +184,7 @@
                         (org-journal-mode)
                         (insert-file-contents (org-journal--get-entry-path))
                         (replace-regexp-in-string
-                         "^[ ]*" ""3
+                         "^[ ]*" ""
                          (buffer-substring-no-properties (point-min) (point-max))))
                       (concat "* Test header\n:PROPERTIES:\n:CREATED:  "
                               (format-time-string org-journal-created-property-timestamp-format)
