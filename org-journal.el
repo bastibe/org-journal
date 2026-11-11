@@ -2138,7 +2138,7 @@ display-type period so e.g. you can display just one week at a time
 while storing an entire year at a time.
 
 TODO: better documentation now that I've changed it
-TODO: assumes `org-journal-created-property-timestamp-format' is still %F (the default)"
+TODO: assumes `org-journal-created-property-timestamp-format' is %F (default)"
   (interactive)
   (when org-journal-display-type
     (let (display-start-point display-end-point goal-date first-date last-date)
