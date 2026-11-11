@@ -875,7 +875,7 @@ hook is run."
     (unless (string= entry-path (buffer-file-name))
       (funcall org-journal-find-file entry-path))
 
-    ;; Insure `view-mode' is not active
+    ;; Ensure `view-mode' is not active
     (view-mode -1)
 
     (widen)
@@ -1604,7 +1604,7 @@ period (which is where we want to be) or we have reached a new buffer
         (dolist (date (if prev
                           (reverse (org-journal--list-dates))
                         (org-journal--list-dates)))
-          (if (and (dates-equal date start-date org-journal-display-type)
+          (if (and (org-journal--display-dates-equalp date start-date)
                    (equal (gethash date org-journal--dates) (gethash start-date org-journal--dates)))
               (setq match-started t)
             (when match-started
@@ -1612,7 +1612,7 @@ period (which is where we want to be) or we have reached a new buffer
               (when (zerop (setq repeat (1- repeat)))
                 (throw 'done nil))))))
 
-      (if (and (dates-equal true-start-date start-date org-journal-display-type)
+      (if (and (org-journal--display-dates-equalp true-start-date start-date)
                (equal (gethash true-start-date org-journal--dates) (gethash start-date org-journal--dates)))
           (message (concat "No journal display unit " (if prev "before" "after") " this one"))
 ;        (when (not (equal (buffer-file-name (current-buffer)) (car (gethash start-date org-journal--dates)))) ;;TODO: okay to just "always" switch?
@@ -2116,27 +2116,18 @@ enabling encryption by default."
             'org-journal-encryption-hook
             nil t))
 
-(defun org-journal--display-date-from-entry-date()
-  "Get the 'display date' of the current entry, e.g. if it is Wednesday
-in a weekly-display journal starting on Mondays, get Monday's date."
-  (when org-journal-display-type
-    (save-excursion
-      (save-restriction
-        (while (>= (org-outline-level) (org-journal--time-entry-level))
-          (org-up-heading-safe))
-        (format-time-string "%Y%m%d" (org-journal--convert-time-to-file-type-time org-journal-display-type (org-journal--calendar-date->time (org-journal--entry-date->calendar-date))))))))
-
-(defun dates-equal (day1 day2 journal-type)
-  "TODO: document. not real efficient because I'm doing the `if' (pcase) for every date (though, maybe that doesn't matter? profile!). move this up a function and speed things up!"
-  (pcase journal-type
+(defun org-journal--display-dates-equalp (day1 day2)
+  "DAY1 and DAY2 are within the same `org-journal-display-type`."
+  (pcase org-journal-display-type
     (`daily (= day1 day2))
     (`weekly
-     (let ((a (% org-journal-start-on-weekday 7))
-           (b (calendar-absolute-from-gregorian day1))
-           (c (calendar-absolute-from-gregorian day2)))
-       (= (/ (- b a) 7) (/ (- c a) 7))))
+     (let ((week-adjust (% org-journal-start-on-weekday 7))
+           (date1 (calendar-absolute-from-gregorian day1))
+           (date2 (calendar-absolute-from-gregorian day2)))
+       (= (/ (- date1 week-adjust) 7) (/ (- date2 week-adjust) 7))))
     (`monthly (and (= (car day1) (car day2) (= (nth 2 day1) (nth 2 day2)))))
-    (`yearly (= (nth 2 day1) (nth 2 day2)))))
+    (`yearly (= (nth 2 day1) (nth 2 day2)))
+    (t nil)))
   
 (defun org-journal--narrow-to-display-selection (&optional time)
   "Narrow the buffer to `org-journal-display-type` at point.
@@ -2164,14 +2155,8 @@ TODO: assumes `org-journal-created-property-timestamp-format' is still %F (the d
       ;; Search through the list until we find an entry in our display
       ;; period. Then keep going until we find one outside it, then quit.
       (catch 'done
-        ;; (dolist (date (reverse (org-journal--list-dates)))
-        ;;   (if (dates-equal date time org-journal-display-type)
-        ;;       (setq first-date date)
-        ;;     (if first-date
-        ;;         (throw 'done nil)
-        ;;       (setq last-date date)))))
         (dolist (date (org-journal--list-dates))
-          (if (dates-equal date time org-journal-display-type)
+          (if (org-journal--display-dates-equalp date time)
               (or first-date (setq first-date date))
             (when first-date (throw 'done (setq last-date date))))))
 
@@ -2183,23 +2168,12 @@ TODO: assumes `org-journal-created-property-timestamp-format' is still %F (the d
            (org-journal--search-forward-created first-date nil t)
            (or (org-up-heading-safe) t)
            (setq display-start-point (point)))
-;;        (let ((goal (format "CREATED=\"%04d%02d%02d\""
-;;                            (nth 2 first-date) (nth 0 first-date) (nth 1 first-date))))
-;;          (setq display-start-point (car (org-map-entries #'point goal nil))))) ;; TODO is re-search faster?
-;;      (unless display-start-point (setq display-start-point 1)) ;; `time' wasn't found in this buffer
 
       (or (and last-date
                (org-journal--search-forward-created last-date nil t)
                (or (org-up-heading-safe) t)
                (setq display-end-point (1- (point))))
           (setq display-end-point (1+ (buffer-size))))
-      ;; (when last-date
-      ;;   (let ((goal (format "CREATED=\"%04d%02d%02d\""
-      ;;                       (nth 2 last-date) (nth 0 last-date) (nth 1 last-date))))
-      ;;     (setq display-end-point (car (org-map-entries #'point goal nil)))))
-      ;; (if display-end-point
-      ;;     (setq display-end-point (1- display-end-point)) ;; can't do it above because `(1- nil)`
-      ;;   (setq display-end-point (1+ (buffer-size)))) ;; `time' not in this buffer or displaying the last week of the journal
       
       ;; Narrow to the entries and then fold per user's settings
       (narrow-to-region display-start-point display-end-point)
