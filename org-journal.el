@@ -1,4 +1,4 @@
-;;; org-journal.el --- a simple org-mode based journaling mode -*- lexical-binding: t; -*-
+;;; org-journal.el --- A simple org-mode based journaling mode -*- lexical-binding: t; -*-
 
 ;; Copyright 2013-2024 Bastian Bechtold
 
@@ -1470,8 +1470,7 @@ from oldest to newest."
   (let* ((time (org-journal--calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-read-or-display-entry time nil)
-    (org-journal--narrow-to-display-selection time)
-    ))
+    (org-journal--narrow-to-display-selection time)))
 
 ;;;###autoload
 (defun org-journal-display-entry (_arg &optional event)
@@ -1481,8 +1480,7 @@ from oldest to newest."
   (let* ((time (org-journal--calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-read-or-display-entry time t)
-    (org-journal--narrow-to-display-selection time)
-    ))
+    (org-journal--narrow-to-display-selection time)))
 
 (defun org-journal--finalize-view ()
   "Finalize visability of entry."
