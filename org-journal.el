@@ -1613,8 +1613,7 @@ period (which is where we want to be) or we have reached a new buffer
       (if (and (org-journal--display-dates-equalp true-start-date start-date)
                (equal (gethash true-start-date org-journal--dates) (gethash start-date org-journal--dates)))
           (message (concat "No journal display unit " (if prev "before" "after") " this one"))
-;        (when (not (equal (buffer-file-name (current-buffer)) (car (gethash start-date org-journal--dates)))) ;;TODO: okay to just "always" switch?
-          (switch-to-buffer (find-file-noselect (car (gethash start-date org-journal--dates))));)
+        (switch-to-buffer (find-file-noselect (car (gethash start-date org-journal--dates))))
         (org-journal--narrow-to-display-selection start-date)))))
 
 ;;;###autoload
