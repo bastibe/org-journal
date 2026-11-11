@@ -1136,14 +1136,17 @@ Month and Day capture group default to 1."
 
     (list month day year)))
 
-(defun org-journal--entry-date->calendar-date ()
+(defun org-journal--entry-date->calendar-date (&optional inherit)
   "Return journal calendar-date from current buffer.
+
+If INHERIT is t you won't need to
+`(save-excursion (org-up-heading-safe))` first.
 
 This is the counterpart of `org-journal--file-name->calendar-date' for
 `weekly', `monthly' and `yearly' journal files."
   (let ((re (org-journal--format->regex org-journal-created-property-timestamp-format))
         date)
-    (setq date (org-entry-get (point) "CREATED"))
+    (setq date (org-entry-get (point) "CREATED" inherit))
     (unless (ignore-errors (string-match re date))
       (user-error "Created property timestamp format \"%s\" doesn't match CREATED property value (%s) from entry at line: %s" org-journal-created-property-timestamp-format date (what-line)))
     (list (string-to-number (match-string 2 date))    ;; Month
@@ -1593,11 +1596,12 @@ period (which is where we want to be) or we have reached a new buffer
   (or (eq 'integer (type-of repeat))
       (setq repeat 1))
 
-  (let (true-start-date start-date match-started (start-date-temp (org-entry-get nil "CREATED" t)))
-    (if (not start-date-temp)
+  (let* ((start-date (org-journal--entry-date->calendar-date t))
+         (true-start-date start-date)
+         match-started)
+    (if (not start-date)
         (message "Not inside an org-journal entry: can't change display period.")
-      (setq start-date (list (string-to-number (substring start-date-temp 4 6)) (string-to-number (substring start-date-temp 6 8)) (string-to-number (substring start-date-temp 0 4)))
-            true-start-date start-date)
+      (setq true-start-date start-date)
       (catch 'done
         (dolist (date (if prev
                           (reverse (org-journal--list-dates))
@@ -2122,7 +2126,7 @@ enabling encryption by default."
            (date1 (calendar-absolute-from-gregorian day1))
            (date2 (calendar-absolute-from-gregorian day2)))
        (= (/ (- date1 week-adjust) 7) (/ (- date2 week-adjust) 7))))
-    (`monthly (and (= (car day1) (car day2) (= (nth 2 day1) (nth 2 day2)))))
+    (`monthly (and (= (car day1) (car day2)) (= (nth 2 day1) (nth 2 day2))))
     (`yearly (= (nth 2 day1) (nth 2 day2)))
     (_ nil)))
   
@@ -2141,12 +2145,11 @@ TODO: better documentation now that I've changed it
 TODO: assumes `org-journal-created-property-timestamp-format' is %F (default)"
   (interactive)
   (when org-journal-display-type
+
     (let (display-start-point display-end-point goal-date first-date last-date)
 
       ;; Get the date `'(mm dd yyyy)' at point, if not already specified
-      (unless time
-        (setq goal-date (org-entry-get nil "CREATED" t) ;; TODO assumes %F date format
-              time (list (string-to-number (substring goal-date 4 6)) (string-to-number (substring goal-date 6 8)) (string-to-number (substring goal-date 0 4)))))
+      (or time (setq time (org-journal--entry-date->calendar-date t)))
 
       ;; We need the first entry of our display period, and the first entry
       ;; _after_ our display period: we'll display between those 2 points.
