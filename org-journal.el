@@ -2146,7 +2146,7 @@ TODO: assumes `org-journal-created-property-timestamp-format' is %F (default)"
   (interactive)
   (when org-journal-display-type
 
-    (let (display-start-point display-end-point goal-date first-date last-date)
+    (let (display-start-point display-end-point first-date last-date)
 
       ;; Get the date `'(mm dd yyyy)' at point, if not already specified
       (or time (setq time (org-journal--entry-date->calendar-date t)))
