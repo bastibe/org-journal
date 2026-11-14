@@ -138,6 +138,10 @@ Bindings available in =org-journal-mode=:
 
 - =C-c C-s= - search the journal for a string.
 
+- =C-c C-S-f= - go to the next journal display unit, if enabled.
+
+- =C-c C-S-b= - go to the previous journal display unit, if enabled.
+
 All journal entries are registered in the Emacs Calendar. To see available journal
 entries do =M-x calendar=. Bindings available in the =calendar-mode=:
 
@@ -191,6 +195,21 @@ Customization options related to journal directory and files:
   =org-journal-start-on-weekday= for changing the start of the week for weekly
   journals (defaults to Monday). Keep in mind changing
   =org-journal-start-on-weekday= won't work for existing weekly journal files.
+
+- =org-journal-display-type= - the journal display type either nil
+  (not enabled, (default), 'weekly or 'monthly. When enabled, the
+  display is narrowed to this view so you can, for example, view only
+  a week at a time while storing all the entries for a year in a
+  single file. If you are in this mode and want to see the full file,
+  use `C-x n w` or `M-x widen`.
+
+  If you set this to 'weekly, weeks that split across your file-type
+  'monthly or 'yearly boundary will only be visible as separate weeks:
+  this won't build a combined view from 2 different files.
+
+  There is no display-type analogue for =org-journal-file-header=, so
+  you can't insert something when you create a new journal entry in a
+  new display type.
 
 *** Journal File Content
 
@@ -433,7 +452,7 @@ The caching functionality can be enabled by settings
 
 *** Can I use weekly/monthly/yearly journal entries instead of daily ones?
 
-Yes, see =org-journal-file-type=.
+Yes, see =org-journal-file-type= and =org-journal-display-type=.
 
 *** Can I have multiple journals?
 
@@ -506,7 +525,7 @@ We format the code using =common-lisp-indent-function= rather than the default
 
 #+BEGIN_SRC emacs-lisp
   (setq lisp-indent-function 'common-lisp-indent-function)
-  ;; Markt the whole buffer: C-x h
+  ;; Mark the whole buffer: C-x h
   ;; Call indent-region: C-M-\
 #+END_SRC
 
