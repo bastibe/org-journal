@@ -290,7 +290,7 @@
         (funcall create-files test-file-yearly)
         (should (equal (length (org-journal--search-build-file-list period-start period-end)) 1)))))
 
-(ert-deftest org-journal-ascheduled-carryover-yearly-test ()
+(ert-deftest org-journal-scheduled-carryover-yearly-test ()
   (org-journal-test-macro
       (let ((org-journal-file-type 'yearly)
             (org-journal-created-property-timestamp-format "[%Y-%m-%d %a]")
@@ -305,7 +305,8 @@
                                    (org-journal-buffer-content t t)))
         (goto-char (point-min))
         (search-forward new-scheduled-date)
-        (search-forward new-scheduled-date))))
+        (search-forward new-scheduled-date)
+        (kill-buffer))))
 
 (ert-deftest org-journal-scheduled-carryover-daily-test ()
   (org-journal-test-macro
