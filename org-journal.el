@@ -563,7 +563,7 @@ before it will be deposed."
 (defun org-journal-after-save-hook ()
   "Update agenda files and dates."
   (save-restriction
-    ;TODO:breaks CI on Windows for some reason;(widen)
+    (widen);TODO:breaks CI on Windows for some reason;(widen)
     (org-journal--update-org-agenda-files)
     (org-journal--dates-puthash)
     (org-journal--serialize)))
@@ -1167,7 +1167,7 @@ Extracted from org-roam (org-roam-end-of-meta-data)."
       file
     (let (dates)
       (save-excursion
-        ;TODO:breaks CI on Windows for some reason;(widen)
+        (widen);TODO:breaks CI on Windows for some reason;(widen)
         (goto-char (point-min))
         (org-journal--skip-meta-data)
         (while (re-search-forward org-journal--created-re nil t)
